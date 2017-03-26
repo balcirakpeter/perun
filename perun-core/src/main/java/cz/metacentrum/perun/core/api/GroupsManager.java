@@ -45,6 +45,7 @@ import java.util.Map;
  *
  * @author  Michal Prochazka
  * @author  Slavek Licehammer
+ * @author  Jan Zverina
  * @see Perun
  */
 public interface GroupsManager {
@@ -75,6 +76,22 @@ public interface GroupsManager {
 
 	String GROUP_SHORT_NAME_REGEXP = "^[-a-zA-Z.0-9_ ]+$";
 	String GROUP_FULL_NAME_REGEXP = "^[-a-zA-Z.0-9_ ]+([:][-a-zA-Z.0-9_ ]+)*";
+
+	// Defines attribute which stores group value for change detection
+	String GROUPCHANGEDETECTION_ATTRNAME = AttributesManager.NS_GROUP_ATTR_OPT + ":groupChangeDetectionValue";
+	// Defines attribute which stores group value for change detection
+	String GROUPCHANGEDETECTIONQUERY_ATTRNAME = AttributesManager.NS_GROUP_ATTR_OPT + ":groupChangeDetectionQuery";
+	// Contains query need to get the modified group members
+	String GROUPMODIFIEDMEMBERSQUERY_ATTRNAME = AttributesManager.NS_GROUP_ATTR_OPT + ":groupModifiedMembersQuery";
+	// Defines timestamp with start of last successful synchronization
+	String GROUPSTARTOFLASTSUCCESSSYNC_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":startOfLastSuccessSynchronizationTimestamp";
+
+	// Detects that group synchronization is obtaining all data about members from external source
+	String GROUP_SYNC_STATUS_FULL = "full";
+	// Detects that group synchronization is lightweight
+	String GROUP_SYNC_STATUS_LIGHTWEIGHT = "lightweight";
+	// Detects that group synchronization is obtaining only modified data about members from external source
+	String GROUP_SYNC_STATUS_MODIFIED = "modified";
 
 	/**
 	 * Creates a new top-level group and associates it with the VO from parameter.

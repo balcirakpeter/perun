@@ -194,11 +194,12 @@ public interface ExtSourcesManagerBl {
 
 	/**
 	 * Get the candidate from the ExtSource.
-	 * Login of the candidate will be used to gain data from the ExtSource.
+	 * Login of candidate will be used to gain data from ExtSource.
 	 *
 	 * @param perunSession Perun session
-	 * @param source External source which will be used to get data about the candidate
-	 * @param login Login of the candidate
+	 * @param source External source which will be used to get data about candidate
+	 * @param login Login of candidate
+	 *
 	 * @return a Candidate object
 	 * @throws InternalErrorException
 	 * @throws CandidateNotExistsException
@@ -207,19 +208,19 @@ public interface ExtSourcesManagerBl {
 	Candidate getCandidate(PerunSession perunSession, ExtSource source, String login) throws InternalErrorException, CandidateNotExistsException, ExtSourceUnsupportedOperationException;
 
 	/**
-	 * Get the candidate from subjectData where at least login must exists.
+	 * Get the candidate from subject where at least login must exists.
 	 *
 	 * IMPORTANT: expected, that these subjectData was get from the ExtSource before using.
 	 *
 	 * @param perunSession Perun session
-	 * @param subjectData
-	 * @param source External source which will be used to get data about the candidate
-	 * @param login Login of the candidate
+	 * @param subject Subject with data about candidate
+	 * @param source External source, which was used to gain subject
+	 * @param login Login of candidate
 	 *
 	 * @return a Candidate object
 	 * @throws InternalErrorException
 	 */
-	Candidate getCandidate(PerunSession perunSession, Map<String,String> subjectData ,ExtSource source, String login) throws InternalErrorException;
+	Candidate getCandidate(PerunSession perunSession, Map<String,String> subject ,ExtSource source, String login) throws InternalErrorException;
 
 	void checkExtSourceExists(PerunSession sess, ExtSource extSource) throws InternalErrorException, ExtSourceNotExistsException;
 

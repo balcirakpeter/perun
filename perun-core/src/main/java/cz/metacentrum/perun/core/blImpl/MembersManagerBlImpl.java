@@ -175,7 +175,7 @@ public class MembersManagerBlImpl implements MembersManagerBl {
 			throw new InternalErrorException(e);
 		}
 
-		// Remove member's  attributes (namespaces: member and resource-member)
+		// Remove member's  attributes (namespaces: member, resource-member, member-group)
 		try {
 			getPerunBl().getAttributesManagerBl().removeAllAttributes(sess, member);
 			List<Resource> resources = getPerunBl().getResourcesManagerBl().getResources(sess, vo);
@@ -498,6 +498,7 @@ public class MembersManagerBlImpl implements MembersManagerBl {
 		List<Attribute> membersAttributes = new ArrayList<>();
 		List<Attribute> usersAttributesToMerge = new ArrayList<>();
 		List<Attribute> usersAttributesToModify = new ArrayList<>();
+		Attribute hashCode = null;
 		if (candidate.getAttributes() != null) {
 			for (String attributeName: candidate.getAttributes().keySet()) {
 				AttributeDefinition attributeDefinition;
@@ -512,6 +513,9 @@ public class MembersManagerBlImpl implements MembersManagerBl {
 						getPerunBl().getAttributesManagerBl().isFromNamespace(sess, attribute, AttributesManager.NS_MEMBER_ATTR_OPT)) {
 					// This is member's attribute
 					membersAttributes.add(attribute);
+				} else if (attributeName.equals(MembersManager.MEMBERGROUPHASHCODE_ATTRNAME)) {
+					// This should be hashCode
+					hashCode = attribute;
 				} else if (getPerunBl().getAttributesManagerBl().isFromNamespace(sess, attribute, AttributesManager.NS_USER_ATTR_DEF) ||
 						getPerunBl().getAttributesManagerBl().isFromNamespace(sess, attribute, AttributesManager.NS_USER_ATTR_OPT)) {
 					if(overwriteUserAttributes != null && !overwriteUserAttributes.isEmpty() && overwriteUserAttributes.contains(attribute.getName())) {
@@ -541,7 +545,7 @@ public class MembersManagerBlImpl implements MembersManagerBl {
 			Attribute loa = getPerunBl().getAttributesManagerBl().getAttribute(sess, member, AttributesManager.NS_MEMBER_ATTR_VIRT + ":loa");
 			memberLoa = (String) loa.getValue();
 		} catch (AttributeNotExistsException e) {
-			// user has no loa defined - if required by VO, it will be stopped in checking method later
+			// User has no loa defined - if required by VO, it will be stopped in checking method later
 		} catch (WrongAttributeAssignmentException e) {
 			throw new InternalErrorException(e);
 		}
@@ -549,18 +553,40 @@ public class MembersManagerBlImpl implements MembersManagerBl {
 		// Check if user can be member
 		this.canBeMemberInternal(sess, vo, user, memberLoa, true);
 
-		// set initial membership expiration
+		// Set initial membership expiration
 		this.extendMembership(sess, member);
 
 		insertToMemberGroup(sess, member, vo);
+		// Fill hash code of data gained from external source to member-group attribute.
+		if (hashCode != null)  {
+			Group membersGroup = null;
+			try {
+				membersGroup = getPerunBl().getGroupsManagerBl().getGroupByName(sess, vo, VosManager.MEMBERS_GROUP);
+				perunBl.getAttributesManagerBl().setAttributeInNestedTransaction(sess, member, membersGroup, hashCode);
+			} catch (GroupNotExistsException e) {
+				throw new ConsistencyErrorException(e);
+			} catch (WrongAttributeAssignmentException ex) {
+				throw new InternalErrorException("Attribute " + hashCode + " cannot be assigned to member - group relationship. Member:  " + member + " and group: " + membersGroup, ex);
+			} catch (AttributeNotExistsException ex) {
+				throw new InternalErrorException("Attribute " + hashCode + " does not exist.", ex);
+			}
+		}
 
 		// Add member also to all groups in list
 		if(groups != null && !groups.isEmpty()) {
 			for(Group group: groups) {
 				try {
 					perunBl.getGroupsManagerBl().addMember(sess, group, member);
+					// Fill hash code of data gained from external source to member-group attribute.
+					if (hashCode != null)  {
+						perunBl.getAttributesManagerBl().setAttributeInNestedTransaction(sess, member, group, hashCode);
+					}
 				} catch (GroupNotExistsException e) {
 					throw new ConsistencyErrorException(e);
+				} catch (WrongAttributeAssignmentException ex) {
+					throw new InternalErrorException("Attribute " + hashCode + " cannot be assigned to member - group relationship. Member:  " + member + " and group: " + group, ex);
+				} catch (AttributeNotExistsException ex) {
+					throw new InternalErrorException("Attribute " + hashCode + " does not exist.", ex);
 				}
 			}
 		}

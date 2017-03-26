@@ -19,11 +19,16 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cz.metacentrum.perun.core.api.Attribute;
+import cz.metacentrum.perun.core.api.BeansUtils;
+import cz.metacentrum.perun.core.api.Group;
+import cz.metacentrum.perun.core.api.PerunSession;
+import cz.metacentrum.perun.core.api.exceptions.AttributeNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentException;
 /**
  * @author Michal Prochazka michalp@ics.muni.cz
  */
@@ -55,15 +60,26 @@ public class ExtSourceISMU extends ExtSource implements ExtSourceSimpleApi {
 	}
 
 	@Override
-	public List<Map<String, String>> getGroupSubjects(Map<String, String> attributes) throws InternalErrorException {
+	public String getGroupSubjects(PerunSession sess, Group group, String status, List<Map<String, String>> subjects) throws InternalErrorException {
 		// Get the url query for the group subjects
-		String queryForGroup = attributes.get(GroupsManager.GROUPMEMBERSQUERY_ATTRNAME);
+		Attribute queryForGroupAttribute = null;
+		try {
+			queryForGroupAttribute = perunBl.getAttributesManagerBl().getAttribute(sess, group, GroupsManager.GROUPMEMBERSQUERY_ATTRNAME);
+		} catch (WrongAttributeAssignmentException e) {
+			// Should not happen
+			throw new InternalErrorException("Attribute " + GroupsManager.GROUPMEMBERSQUERY_ATTRNAME + " is not from group namespace.");
+		} catch (AttributeNotExistsException e) {
+			throw new InternalErrorException("Attribute " + GroupsManager.GROUPMEMBERSQUERY_ATTRNAME + " must exists.");
+		}
 
-		return this.querySource(queryForGroup, null, 0);
+		// Get the query for the group subjects
+		String queryForGroup = BeansUtils.attributeValueToString(queryForGroupAttribute);
+
+		querySource(queryForGroup, null, 0, subjects);
+		return GroupsManager.GROUP_SYNC_STATUS_FULL;
 	}
 
-	protected List<Map<String,String>> querySource(String query, String searchString, int maxResults) throws InternalErrorException {
-
+	protected void querySource(String query, String searchString, int maxResults, List<Map<String, String>> subjects) throws InternalErrorException {
 		// Get the URL, if query was provided it has precedence over url attribute defined in extSource
 		String url;
 		if (query != null && !query.isEmpty()) {
@@ -114,8 +130,6 @@ public class ExtSourceISMU extends ExtSource implements ExtSourceSimpleApi {
 			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
 			String line;
 
-			List<Map<String, String>> subjects = new ArrayList<>();
-
 			while ((line = reader.readLine()) != null) {
 				Map<String, String> map = new HashMap<>();
 
@@ -146,9 +160,8 @@ public class ExtSourceISMU extends ExtSource implements ExtSourceSimpleApi {
 
 				subjects.add(map);
 			}
-
-			return subjects;
 		} catch (Exception e) {
+
 			throw new InternalErrorException(e);
 		}
 	}

@@ -59,6 +59,7 @@ import java.util.Map;
  *
  * @author  Michal Prochazka
  * @author  Slavek Licehammer
+ * @author  Jan Zverina
  * @see Perun
  */
 public interface GroupsManagerBl {
@@ -1397,6 +1398,7 @@ public interface GroupsManagerBl {
 	 * However, this method cannot be used in method running in the nested transaction, where the group was changed in the database.
 	 *
 	 * Set timestamp to attribute "group_def_lastSynchronizationTimestamp"
+	 * Set timestamp to attribute "group_def_startOfLastSuccessSynchronizationTimestamp"
 	 * Set exception message to attribute "group_def_lastSynchronizationState"
 	 *
 	 * FailedDueToException is true means group synchronization failed completely.
@@ -1412,7 +1414,7 @@ public interface GroupsManagerBl {
 	 * @throws WrongAttributeAssignmentException
 	 * @throws WrongAttributeValueException
 	 */
-	void saveInformationAboutGroupSynchronizationInNewTransaction(PerunSession sess, Group group, boolean failedDueToException, String exceptionMessage) throws AttributeNotExistsException, InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, WrongAttributeValueException;
+	void saveInformationAboutGroupSynchronizationInNewTransaction(PerunSession sess, Group group, long startTime, boolean failedDueToException, String exceptionMessage) throws AttributeNotExistsException, InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, WrongAttributeValueException;
 
 	/**
 	 * This method will set timestamp and exceptionMessage to group attributes for the group.
@@ -1438,7 +1440,7 @@ public interface GroupsManagerBl {
 	 * @throws WrongAttributeAssignmentException
 	 * @throws WrongAttributeValueException
 	 */
-	void saveInformationAboutGroupSynchronizationInNestedTransaction(PerunSession sess, Group group, boolean failedDueToException, String exceptionMessage) throws AttributeNotExistsException, InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, WrongAttributeValueException;
+	void saveInformationAboutGroupSynchronizationInNestedTransaction(PerunSession sess, Group group, long startTime, boolean failedDueToException, String exceptionMessage) throws AttributeNotExistsException, InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, WrongAttributeValueException;
 
 
 	/**

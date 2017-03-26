@@ -12,6 +12,7 @@ import cz.metacentrum.perun.core.api.CandidateGroup;
 import cz.metacentrum.perun.core.api.ExtSource;
 import cz.metacentrum.perun.core.api.Group;
 import cz.metacentrum.perun.core.api.GroupsManager;
+import cz.metacentrum.perun.core.api.MembersManager;
 import cz.metacentrum.perun.core.api.PerunSession;
 import cz.metacentrum.perun.core.api.User;
 import cz.metacentrum.perun.core.api.UserExtSource;
@@ -231,55 +232,79 @@ public class ExtSourcesManagerBlImpl implements ExtSourcesManagerBl {
 			throw new CandidateNotExistsException("Candidate with login [" + login + "] not exists");
 		}
 
-		//If first name of candidate is not in format of name, set null instead
-		candidate.setFirstName(subject.get("firstName"));
-		if(candidate.getFirstName() != null) {
-			Matcher name = namePattern.matcher(candidate.getFirstName());
-			if(!name.matches()) candidate.setFirstName(null);
-		}
-		// If last name of candidate is not in format of name, set null instead
-		candidate.setLastName(subject.get("lastName"));
-		if(candidate.getLastName()!= null) {
-			Matcher name = namePattern.matcher(candidate.getLastName());
-			if(!name.matches()) candidate.setLastName(null);
-		}
-		candidate.setMiddleName(subject.get("middleName"));
-		candidate.setTitleAfter(subject.get("titleAfter"));
-		candidate.setTitleBefore(subject.get("titleBefore"));
+		// Count hash code of subject
+		int hashCode = subject.hashCode();
+		subject.put(MembersManager.MEMBERGROUPHASHCODE_ATTRNAME, Integer.toString(hashCode));
 
-		//Set service user
-		if(subject.get("isServiceUser") == null) {
-			candidate.setServiceUser(false);
-		} else {
-			String isServiceUser = subject.get("isServiceUser");
-			if(isServiceUser.equals("true")) {
-				candidate.setServiceUser(true);
-			} else {
-				candidate.setServiceUser(false);
-			}
-		}
-
-		// Set sponsored user
-		if(subject.get("isSponsoredUser") == null) {
-			candidate.setSponsoredUser(false);
-		} else {
-			String isSponsoredUser = subject.get("isSponsoredUser");
-			if(isSponsoredUser.equals("true")) {
-				candidate.setSponsoredUser(true);
-			} else {
-				candidate.setSponsoredUser(false);
-			}
-		}
+		// Set candidate from subject
+		setCandidateFromSubject(candidate, subject);
 
 		// Additional userExtSources
-		List<UserExtSource> additionalUserExtSources = new ArrayList<>();
+		List<UserExtSource> additionalUserExtSources = new ArrayList<UserExtSource>();
+		// Attributes of candidate
+		Map<String, String> attributes = new HashMap<String, String>();
+		// Filter attributes stored in subject
+		filterAttributes(sess, subject, login, attributes, additionalUserExtSources);
 
-		// Filter attributes
-		Map<String, String> attributes = new HashMap<>();
+		// Set userExtSources and attributes to candidate
+		candidate.setAdditionalUserExtSources(additionalUserExtSources);
+		candidate.setAttributes(attributes);
+
+		return candidate;
+	}
+
+	public Candidate getCandidate(PerunSession perunSession, Map<String,String> subject, ExtSource source, String login) throws InternalErrorException {
+		if(login == null || login.isEmpty()) throw new InternalErrorException("Login can't be empty or null.");
+		if(subject == null || subject.isEmpty()) throw new InternalErrorException("Subject can't be null or empty, at least login there must exists.");
+
+		// New Candidate
+		Candidate candidate = new Candidate();
+
+		// Prepare userExtSource object
+		UserExtSource userExtSource = new UserExtSource();
+		userExtSource.setExtSource(source);
+		userExtSource.setLogin(login);
+
+		// Count hash code of subject
+		int hashCode = subject.hashCode();
+		subject.put(MembersManager.MEMBERGROUPHASHCODE_ATTRNAME, Integer.toString(hashCode));
+
+		// Set the userExtSource
+		candidate.setUserExtSource(userExtSource);
+
+		// Set candidate from subject
+		setCandidateFromSubject(candidate, subject);
+
+		// Additional userExtSources
+		List<UserExtSource> additionalUserExtSources = new ArrayList<UserExtSource>();
+		// Attributes of candidate
+		Map<String, String> attributes = new HashMap<String, String>();
+		// Filter attributes stored in subject
+		filterAttributes(perunSession, subject, login, attributes, additionalUserExtSources);
+
+		// Set userExtSources and attributes to candidate
+		candidate.setAdditionalUserExtSources(additionalUserExtSources);
+		candidate.setAttributes(attributes);
+
+		return candidate;
+	}
+
+	/**
+	 * Sets attributes and additional user external sources of candidate
+	 *
+	 * @param sess Perun session
+	 * @param subject Subject to gain attributes from
+	 * @param login Login of candidate
+	 * @param attributes Attributes of candidate, which will be filled
+	 * @param additionalUserExtSources Additional user external sources of candidate, which will be filled
+	 * @throws InternalErrorException
+	 */
+	private void filterAttributes(PerunSession sess, Map<String, String> subject, String login, Map<String, String> attributes, List<UserExtSource> additionalUserExtSources) throws InternalErrorException {
 		for (String attrName: subject.keySet()) {
-			// Allow only users and members attributes
-			// FIXME volat metody z attributesManagera nez kontrolovat na zacatek jmena
-			if (attrName.startsWith(AttributesManager.NS_MEMBER_ATTR) || attrName.startsWith(AttributesManager.NS_USER_ATTR)) {
+			// Allow only users and members attributes and hashCode of subject
+			if (attrName.startsWith(AttributesManager.NS_MEMBER_ATTR)
+					|| attrName.startsWith(AttributesManager.NS_USER_ATTR)
+					|| attrName.equals(MembersManager.MEMBERGROUPHASHCODE_ATTRNAME)) {
 				attributes.put(attrName, subject.get(attrName));
 			} else if (attrName.startsWith(ExtSourcesManagerImpl.USEREXTSOURCEMAPPING)) {
 				if(subject.get(attrName) == null) continue; //skip null additional ext sources
@@ -296,7 +321,7 @@ public class ExtSourcesManagerBlImpl implements ExtSourcesManagerBl {
 				String additionalExtSourceType = userExtSourceRaw[1];
 				String additionalExtLogin = userExtSourceRaw[2];
 				int additionalExtLoa = 0;
-				//Loa is not mandatory argument
+				// Loa is not mandatory argument
 				if (userExtSourceRaw.length>3 && userExtSourceRaw[3] != null) {
 					try {
 						additionalExtLoa = Integer.parseInt(userExtSourceRaw[3]);
@@ -324,55 +349,42 @@ public class ExtSourcesManagerBlImpl implements ExtSourcesManagerBl {
 							throw new ConsistencyErrorException("Creating existin extSource: " + additionalExtSourceName);
 						}
 					}
-					//add additional user extSource
+					// Add additional user extSource
 					additionalUserExtSources.add(new UserExtSource(additionalExtSource, additionalExtLoa, additionalExtLogin));
 				}
 			}
 		}
-
-		candidate.setAdditionalUserExtSources(additionalUserExtSources);
-		candidate.setAttributes(attributes);
-
-		return candidate;
 	}
 
-	@Override
-	public Candidate getCandidate(PerunSession perunSession, Map<String,String> subjectData, ExtSource source, String login) throws InternalErrorException {
-		if(login == null || login.isEmpty()) throw new InternalErrorException("Login can't be empty or null.");
-		if(subjectData == null || subjectData.isEmpty()) throw new InternalErrorException("Subject data can't be null or empty, at least login there must exists.");
-
-		// New Canddate
-		Candidate candidate = new Candidate();
-
-		// Prepare userExtSource object
-		UserExtSource userExtSource = new UserExtSource();
-		userExtSource.setExtSource(source);
-		userExtSource.setLogin(login);
-
-		// Set the userExtSource
-		candidate.setUserExtSource(userExtSource);
-
-		//If first name of candidate is not in format of name, set null instead
-		candidate.setFirstName(subjectData.get("firstName"));
+	/**
+	 * Sets main information about candidate from data in subject
+	 * Sets: firstName, lastName, middleName, titleBefore, titleAfter, isServiceUser, isSponsoredUser
+	 *
+	 * @param candidate Candidate to be set
+	 * @param subject Subject to gain values from
+	 */
+	private void setCandidateFromSubject(Candidate candidate, Map<String, String> subject) {
+		// If first name of candidate is not in format of name, set null instead
+		candidate.setFirstName(subject.get("firstName"));
 		if(candidate.getFirstName() != null) {
 			Matcher name = namePattern.matcher(candidate.getFirstName());
 			if(!name.matches()) candidate.setFirstName(null);
 		}
-		//If last name of candidate is not in format of name, set null instead
-		candidate.setLastName(subjectData.get("lastName"));
+		// If last name of candidate is not in format of name, set null instead
+		candidate.setLastName(subject.get("lastName"));
 		if(candidate.getLastName()!= null) {
 			Matcher name = namePattern.matcher(candidate.getLastName());
 			if(!name.matches()) candidate.setLastName(null);
 		}
-		candidate.setMiddleName(subjectData.get("middleName"));
-		candidate.setTitleAfter(subjectData.get("titleAfter"));
-		candidate.setTitleBefore(subjectData.get("titleBefore"));
+		candidate.setMiddleName(subject.get("middleName"));
+		candidate.setTitleAfter(subject.get("titleAfter"));
+		candidate.setTitleBefore(subject.get("titleBefore"));
 
 		// Set service user
-		if(subjectData.get("isServiceUser") == null) {
+		if(subject.get("isServiceUser") == null) {
 			candidate.setServiceUser(false);
 		} else {
-			String isServiceUser = subjectData.get("isServiceUser");
+			String isServiceUser = subject.get("isServiceUser");
 			if(isServiceUser.equals("true")) {
 				candidate.setServiceUser(true);
 			} else {
@@ -380,81 +392,17 @@ public class ExtSourcesManagerBlImpl implements ExtSourcesManagerBl {
 			}
 		}
 
-		//Set sponsored user
-		if(subjectData.get("isSponsoredUser") == null) {
+		// Set sponsored user
+		if(subject.get("isSponsoredUser") == null) {
 			candidate.setSponsoredUser(false);
 		} else {
-			String isSponsoredUser = subjectData.get("isSponsoredUser");
+			String isSponsoredUser = subject.get("isSponsoredUser");
 			if(isSponsoredUser.equals("true")) {
 				candidate.setSponsoredUser(true);
 			} else {
 				candidate.setSponsoredUser(false);
 			}
 		}
-
-		// Additional userExtSources
-		List<UserExtSource> additionalUserExtSources = new ArrayList<>();
-
-		// Filter attributes
-		Map<String, String> attributes = new HashMap<>();
-		for (String attrName: subjectData.keySet()) {
-			// Allow only users and members attributes
-			// FIXME volat metody z attributesManagera nez kontrolovat na zacatek jmena
-			if (attrName.startsWith(AttributesManager.NS_MEMBER_ATTR) || attrName.startsWith(AttributesManager.NS_USER_ATTR)) {
-				attributes.put(attrName, subjectData.get(attrName));
-			} else if (attrName.startsWith(ExtSourcesManagerImpl.USEREXTSOURCEMAPPING)) {
-				if(subjectData.get(attrName) == null) continue; //skip null additional ext sources
-				// Add additionalUserExtSources
-				String[] userExtSourceRaw =  subjectData.get(attrName).split("\\|"); // Entry contains extSourceName|extSourceType|extLogin[|LoA]
-				log.debug("Processing additionalUserExtSource {}",  subjectData.get(attrName));
-
-				//Check if the array has at least 3 parts, this is protection against outOfBoundException
-				if(userExtSourceRaw.length < 3) {
-					throw new InternalErrorException("There is missing some mandatory part of additional user extSource value when processing it - '" + attrName + "'");
-				}
-
-				String additionalExtSourceName = userExtSourceRaw[0];
-				String additionalExtSourceType = userExtSourceRaw[1];
-				String additionalExtLogin = userExtSourceRaw[2];
-				int additionalExtLoa = 0;
-				// Loa is not mandatory argument
-				if (userExtSourceRaw.length>3 && userExtSourceRaw[3] != null) {
-					try {
-						additionalExtLoa = Integer.parseInt(userExtSourceRaw[3]);
-					} catch (NumberFormatException e) {
-						throw new ParserException("Candidate with login [" + login + "] has wrong LoA '" + userExtSourceRaw[3] + "'.", e, "LoA");
-					}
-				}
-
-				ExtSource additionalExtSource;
-
-				if (additionalExtSourceName == null || additionalExtSourceName.isEmpty() ||
-						additionalExtSourceType == null || additionalExtSourceType.isEmpty() ||
-						additionalExtLogin == null || additionalExtLogin.isEmpty()) {
-					log.error("User with login {} has invalid additional userExtSource defined {}.", login, userExtSourceRaw);
-				} else {
-					try {
-						// Try to get extSource, with full extSource object (containg ID)
-						additionalExtSource = getPerunBl().getExtSourcesManagerBl().getExtSourceByName(perunSession, additionalExtSourceName);
-					} catch (ExtSourceNotExistsException e) {
-						try {
-							// Create new one if not exists
-							additionalExtSource = new ExtSource(additionalExtSourceName, additionalExtSourceType);
-							additionalExtSource = getPerunBl().getExtSourcesManagerBl().createExtSource(perunSession, additionalExtSource, null);
-						} catch (ExtSourceExistsException e1) {
-							throw new ConsistencyErrorException("Creating existin extSource: " + additionalExtSourceName);
-						}
-					}
-					// Add additional user extSource
-					additionalUserExtSources.add(new UserExtSource(additionalExtSource, additionalExtLoa, additionalExtLogin));
-				}
-			}
-		}
-
-		candidate.setAdditionalUserExtSources(additionalUserExtSources);
-		candidate.setAttributes(attributes);
-
-		return candidate;
 	}
 
 	@Override

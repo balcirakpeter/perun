@@ -40,6 +40,9 @@ import java.util.Map;
  */
 public interface MembersManager {
 
+	// Defines name of member-group attribute which stores hash code of data gained from external source
+	String MEMBERGROUPHASHCODE_ATTRNAME = AttributesManager.NS_MEMBER_GROUP_ATTR_DEF + ":hashCode";
+
 	/**
 	 * Attribute which contains rules for membership expiration
 	 */
@@ -1144,7 +1147,7 @@ public interface MembersManager {
 	 * @throws UserNotInRoleException if sponsor hasn't right role in the same vo
 	 * @throws PrivilegeException if not PerunAdmin
 	 */
-	RichMember setSponsorshipForMember(PerunSession session, Member sponsoredMember, User sponsor) throws InternalErrorException, MemberNotExistsException, AlreadySponsoredMemberException, UserNotInRoleException, PrivilegeException;
+	RichMember setSponsorshipForMember(PerunSession session, Member sponsoredMember, User sponsor) throws InternalErrorException, MemberNotExistsException, UserNotInRoleException, AlreadySponsoredMemberException, PrivilegeException;
 
 	/**
 	 * Transform sponsored member to non-sponsored one. Delete all his sponsors.
