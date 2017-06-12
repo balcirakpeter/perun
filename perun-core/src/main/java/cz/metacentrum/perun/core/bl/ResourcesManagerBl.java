@@ -372,7 +372,7 @@ public interface ResourcesManagerBl {
 	 * @throws ServiceNotAssignedException
 	 */
 	void removeService(PerunSession perunSession, Resource resource, Service service) throws InternalErrorException,
-			 ServiceNotExistsException, ServiceNotAssignedException;
+			ServiceNotExistsException, ServiceNotAssignedException;
 
 	/**
 	 * Remove from resource all services from services package.
@@ -953,4 +953,14 @@ public interface ResourcesManagerBl {
 	 * @throws InternalErrorException
 	 */
 	void removeAllExpiredBansOnResources(PerunSession sess) throws InternalErrorException;
+
+	/**
+	 * Revise member. He is set as Disapproved by default and if he has filled all required attributes correctly, we set him as Approved
+	 *
+	 * @param perunSession
+	 * @param resource
+	 * @param member
+	 * @throws InternalErrorException
+	 */
+	void memberRevision(PerunSession perunSession, Resource resource, Member member) throws InternalErrorException;
 }

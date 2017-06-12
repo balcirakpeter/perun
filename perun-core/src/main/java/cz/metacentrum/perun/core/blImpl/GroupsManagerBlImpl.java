@@ -480,7 +480,10 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			processRelationMembers(sess, groupsManagerImpl.getGroupById(sess, groupId), Collections.singletonList(member), group.getId(), true);
 		}
 
-		setRequiredAttributes(sess, member, group);
+		List<Resource> resources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, group);
+		for (Resource resource : resources) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+		}
 	}
 
 	/**
@@ -509,7 +512,11 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		membersToAdd.removeAll(oldMembers);
 
 		for (Member member : membersToAdd) {
-			setRequiredAttributes(sess, member, group);
+			List<Resource> resources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, group);
+			for (Resource resource : resources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+			}
+
 			getPerunBl().getAuditer().log(sess, "{} added to {}.", member, group);
 		}
 

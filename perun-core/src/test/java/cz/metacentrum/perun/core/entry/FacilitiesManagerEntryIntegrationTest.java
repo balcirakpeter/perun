@@ -84,6 +84,12 @@ public class FacilitiesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	@Before
 	public void setUp() throws Exception {
 
+		try {
+			perun.getAttributesManager().getAttributeDefinition(sess, perun.getResourcesManager().MEMBER_STATUS);
+		} catch (AttributeNotExistsException ex) {
+			setMemberStatusAttribute();
+		}
+
 		facility.setName("FacilitiesManagerTestFacility");
 		facility.setDescription("FacilityTestDescriptionText");
 		assertNotNull(perun.getFacilitiesManager().createFacility(sess, facility));
@@ -1994,7 +2000,7 @@ public class FacilitiesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 		Group group2 = setUpGroup(vo2, member21);
 
 		// make them not-allowed
-		perun.getMembersManager().setStatus(sess, member12, Status.INVALID);
+		perun.getMembersManager().setStatus(sess, member12, Status.DISABLED);
 		perun.getMembersManager().setStatus(sess, member22, Status.DISABLED);
 
 		perun.getGroupsManager().addMember(sess, group1, member12);
@@ -2253,21 +2259,33 @@ public class FacilitiesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 		}
 	}
 
-        private List<AttributeDefinition> getMandatoryAttrs() throws InternalErrorException{
-		List<String> MANDATORY_ATTRIBUTES_FOR_USER_IN_CONTACT = new ArrayList<>(Arrays.asList(
-                        AttributesManager.NS_USER_ATTR_DEF + ":organization",
-                        AttributesManager.NS_USER_ATTR_DEF + ":preferredMail"));
-		List<AttributeDefinition> mandatoryAttrs = new ArrayList<>();
+	private List<AttributeDefinition> getMandatoryAttrs() throws InternalErrorException{
+	List<String> MANDATORY_ATTRIBUTES_FOR_USER_IN_CONTACT = new ArrayList<>(Arrays.asList(
+					AttributesManager.NS_USER_ATTR_DEF + ":organization",
+					AttributesManager.NS_USER_ATTR_DEF + ":preferredMail"));
+	List<AttributeDefinition> mandatoryAttrs = new ArrayList<>();
 
-		for(String attrName: MANDATORY_ATTRIBUTES_FOR_USER_IN_CONTACT) {
-			try {
-				mandatoryAttrs.add(perun.getAttributesManagerBl().getAttributeDefinition(sess, attrName));
-			} catch (AttributeNotExistsException ex) {
-				throw new InternalErrorException("Some of mandatory attributes for users in facility contacts not exists.",ex);
-			}
+	for(String attrName: MANDATORY_ATTRIBUTES_FOR_USER_IN_CONTACT) {
+		try {
+			mandatoryAttrs.add(perun.getAttributesManagerBl().getAttributeDefinition(sess, attrName));
+		} catch (AttributeNotExistsException ex) {
+			throw new InternalErrorException("Some of mandatory attributes for users in facility contacts not exists.",ex);
 		}
+	}
 
-		return mandatoryAttrs;
-        }
+	return mandatoryAttrs;
+	}
+
+	private AttributeDefinition setMemberStatusAttribute() throws Exception {
+
+		AttributeDefinition attr = new AttributeDefinition();
+		attr.setNamespace(AttributesManager.NS_MEMBER_RESOURCE_ATTR_DEF);
+		attr.setFriendlyName("memberStatus");
+		attr.setDisplayName("Member status");
+		attr.setType(String.class.getName());
+		attr.setDescription("Member status to resource");
+
+		return perun.getAttributesManager().createAttribute(sess, attr);
+	}
 
 }

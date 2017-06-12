@@ -31,4 +31,9 @@ public abstract class HostAttributesModuleAbstract implements HostAttributesModu
 	public void changedAttributeHook(PerunSessionImpl session, Host host, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 
 	}
+
+	public void checkAttributeSyntax(PerunSessionImpl session, Host host, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+
+	}
+
 }
