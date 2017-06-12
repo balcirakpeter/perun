@@ -2888,6 +2888,358 @@ public class AttributesManagerEntry implements AttributesManager {
 		}
 		getAttributesManagerBl().checkAttributesValue(sess, ues, attributes);
 	}
+//sdfgsdf
+
+	public void checkAttributeSyntax(PerunSession sess, Facility facility, Attribute attribute) throws PrivilegeException, InternalErrorException, FacilityNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getPerunBl().getFacilitiesManagerBl().checkFacilityExists(sess, facility);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), facility , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, facility, attribute);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Facility facility, List<Attribute> attributes) throws PrivilegeException, InternalErrorException, FacilityNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getPerunBl().getFacilitiesManagerBl().checkFacilityExists(sess, facility);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), facility , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, facility, attributes);
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Vo vo, Attribute attribute) throws PrivilegeException, InternalErrorException, VoNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		getPerunBl().getVosManagerBl().checkVoExists(sess, vo);
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), vo , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, vo, attribute);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Vo vo, List<Attribute> attributes) throws PrivilegeException, InternalErrorException, VoNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getVosManagerBl().checkVoExists(sess, vo);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), vo , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, vo, attributes);
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Resource resource, Attribute attribute) throws PrivilegeException, InternalErrorException, ResourceNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		getPerunBl().getResourcesManagerBl().checkResourceExists(sess, resource);
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), resource , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, resource, attribute);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Resource resource, List<Attribute> attributes) throws PrivilegeException, InternalErrorException, ResourceNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getResourcesManagerBl().checkResourceExists(sess, resource);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), resource , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, resource, attributes);
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Resource resource, Member member, Attribute attribute) throws PrivilegeException, InternalErrorException, ResourceNotExistsException, MemberNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		getPerunBl().getResourcesManagerBl().checkResourceExists(sess, resource);
+		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), resource , member)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, resource, member, attribute);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Resource resource, Member member, List<Attribute> attributes) throws PrivilegeException, InternalErrorException, ResourceNotExistsException, MemberNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getResourcesManagerBl().checkResourceExists(sess, resource);
+		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), resource , member)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, resource, member, attributes);
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSession sess, Member member, Group group, Attribute attribute) throws PrivilegeException, InternalErrorException, GroupNotExistsException, MemberNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
+		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), member, group)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, member, group, attribute);
+	}
+
+	@Override
+	public void checkAttributesSyntax(PerunSession sess, Member member, Group group, List<Attribute> attributes) throws PrivilegeException, InternalErrorException, MemberNotExistsException, GroupNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
+		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
+		//Choose to which attributes has the principal access
+		for(Attribute attribute: attributes) {
+			if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), member, group)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, member, group, attributes);
+	}
+
+	@Override
+	public void checkAttributesSyntax(PerunSession sess, Member member, Group group, List<Attribute> attributes, boolean workWithUserAttributes) throws PrivilegeException, InternalErrorException, ResourceNotExistsException, MemberNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException, GroupNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
+		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_MEMBER_GROUP_ATTR)) {
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), member , group)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_USER_ATTR)) {
+				User user = getPerunBl().getUsersManagerBl().getUserByMember(sess, member);
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), user , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_MEMBER_ATTR)) {
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), member , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else {
+				throw new WrongAttributeAssignmentException("There is some attribute which is not type of any possible choice.");
+			}
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, member, group, attributes, workWithUserAttributes);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Resource resource, Member member, List<Attribute> attributes, boolean workWithUserAttributes) throws PrivilegeException, InternalErrorException, ResourceNotExistsException, MemberNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getResourcesManagerBl().checkResourceExists(sess, resource);
+		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_MEMBER_ATTR)) {
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), member , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_MEMBER_RESOURCE_ATTR)) {
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), resource , member)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_USER_ATTR)) {
+				User u = getPerunBl().getUsersManagerBl().getUserByMember(sess, member);
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), u , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_USER_FACILITY_ATTR)) {
+				User u = getPerunBl().getUsersManagerBl().getUserByMember(sess, member);
+				Facility f = getPerunBl().getResourcesManagerBl().getFacility(sess, resource);
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), u , f)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else {
+				throw new WrongAttributeAssignmentException("There is some attribute which is not type of any possible choice.");
+			}
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, resource, member, attributes, workWithUserAttributes);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Facility facility, Resource resource, User user, Member member, List<Attribute> attributes) throws PrivilegeException, InternalErrorException, ResourceNotExistsException, MemberNotExistsException, FacilityNotExistsException, UserNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getResourcesManagerBl().checkResourceExists(sess, resource);
+		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
+		getPerunBl().getFacilitiesManagerBl().checkFacilityExists(sess, facility);
+		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_MEMBER_ATTR)) {
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), member , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_MEMBER_RESOURCE_ATTR)) {
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), resource , member)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_USER_ATTR)) {
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), user , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_USER_FACILITY_ATTR)) {
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), user , facility)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else {
+				throw new WrongAttributeAssignmentException("There is some attribute which is not type of any possible choice.");
+			}
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, facility, resource, user, member, attributes);
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Member member, Attribute attribute) throws PrivilegeException, InternalErrorException, MemberNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), member , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, member, attribute);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Member member, List<Attribute> attributes) throws PrivilegeException, InternalErrorException, MemberNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), member , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, member, attributes);
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Facility facility, User user, Attribute attribute) throws PrivilegeException, InternalErrorException, FacilityNotExistsException, UserNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		getPerunBl().getFacilitiesManagerBl().checkFacilityExists(sess, facility);
+		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), facility , user)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, facility, user, attribute);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Facility facility, User user, List<Attribute> attributes) throws PrivilegeException, InternalErrorException, FacilityNotExistsException, UserNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getFacilitiesManagerBl().checkFacilityExists(sess, facility);
+		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), facility , user)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, facility, user, attributes);
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, User user, Attribute attribute) throws PrivilegeException, InternalErrorException, UserNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), user , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, user, attribute);
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Host host, Attribute attribute) throws PrivilegeException, InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException,AttributeNotExistsException, HostNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		getPerunBl().getFacilitiesManagerBl().checkHostExists(sess, host);
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), host , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, host, attribute);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Host host, List<Attribute> attributes) throws InternalErrorException, PrivilegeException, AttributeNotExistsException, HostNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException{
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getFacilitiesManagerBl().checkHostExists(sess, host);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), host , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, host, attributes);
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Group group, Attribute attribute) throws PrivilegeException, InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException, GroupNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), group , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, group, attribute);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, User user, List<Attribute> attributes) throws PrivilegeException, InternalErrorException, UserNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException, AttributeNotExistsException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), user , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, user, attributes);
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Resource resource, Group group, Attribute attribute) throws PrivilegeException, InternalErrorException, AttributeNotExistsException, WrongAttributeValueException, GroupNotExistsException, ResourceNotExistsException, GroupResourceMismatchException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		getPerunBl().getResourcesManagerBl().checkResourceExists(sess, resource);
+		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
+
+		if(!getPerunBl().getGroupsManagerBl().getVo(sess, group).equals(getPerunBl().getResourcesManagerBl().getVo(sess, resource))) {
+			throw new GroupResourceMismatchException("group and resource are not in the same VO");
+		}
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), resource , group)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, resource, group, attribute);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Resource resource, Group group, List<Attribute> attributes) throws PrivilegeException, InternalErrorException, AttributeNotExistsException, ResourceNotExistsException, GroupNotExistsException, WrongAttributeAssignmentException, WrongAttributeValueException, GroupResourceMismatchException, WrongReferenceAttributeValueException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getResourcesManagerBl().checkResourceExists(sess, resource);
+		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
+
+		if(!getPerunBl().getGroupsManagerBl().getVo(sess, group).equals(getPerunBl().getResourcesManagerBl().getVo(sess, resource))) {
+			throw new GroupResourceMismatchException("group and resource are not in the same VO");
+		}
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), resource , group)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, resource, group, attributes);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Resource resource, Group group, List<Attribute> attributes, boolean workWithGroupAttribute) throws PrivilegeException, InternalErrorException, AttributeNotExistsException, ResourceNotExistsException, GroupNotExistsException, WrongAttributeAssignmentException, WrongAttributeValueException, GroupResourceMismatchException, WrongReferenceAttributeValueException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getResourcesManagerBl().checkResourceExists(sess, resource);
+		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
+
+		if(!getPerunBl().getGroupsManagerBl().getVo(sess, group).equals(getPerunBl().getResourcesManagerBl().getVo(sess, resource))) {
+			throw new GroupResourceMismatchException("group and resource are not in the same VO");
+		}
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_GROUP_RESOURCE_ATTR)) {
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), resource , group)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			} else if(getAttributesManagerBl().isFromNamespace(sess, attr, NS_GROUP_ATTR)) {
+				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), group , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+			}
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, resource, group, attributes,workWithGroupAttribute);
+
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, UserExtSource ues, Attribute attribute) throws PrivilegeException, InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException,AttributeNotExistsException, UserExtSourceNotExistsException, WrongReferenceAttributeValueException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributeExists(sess, attribute);
+		getPerunBl().getUsersManagerBl().checkUserExtSourceExists(sess, ues);
+		//Choose to which attributes has the principal access
+		if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attribute), ues , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attribute));
+
+		getAttributesManagerBl().checkAttributeSyntax(sess, ues, attribute);
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, UserExtSource ues, List<Attribute> attributes) throws InternalErrorException, PrivilegeException, AttributeNotExistsException, UserExtSourceNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException,  WrongReferenceAttributeValueException {
+		Utils.checkPerunSession(sess);
+		getAttributesManagerBl().checkAttributesExists(sess, attributes);
+		getPerunBl().getUsersManagerBl().checkUserExtSourceExists(sess, ues);
+		//Choose to which attributes has the principal access
+		for(Attribute attr: attributes) {
+			if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, new AttributeDefinition(attr), ues , null)) throw new PrivilegeException("Principal has no access to check attribute = " + new AttributeDefinition(attr));
+		}
+		getAttributesManagerBl().checkAttributesSyntax(sess, ues, attributes);
+	}
 
 	public void removeAttribute(PerunSession sess, Facility facility, AttributeDefinition attribute) throws InternalErrorException, PrivilegeException, AttributeNotExistsException, FacilityNotExistsException, WrongAttributeAssignmentException, WrongAttributeValueException, WrongReferenceAttributeValueException {
 		Utils.checkPerunSession(sess);

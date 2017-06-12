@@ -12,6 +12,10 @@ import java.util.List;
  */
 public interface ResourcesManager {
 
+	public final static String APPROVED = "Approved";
+	public final static String DISAPPROVED = "Disapproved";
+	public final static String MEMBER_STATUS = AttributesManager.NS_MEMBER_RESOURCE_ATTR_DEF + ":memberStatus";
+
 	/**
 	 * Searches for the Resource with specified id.
 	 *

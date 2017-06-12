@@ -12,22 +12,7 @@ import cz.metacentrum.perun.core.api.Service;
 import cz.metacentrum.perun.core.api.ServiceAttributes;
 import cz.metacentrum.perun.core.api.ServicesPackage;
 import cz.metacentrum.perun.core.api.Vo;
-import cz.metacentrum.perun.core.api.exceptions.AttributeAlreadyAssignedException;
-import cz.metacentrum.perun.core.api.exceptions.AttributeNotAssignedException;
-import cz.metacentrum.perun.core.api.exceptions.DestinationAlreadyAssignedException;
-import cz.metacentrum.perun.core.api.exceptions.DestinationAlreadyRemovedException;
-import cz.metacentrum.perun.core.api.exceptions.DestinationNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
-import cz.metacentrum.perun.core.api.exceptions.PrivilegeException;
-import cz.metacentrum.perun.core.api.exceptions.RelationExistsException;
-import cz.metacentrum.perun.core.api.exceptions.ServiceAlreadyAssignedException;
-import cz.metacentrum.perun.core.api.exceptions.ServiceAlreadyRemovedException;
-import cz.metacentrum.perun.core.api.exceptions.ServiceAlreadyRemovedFromServicePackageException;
-import cz.metacentrum.perun.core.api.exceptions.ServiceExistsException;
-import cz.metacentrum.perun.core.api.exceptions.ServiceNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.ServicesPackageExistsException;
-import cz.metacentrum.perun.core.api.exceptions.ServicesPackageNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.VoNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.*;
 
 /**
  * @author Michal Prochazka <michalp@ics.muni.cz>
@@ -299,13 +284,13 @@ public interface ServicesManagerBl {
 	 * @throws InternalErrorException
 	 * @throws AttributeAlreadyAssignedException
 	 */
-	void addRequiredAttribute(PerunSession perunSession, Service service, AttributeDefinition attribute) throws InternalErrorException, AttributeAlreadyAssignedException;
+	void addRequiredAttribute(PerunSession perunSession, Service service, AttributeDefinition attribute) throws InternalErrorException, AttributeAlreadyAssignedException, GroupResourceMismatchException;
 
 	/**
 	 *  Batch version of addRequiredAttribute
 	 *  @see cz.metacentrum.perun.core.api.ServicesManager#addRequiredAttribute(PerunSession,Service,AttributeDefinition)
 	 */
-	void addRequiredAttributes(PerunSession perunSession, Service service, List<? extends AttributeDefinition> attributes) throws InternalErrorException, AttributeAlreadyAssignedException;
+	void addRequiredAttributes(PerunSession perunSession, Service service, List<? extends AttributeDefinition> attributes) throws InternalErrorException, AttributeAlreadyAssignedException, GroupResourceMismatchException;
 
 	/**
 	 * Remove required attribute from service.

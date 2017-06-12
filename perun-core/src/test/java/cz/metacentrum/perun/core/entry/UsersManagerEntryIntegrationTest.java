@@ -50,6 +50,12 @@ public class UsersManagerEntryIntegrationTest extends AbstractPerunIntegrationTe
 	@Before
 	public void setUp() throws Exception {
 
+		try {
+			perun.getAttributesManager().getAttributeDefinition(sess, perun.getResourcesManager().MEMBER_STATUS);
+		} catch (AttributeNotExistsException ex) {
+			setMemberStatusAttribute();
+		}
+
 		usersManager = perun.getUsersManager();
 		// set random name and logins during every setUp method
 		userFirstName = Long.toHexString(Double.doubleToLongBits(Math.random()));
@@ -1138,5 +1144,17 @@ public class UsersManagerEntryIntegrationTest extends AbstractPerunIntegrationTe
 		Attribute attribute = new Attribute(attrDef);
 		attribute.setValue("Testing value");
 		return attribute;
+	}
+
+	private AttributeDefinition setMemberStatusAttribute() throws Exception {
+
+		AttributeDefinition attr = new AttributeDefinition();
+		attr.setNamespace(AttributesManager.NS_MEMBER_RESOURCE_ATTR_DEF);
+		attr.setFriendlyName("memberStatus");
+		attr.setDisplayName("Member status");
+		attr.setType(String.class.getName());
+		attr.setDescription("Member status to resource");
+
+		return perun.getAttributesManager().createAttribute(sess, attr);
 	}
 }

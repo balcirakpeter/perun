@@ -10,16 +10,12 @@ import java.util.*;
 
 import cz.metacentrum.perun.core.api.*;
 import cz.metacentrum.perun.core.blImpl.AuthzResolverBlImpl;
+import cz.metacentrum.perun.core.api.exceptions.*;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import cz.metacentrum.perun.core.AbstractPerunIntegrationTest;
-import cz.metacentrum.perun.core.api.exceptions.AlreadyMemberException;
-import cz.metacentrum.perun.core.api.exceptions.ExtendMembershipException;
-import cz.metacentrum.perun.core.api.exceptions.MemberNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.UserNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.VoNotExistsException;
 
 /**
  * Integration tests for MembersManager
@@ -48,6 +44,12 @@ public class MembersManagerEntryIntegrationTest extends AbstractPerunIntegration
 	public void setUp() throws Exception {
 
 		extSource = perun.getExtSourcesManager().createExtSource(sess, extSource, null);
+
+		try {
+			perun.getAttributesManager().getAttributeDefinition(sess, perun.getResourcesManager().MEMBER_STATUS);
+		} catch (AttributeNotExistsException ex) {
+			setMemberStatusAttribute();
+		}
 
 		usersManagerEntry = perun.getUsersManager();
 		attributesManagerEntry = perun.getAttributesManager();
@@ -1486,5 +1488,17 @@ public class MembersManagerEntryIntegrationTest extends AbstractPerunIntegration
 		candidate.setUserExtSource(userExtSource);
 		candidate.setAttributes(new HashMap<String,String>());
 		return candidate;
+	}
+
+	private AttributeDefinition setMemberStatusAttribute() throws Exception {
+
+		AttributeDefinition attr = new AttributeDefinition();
+		attr.setNamespace(AttributesManager.NS_MEMBER_RESOURCE_ATTR_DEF);
+		attr.setFriendlyName("memberStatus");
+		attr.setDisplayName("Member status");
+		attr.setType(String.class.getName());
+		attr.setDescription("Member status to resource");
+
+		return perun.getAttributesManager().createAttribute(sess, attr);
 	}
 }

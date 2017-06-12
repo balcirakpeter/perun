@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import cz.metacentrum.perun.core.api.exceptions.*;
+import cz.metacentrum.perun.core.bl.AttributesManagerBl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -160,7 +162,6 @@ public class ServicesManagerBlImpl implements ServicesManagerBl {
 		}
 
 		return resourceServiceAttributes;
-
 	}
 
 	private ServiceAttributes getDataWithGroups(PerunSession sess, Service service, Facility facility, Resource resource) throws InternalErrorException {
@@ -168,6 +169,7 @@ public class ServicesManagerBlImpl implements ServicesManagerBl {
 		// append resource attributes
 		ServiceAttributes resourceServiceAttributes = new ServiceAttributes();
 		resourceServiceAttributes.addAttributes(getPerunBl().getAttributesManagerBl().getRequiredAttributes(sess, service, resource));
+
 
 		// append also vo attributes to resource object
 		try {
@@ -431,28 +433,118 @@ public class ServicesManagerBlImpl implements ServicesManagerBl {
 		return getServicesManagerImpl().getServicesFromServicesPackage(sess, servicesPackage);
 	}
 
-	public void addRequiredAttribute(PerunSession sess, Service service, AttributeDefinition attribute) throws InternalErrorException, AttributeAlreadyAssignedException {
+	public void addRequiredAttribute(PerunSession sess, Service service, AttributeDefinition attribute) throws InternalErrorException, AttributeAlreadyAssignedException, GroupResourceMismatchException {
 		//check if attribute isn't already added
 		List<AttributeDefinition> requiredAttributes = getPerunBl().getAttributesManagerBl().getRequiredAttributesDefinition(sess, service);
 		if(requiredAttributes.contains(attribute)) throw new AttributeAlreadyAssignedException(attribute);
 
 		getServicesManagerImpl().addRequiredAttribute(sess, service, attribute);
 		getPerunBl().getAuditer().log(sess, "{} added to {} as required attribute.", attribute, service);
+
+		AttributesManagerBl attributesManagerBl = getPerunBl().getAttributesManagerBl();
+		List<Resource> assignedResources = this.getAssignedResources(sess, service);
+
+		try{
+			for (Resource assignedResource: assignedResources) {
+
+				//group and group-resource
+				List<Group> groups = perunBl.getResourcesManagerBl().getAssignedGroups(sess, assignedResource);
+				for(Group group : groups) {
+					List<Attribute> attributes;
+					attributes = attributesManagerBl.getRequiredAttributes(sess, service, assignedResource, group, true);
+					attributes = attributesManagerBl.fillAttributes(sess, assignedResource, group, attributes, true);
+					attributesManagerBl.setAttributes(sess, assignedResource, group, attributes, true);
+				}
+
+				// call check of facility's resource's attributes
+				Facility facility = perunBl.getResourcesManagerBl().getFacility(sess, assignedResource);
+				attributesManagerBl.checkAttributesValue(sess, facility, attributesManagerBl.getRequiredAttributes(sess, facility));
+				attributesManagerBl.checkAttributesValue(sess, assignedResource, attributesManagerBl.getRequiredAttributes(sess, assignedResource));
+
+				List<Member> resourceMembers = perunBl.getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+
+				//Revise members, if they have all required attributes correctly set
+				for (Member member : resourceMembers) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+				}
+			}
+		} catch(WrongAttributeAssignmentException ex) {
+			throw new ConsistencyErrorException(ex);
+		} catch(WrongReferenceAttributeValueException ex){
+			throw new ConsistencyErrorException(ex);
+		} catch( WrongAttributeValueException ex){
+			throw new ConsistencyErrorException(ex);
+		}
 	}
 
-	public void addRequiredAttributes(PerunSession sess, Service service, List<? extends AttributeDefinition> attributes) throws InternalErrorException, AttributeAlreadyAssignedException {
+	public void addRequiredAttributes(PerunSession sess, Service service, List<? extends AttributeDefinition> attributes) throws InternalErrorException, AttributeAlreadyAssignedException, GroupResourceMismatchException {
 		getServicesManagerImpl().addRequiredAttributes(sess, service, attributes);
 		getPerunBl().getAuditer().log(sess, "{} added to {} as required attributes.", attributes, service);
+
+		AttributesManagerBl attributesManagerBl = getPerunBl().getAttributesManagerBl();
+		List<Resource> assignedResources = this.getAssignedResources(sess, service);
+
+		try{
+			for (Resource assignedResource: assignedResources) {
+
+				//group and group-resource
+				List<Group> groups = perunBl.getResourcesManagerBl().getAssignedGroups(sess, assignedResource);
+				for(Group group : groups) {
+					List<Attribute> reqAttributes;
+					reqAttributes = attributesManagerBl.getRequiredAttributes(sess, service, assignedResource, group, true);
+					reqAttributes = attributesManagerBl.fillAttributes(sess, assignedResource, group, reqAttributes, true);
+					attributesManagerBl.setAttributes(sess, assignedResource, group, reqAttributes, true);
+				}
+
+				// call check of facility's resource's attributes
+				Facility facility = perunBl.getResourcesManagerBl().getFacility(sess, assignedResource);
+				attributesManagerBl.checkAttributesValue(sess, facility, attributesManagerBl.getRequiredAttributes(sess, facility));
+				attributesManagerBl.checkAttributesValue(sess, assignedResource, attributesManagerBl.getRequiredAttributes(sess, assignedResource));
+
+				List<Member> resourceMembers = perunBl.getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+
+				//Revise members, if they have all required attributes correctly set
+				for (Member member : resourceMembers) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+				}
+			}
+		} catch(WrongAttributeAssignmentException ex) {
+			throw new ConsistencyErrorException(ex);
+		} catch(WrongReferenceAttributeValueException ex){
+			throw new ConsistencyErrorException(ex);
+		} catch( WrongAttributeValueException ex){
+			throw new ConsistencyErrorException(ex);
+		}
 	}
 
 	public void removeRequiredAttribute(PerunSession sess, Service service, AttributeDefinition attribute) throws InternalErrorException, AttributeNotAssignedException {
 		getServicesManagerImpl().removeRequiredAttribute(sess, service, attribute);
 		getPerunBl().getAuditer().log(sess, "{} removed from {} as required attribute.", attribute, service);
+
+		List<Resource> assignedResources = this.getAssignedResources(sess, service);
+		for (Resource assignedResource: assignedResources) {
+			List<Member> resourceMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+
+			//Revise members, if they have all required attributes correctly set
+			for (Member member : resourceMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
+		}
 	}
 
 	public void removeRequiredAttributes(PerunSession sess, Service service, List<? extends AttributeDefinition> attributes) throws InternalErrorException, AttributeNotAssignedException {
 		getServicesManagerImpl().removeRequiredAttributes(sess, service, attributes);
 		getPerunBl().getAuditer().log(sess, "{} removed from {} as required attributes.", attributes, service);
+
+		List<Resource> assignedResources = this.getAssignedResources(sess, service);
+		for (Resource assignedResource: assignedResources) {
+			List<Member> resourceMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+
+			//Revise members, if they have all required attributes correctly set
+			for (Member member : resourceMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
+		}
 	}
 
 	public void removeAllRequiredAttributes(PerunSession sess, Service service) throws InternalErrorException {
