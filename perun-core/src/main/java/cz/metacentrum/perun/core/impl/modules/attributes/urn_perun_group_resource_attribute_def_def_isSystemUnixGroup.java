@@ -31,16 +31,16 @@ public class urn_perun_group_resource_attribute_def_def_isSystemUnixGroup extend
 	private static final String A_GR_systemUnixGID = AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF + ":systemUnixGID";
 
 
+	@Override
 	public Attribute fillAttribute(PerunSessionImpl sess, Resource resource, Group group, AttributeDefinition attributeDefinition) throws InternalErrorException, WrongAttributeAssignmentException {
 		return new Attribute(attributeDefinition);
 	}
 
+	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException{
 
 		Integer isSystemUnixGroup = (Integer) attribute.getValue();
 		if(isSystemUnixGroup == null) return; //isSystemUnixGroup can be null. It is equivalent to 0.
-
-		if(isSystemUnixGroup != 0 && isSystemUnixGroup != 1) throw new WrongAttributeValueException(attribute, "Attribute isSystemUnixGroup should not other number than 0 or 1.");
 
 		Attribute sysUnixGroupName = new Attribute();
 		Attribute sysUnixGID = new Attribute();
@@ -76,6 +76,14 @@ public class urn_perun_group_resource_attribute_def_def_isSystemUnixGroup extend
 	}
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		Integer isSystemUnixGroup = (Integer) attribute.getValue();
+		if(isSystemUnixGroup == null) return;
+
+		if(isSystemUnixGroup != 0 && isSystemUnixGroup != 1) throw new WrongAttributeValueException(attribute, "Attribute isSystemUnixGroup should not other number than 0 or 1.");
+	}
+
+	@Override
 	public List<String> getDependencies() {
 		List<String> dependencies = new ArrayList<String>();
 		dependencies.add(A_GR_systemUnixGroupName);
@@ -83,6 +91,7 @@ public class urn_perun_group_resource_attribute_def_def_isSystemUnixGroup extend
 		return dependencies;
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF);

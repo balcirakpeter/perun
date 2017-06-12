@@ -68,7 +68,7 @@ public interface ResourcesManagerBl {
 	 * @throws ResourceAlreadyRemovedException if there are 0 rows affected by deleting from DB
 	 * @throws GroupAlreadyRemovedFromResourceException if there is at least 1 group not affected by deleting from DB
 	 */
-	void deleteResource(PerunSession perunSession, Resource resource) throws InternalErrorException, RelationExistsException, ResourceAlreadyRemovedException, GroupAlreadyRemovedFromResourceException;
+	void deleteResource(PerunSession perunSession, Resource resource) throws InternalErrorException, RelationExistsException, ResourceAlreadyRemovedException, GroupAlreadyRemovedFromResourceException, MemberResourceMismatchException;
 
 	/**
 	 *  Deletes all resources for the VO.
@@ -81,7 +81,7 @@ public interface ResourcesManagerBl {
 	 * @throws ResourceAlreadyRemovedException if there is at least 1 resource not affected by deleting from DB
 	 * @throws GroupAlreadyRemovedFromResourceException if there is at least 1 group not affected by deleting from DB
 	 */
-	void deleteAllResources(PerunSession perunSession, Vo vo) throws InternalErrorException, RelationExistsException, ResourceAlreadyRemovedException, GroupAlreadyRemovedFromResourceException, GroupAlreadyRemovedFromResourceException;
+	void deleteAllResources(PerunSession perunSession, Vo vo) throws InternalErrorException, RelationExistsException, ResourceAlreadyRemovedException, GroupAlreadyRemovedFromResourceException, GroupAlreadyRemovedFromResourceException, MemberResourceMismatchException;
 
 	/**
 	 * Get facility which belongs to the concrete resource.
@@ -201,7 +201,7 @@ public interface ResourcesManagerBl {
 	 * @throws GroupAlreadyAssignedException
 	 * @throws WrongReferenceAttributeValueException
 	 */
-	void assignGroupToResource(PerunSession perunSession, Group group, Resource resource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException;
+	void assignGroupToResource(PerunSession perunSession, Group group, Resource resource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException, MemberResourceMismatchException;
 
 	/**
 	 * Assign groups to a resource. Check if attributes for each member from all groups are valid. Fill members' attributes with missing values.
@@ -215,7 +215,7 @@ public interface ResourcesManagerBl {
 	 * @throws WrongReferenceAttributeValueException
 	 * @throws GroupAlreadyAssignedException
 	 */
-	void assignGroupsToResource(PerunSession perunSession, List<Group> groups, Resource resource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException;
+	void assignGroupsToResource(PerunSession perunSession, List<Group> groups, Resource resource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException, MemberResourceMismatchException;
 
 	/**
 	 * Assign group to the resources. Check if attributes for each member from group are valid. Fill members' attributes with missing values.
@@ -229,7 +229,7 @@ public interface ResourcesManagerBl {
 	 * @throws WrongReferenceAttributeValueException
 	 * @throws GroupAlreadyAssignedException
 	 */
-	void assignGroupToResources(PerunSession perunSession, Group group, List<Resource> resources) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException;
+	void assignGroupToResources(PerunSession perunSession, Group group, List<Resource> resources) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException, MemberResourceMismatchException;
 
 	/**
 	 * Remove group from a resource.
@@ -244,7 +244,7 @@ public interface ResourcesManagerBl {
 	 * @throws GroupNotDefinedOnResourceException Group was never assigned to this resource
 	 * @throws GroupAlreadyRemovedFromResourceException there are 0 rows affected by deleting from DB
 	 */
-	void removeGroupFromResource(PerunSession perunSession, Group group, Resource resource) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException;
+	void removeGroupFromResource(PerunSession perunSession, Group group, Resource resource) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException, MemberResourceMismatchException;
 
 	/**
 	 * Remove groups from a resource.
@@ -258,7 +258,7 @@ public interface ResourcesManagerBl {
 	 * @throws GroupNotDefinedOnResourceException
 	 * @throws GroupAlreadyRemovedFromResourceException
 	 */
-	void removeGroupsFromResource(PerunSession perunSession, List<Group> groups, Resource resource) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException;
+	void removeGroupsFromResource(PerunSession perunSession, List<Group> groups, Resource resource) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException, MemberResourceMismatchException;
 
 	/**
 	 * Remove group from resources.
@@ -272,7 +272,7 @@ public interface ResourcesManagerBl {
 	 * @throws GroupNotDefinedOnResourceException
 	 * @throws GroupAlreadyRemovedFromResourceException
 	 */
-	void removeGroupFromResources(PerunSession perunSession, Group group, List<Resource> resources) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException;
+	void removeGroupFromResources(PerunSession perunSession, Group group, List<Resource> resources) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException, MemberResourceMismatchException;
 
 	/**
 	 * List all groups associated with the resource.
@@ -346,7 +346,7 @@ public interface ResourcesManagerBl {
 	 * @throws ServiceNotExistsException
 	 * @throws ServiceAlreadyAssignedException
 	 */
-	void assignService(PerunSession perunSession, Resource resource, Service service) throws InternalErrorException, ServiceNotExistsException, ServiceAlreadyAssignedException, WrongAttributeValueException, WrongReferenceAttributeValueException;
+	void assignService(PerunSession perunSession, Resource resource, Service service) throws InternalErrorException, ServiceNotExistsException, ServiceAlreadyAssignedException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupResourceMismatchException, MemberResourceMismatchException;
 
 	/**
 	 * Assign all services from services package to resource.
@@ -359,7 +359,7 @@ public interface ResourcesManagerBl {
 	 * @throws ServicesPackageNotExistsException
 	 * @throws InternalErrorException
 	 */
-	void assignServicesPackage(PerunSession perunSession, Resource resource, ServicesPackage servicesPackage) throws InternalErrorException, ServicesPackageNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException;
+	void assignServicesPackage(PerunSession perunSession, Resource resource, ServicesPackage servicesPackage) throws InternalErrorException, ServicesPackageNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupResourceMismatchException, MemberResourceMismatchException;
 
 	/**
 	 * Remove service from resource.
@@ -372,7 +372,7 @@ public interface ResourcesManagerBl {
 	 * @throws ServiceNotAssignedException
 	 */
 	void removeService(PerunSession perunSession, Resource resource, Service service) throws InternalErrorException,
-			 ServiceNotExistsException, ServiceNotAssignedException;
+			ServiceNotExistsException, ServiceNotAssignedException, MemberResourceMismatchException;
 
 	/**
 	 * Remove from resource all services from services package.
@@ -383,7 +383,7 @@ public interface ResourcesManagerBl {
 	 *
 	 * @throws InternalErrorException
 	 */
-	void removeServicesPackage(PerunSession perunSession, Resource resource, ServicesPackage servicesPackage) throws InternalErrorException, ServicesPackageNotExistsException;
+	void removeServicesPackage(PerunSession perunSession, Resource resource, ServicesPackage servicesPackage) throws InternalErrorException, ServicesPackageNotExistsException, MemberResourceMismatchException;
 
 	/**
 	 * Get all VO resources.
@@ -657,7 +657,7 @@ public interface ResourcesManagerBl {
 	 * @throws InternalErrorException
 	 * @throws WrongReferenceAttributeValueException
 	 */
-	public void copyAttributes(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException, WrongReferenceAttributeValueException;
+	public void copyAttributes(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException, WrongReferenceAttributeValueException, MemberResourceMismatchException;
 
 	/**
 	 * Copy all services of the source resource to the destination resource.
@@ -670,7 +670,7 @@ public interface ResourcesManagerBl {
 	 * @throws WrongReferenceAttributeValueException
 	 * @throws WrongAttributeValueException
 	 */
-	public void copyServices(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException;
+	public void copyServices(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupResourceMismatchException, MemberResourceMismatchException;
 
 	/**
 	 * Copy all groups of the source resource to the destination resource.
@@ -681,7 +681,7 @@ public interface ResourcesManagerBl {
 	 * @param destinationResource
 	 * @throws InternalErrorException
 	 */
-	public void copyGroups(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException;
+	public void copyGroups(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException, MemberResourceMismatchException;
 
 
 	void checkResourceExists(PerunSession sess, Resource resource) throws InternalErrorException, ResourceNotExistsException;
@@ -953,4 +953,14 @@ public interface ResourcesManagerBl {
 	 * @throws InternalErrorException
 	 */
 	void removeAllExpiredBansOnResources(PerunSession sess) throws InternalErrorException;
+
+	/**
+	 * Revise member. He is set as Disapproved by default and if he has filled all required attributes correctly, we set him as Approved
+	 *
+	 * @param perunSession
+	 * @param resource
+	 * @param member
+	 * @throws InternalErrorException
+	 */
+	void memberRevision(PerunSession perunSession, Resource resource, Member member) throws InternalErrorException, MemberResourceMismatchException;
 }

@@ -25,6 +25,7 @@ import cz.metacentrum.perun.core.implApi.modules.attributes.FacilityVirtualAttri
  */
 public class urn_perun_facility_attribute_def_virt_maxUID extends FacilityVirtualAttributesModuleAbstract implements FacilityVirtualAttributesModuleImplApi {
 
+	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		try {
 			Attribute uidNamespaceAttribute = getUidNamespaceAttribute(sess, facility);
@@ -37,10 +38,12 @@ public class urn_perun_facility_attribute_def_virt_maxUID extends FacilityVirtua
 
 	}
 
+	@Override
 	public Attribute fillAttribute(PerunSessionImpl sess, Facility facility, AttributeDefinition attributeDefinition) throws InternalErrorException, WrongAttributeAssignmentException {
 		return new Attribute(attributeDefinition);
 	}
 
+	@Override
 	public Attribute getAttributeValue(PerunSessionImpl sess, Facility facility, AttributeDefinition attributeDefinition) throws InternalErrorException {
 		Attribute attribute = new Attribute(attributeDefinition);
 		try {
@@ -54,6 +57,7 @@ public class urn_perun_facility_attribute_def_virt_maxUID extends FacilityVirtua
 		}
 	}
 
+	@Override
 	public boolean setAttributeValue(PerunSessionImpl sess, Facility facility, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
 		Attribute uidNamespaceAttribute = getUidNamespaceAttribute(sess, facility);
 		if(uidNamespaceAttribute.getValue() == null) throw new WrongReferenceAttributeValueException(attribute, uidNamespaceAttribute);
@@ -65,6 +69,7 @@ public class urn_perun_facility_attribute_def_virt_maxUID extends FacilityVirtua
 		return false;
 	}
 
+	@Override
 	public void removeAttributeValue(PerunSessionImpl sess, Facility facility, AttributeDefinition attributeDefinition) throws InternalErrorException {
 		//Not suported yet.
 		throw new InternalErrorException("Can't remove value of this virtual attribute this way. " + attributeDefinition);
@@ -94,6 +99,7 @@ public class urn_perun_facility_attribute_def_virt_maxUID extends FacilityVirtua
 		return strongDependencies;
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_FACILITY_ATTR_VIRT);

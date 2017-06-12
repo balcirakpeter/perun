@@ -51,7 +51,7 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 		return resource;
 	}
 
-	public void deleteResource(PerunSession sess, Resource resource) throws InternalErrorException, RelationExistsException, ResourceAlreadyRemovedException, GroupAlreadyRemovedFromResourceException {
+	public void deleteResource(PerunSession sess, Resource resource) throws InternalErrorException, RelationExistsException, ResourceAlreadyRemovedException, GroupAlreadyRemovedFromResourceException, MemberResourceMismatchException {
 		//Get facility for audit messages
 		Facility facility = this.getFacility(sess, resource);
 
@@ -119,7 +119,7 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 		getPerunBl().getAuditer().log(sess, "{} deleted.#{}. Afected services:{}.", resource, facility, services);
 	}
 
-	public void deleteAllResources(PerunSession sess, Vo vo) throws InternalErrorException, RelationExistsException, ResourceAlreadyRemovedException, GroupAlreadyRemovedFromResourceException {
+	public void deleteAllResources(PerunSession sess, Vo vo) throws InternalErrorException, RelationExistsException, ResourceAlreadyRemovedException, GroupAlreadyRemovedFromResourceException, MemberResourceMismatchException {
 		for(Resource r: this.getResources(sess, vo)) {
 			deleteResource(sess, r);
 		}
@@ -203,7 +203,7 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 	}
 
 
-	public void assignGroupToResource(PerunSession sess, Group group, Resource resource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException {
+	public void assignGroupToResource(PerunSession sess, Group group, Resource resource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException, MemberResourceMismatchException {
 		Vo groupVo = getPerunBl().getGroupsManagerBl().getVo(sess, group);
 
 		// Check if the group and resource belongs to the same VO
@@ -240,38 +240,73 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 			throw new ConsistencyErrorException(ex);
 		}
 
-		//fill and check required attributes' values for each member
-		//and set defaultResource attribute if necessary
+		//Revise members, if they have all required attributes correctly set
 		List<Member> members = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
-		Facility facility = getPerunBl().getResourcesManagerBl().getFacility(sess, resource);
 		for(Member member : members) {
-			User user = getPerunBl().getUsersManagerBl().getUserByMember(sess, member);
-			try {
-				getPerunBl().getAttributesManagerBl().setRequiredAttributes(sess, facility, resource, user, member);
-			} catch(WrongAttributeAssignmentException ex) {
-				throw new ConsistencyErrorException(ex);
-			} catch(AttributeNotExistsException ex) {
-				throw new ConsistencyErrorException(ex);
-			} catch (MemberResourceMismatchException ex) {
-				throw new ConsistencyErrorException(ex);
-			}
+			memberRevision(sess, resource, member);
 		}
-
 	}
 
-	public void assignGroupsToResource(PerunSession perunSession, List<Group> groups, Resource resource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException {
+	public void memberRevision(PerunSession sess, Resource resource, Member member) throws InternalErrorException, MemberResourceMismatchException {
+		try {
+			//First set Disapproved as default status
+			Attribute attribute = getPerunBl().getAttributesManagerBl().getAttribute(sess, resource, member, perunBl.getResourcesManager().MEMBER_STATUS);
+			attribute.setValue(perunBl.getResourcesManager().DISAPPROVED);
+			getPerunBl().getAttributesManagerBl().setAttribute(sess, resource, member, attribute);
+		} catch (WrongAttributeAssignmentException ex) {
+			throw new ConsistencyErrorException("Attribute "+ perunBl.getResourcesManager().MEMBER_STATUS +" cannot be set for this entity!", ex);
+		} catch (AttributeNotExistsException ex) {
+			throw new ConsistencyErrorException("Attribute "+ perunBl.getResourcesManager().MEMBER_STATUS +" does not exists!" ,ex);
+		} catch (WrongAttributeValueException ex){
+			throw new ConsistencyErrorException("Attribute "+ perunBl.getResourcesManager().DISAPPROVED +" has wrong value!", ex);
+		} catch (WrongReferenceAttributeValueException ex){
+			throw new ConsistencyErrorException("Reference attribute for attribute "+ perunBl.getResourcesManager().MEMBER_STATUS +" has illegal value!",ex);
+		}
+		try {
+			//check attributes, if its ok we set member as Approved otherwise will nothing change
+			memberApprovalToResource(sess, resource, member);
+		} catch (MemberRequiredAttributesException ex) {
+			//It's ok, there was rollback in memberApprovalToResource() and members default status to resource is Disapproved
+		}
+	}
+
+	public void memberApprovalToResource(PerunSession sess, Resource resource, Member member) throws MemberRequiredAttributesException, InternalErrorException, MemberResourceMismatchException {
+		try {
+			Facility facility = getPerunBl().getResourcesManagerBl().getFacility(sess, resource);
+			User user = getPerunBl().getUsersManagerBl().getUserByMember(sess, member);
+
+			//fill and check required attributes' values for member
+			//and set defaultResource attribute if necessary
+			getPerunBl().getAttributesManagerBl().setRequiredAttributes(sess, facility, resource, user, member);
+
+			//if everithing is ok we set member as Approved otherwise there will be roollback and member stays Disapproved
+			Attribute attribute = getPerunBl().getAttributesManagerBl().getAttribute(sess,resource, member, perunBl.getResourcesManager().MEMBER_STATUS);
+			attribute.setValue(perunBl.getResourcesManager().APPROVED);
+			getPerunBl().getAttributesManagerBl().setAttribute(sess, resource, member, attribute);
+		} catch(WrongAttributeAssignmentException ex) {
+			throw new MemberRequiredAttributesException(ex.getAttribute(), member);
+		} catch(AttributeNotExistsException ex) {
+			throw new MemberRequiredAttributesException(member);
+		} catch(WrongAttributeValueException ex) {
+			throw new MemberRequiredAttributesException(ex.getAttribute(), ex.getAttributeHolder(), ex.getAttributeHolderSecondary(), member);
+		} catch(WrongReferenceAttributeValueException ex) {
+			throw new MemberRequiredAttributesException(ex.getAttribute(), ex.getReferenceAttribute(), member);
+		}
+	}
+
+	public void assignGroupsToResource(PerunSession perunSession, List<Group> groups, Resource resource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException, MemberResourceMismatchException {
 		for(Group g: groups) {
 			this.assignGroupToResource(perunSession, g, resource);
 		}
 	}
 
-	public void assignGroupToResources(PerunSession perunSession, Group group, List<Resource> resources) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException {
+	public void assignGroupToResources(PerunSession perunSession, Group group, List<Resource> resources) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupAlreadyAssignedException, MemberResourceMismatchException {
 		for(Resource r: resources) {
 			this.assignGroupToResource(perunSession, group, r);
 		}
 	}
 
-	public void removeGroupFromResource(PerunSession sess, Group group, Resource resource) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException {
+	public void removeGroupFromResource(PerunSession sess, Group group, Resource resource) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException, MemberResourceMismatchException {
 		Vo groupVo = getPerunBl().getGroupsManagerBl().getVo(sess, group);
 
 		// Check if the group and resource belongs to the same VO
@@ -349,13 +384,13 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 		}
 	}
 
-	public void removeGroupsFromResource(PerunSession perunSession, List<Group> groups, Resource resource) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException {
+	public void removeGroupsFromResource(PerunSession perunSession, List<Group> groups, Resource resource) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException, MemberResourceMismatchException {
 		for(Group g: groups) {
 			this.removeGroupFromResource(perunSession, g, resource);
 		}
 	}
 
-	public void removeGroupFromResources(PerunSession perunSession, Group group, List<Resource> resources) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException {
+	public void removeGroupFromResources(PerunSession perunSession, Group group, List<Resource> resources) throws InternalErrorException, GroupNotDefinedOnResourceException, GroupAlreadyRemovedFromResourceException, MemberResourceMismatchException {
 		for(Resource r: resources) {
 			this.removeGroupFromResource(perunSession, group, r);
 		}
@@ -378,7 +413,7 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 		return getResourcesManagerImpl().getAssignedRichResources(sess, group);
 	}
 
-	public void assignService(PerunSession sess, Resource resource, Service service) throws InternalErrorException, ServiceNotExistsException, ServiceAlreadyAssignedException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+	public void assignService(PerunSession sess, Resource resource, Service service) throws InternalErrorException, ServiceNotExistsException, ServiceAlreadyAssignedException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupResourceMismatchException, MemberResourceMismatchException {
 		getResourcesManagerImpl().assignService(sess, resource, service);
 		getPerunBl().getAuditer().log(sess, "{} asigned to {}", service, resource);
 
@@ -398,24 +433,18 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 			Facility facility = getFacility(sess, resource);
 			attributesManagerBl.checkAttributesValue(sess, facility, attributesManagerBl.getRequiredAttributes(sess, facility));
 			attributesManagerBl.checkAttributesValue(sess, resource, attributesManagerBl.getRequiredAttributes(sess, resource));
-			List<Member> members = getAllowedMembers(sess, resource);
+			List<Member> members = getAssignedMembers(sess, resource);
+
+			//Revise members, if they have all required attributes correctly set
 			for(Member member : members) {
-				User user = getPerunBl().getUsersManagerBl().getUserByMember(sess, member);
-				// use complex method for getting and setting member-resource, member, user-facility and user-facility required attributes for the service
-				getPerunBl().getAttributesManagerBl().setRequiredAttributes(sess, service, facility, resource, user, member);
+				memberRevision(sess, resource, member);
 			}
 		} catch(WrongAttributeAssignmentException ex) {
-			throw new ConsistencyErrorException(ex);
-		} catch(AttributeNotExistsException ex) {
-			throw new ConsistencyErrorException(ex);
-		} catch (MemberResourceMismatchException ex) {
-			throw new ConsistencyErrorException(ex);
-		} catch (GroupResourceMismatchException ex) {
 			throw new ConsistencyErrorException(ex);
 		}
 	}
 
-	public void assignServicesPackage(PerunSession sess, Resource resource, ServicesPackage servicesPackage) throws InternalErrorException, ServicesPackageNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+	public void assignServicesPackage(PerunSession sess, Resource resource, ServicesPackage servicesPackage) throws InternalErrorException, ServicesPackageNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupResourceMismatchException, MemberResourceMismatchException {
 		for(Service service : getPerunBl().getServicesManagerBl().getServicesFromServicesPackage(sess, servicesPackage)) {
 			try {
 				this.assignService(sess, resource, service);
@@ -428,12 +457,19 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 		log.info("All services from service package was assigned to the resource. servicesPackage={}, resource={}", servicesPackage, resource);
 	}
 
-	public void removeService(PerunSession sess, Resource resource, Service service) throws InternalErrorException, ServiceNotExistsException, ServiceNotAssignedException {
+	public void removeService(PerunSession sess, Resource resource, Service service) throws InternalErrorException, ServiceNotExistsException, ServiceNotAssignedException, MemberResourceMismatchException {
 		getResourcesManagerImpl().removeService(sess, resource, service);
 		getPerunBl().getAuditer().log(sess, "{} removed from {}", service, resource);
+
+			List<Member> resourceMembers = getAssignedMembers(sess, resource);
+
+			//Check if we can approve some members which was disapproved
+			for (Member member : resourceMembers) {
+				memberRevision(sess, resource, member);
+			}
 	}
 
-	public void removeServicesPackage(PerunSession sess, Resource resource, ServicesPackage servicesPackage) throws InternalErrorException, ServicesPackageNotExistsException {
+	public void removeServicesPackage(PerunSession sess, Resource resource, ServicesPackage servicesPackage) throws InternalErrorException, ServicesPackageNotExistsException, MemberResourceMismatchException {
 		for(Service service : getPerunBl().getServicesManagerBl().getServicesFromServicesPackage(sess, servicesPackage)) {
 			try {
 				//FIXME odstranit pouze v pripade ze tato service neni v jinem servicesPackage prirazenem na resource
@@ -588,7 +624,7 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 		return resource;
 	}
 
-	public void copyAttributes(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException, WrongReferenceAttributeValueException {
+	public void copyAttributes(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException, WrongReferenceAttributeValueException, MemberResourceMismatchException {
 		List<Attribute> sourceAttributes = getPerunBl().getAttributesManagerBl().getAttributes(sess, sourceResource);
 		List<Attribute> destinationAttributes = getPerunBl().getAttributesManagerBl().getAttributes(sess, destinationResource);
 
@@ -618,7 +654,7 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 
 	}
 
-	public void copyServices(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+	public void copyServices(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupResourceMismatchException, MemberResourceMismatchException {
 		for (Service owner : getAssignedServices(sess, sourceResource)) {
 			try {
 				assignService(sess, destinationResource, owner);
@@ -631,7 +667,7 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 	}
 
 	@Override
-	public void copyGroups(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException {
+	public void copyGroups(PerunSession sess, Resource sourceResource, Resource destinationResource) throws InternalErrorException, MemberResourceMismatchException {
 		for (Group group: getAssignedGroups(sess, sourceResource)) {
 			try {
 				assignGroupToResource(sess, group, destinationResource);

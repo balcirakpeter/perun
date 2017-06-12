@@ -31,10 +31,12 @@ public class urn_perun_group_resource_attribute_def_def_systemUnixGID extends Re
 	private static final String A_GR_systemUnixGroupName = AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF + ":systemUnixGroupName";
 	private static final String A_GR_systemIsUnixGroup = AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF + ":isSystemUnixGroup";
 
+	@Override
 	public Attribute fillAttribute(PerunSessionImpl sess, Resource resource, Group group, AttributeDefinition attributeDefinition) throws InternalErrorException, WrongAttributeAssignmentException {
 		return new Attribute(attributeDefinition);
 	}
 
+	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException{
 		Integer gid = (Integer) attribute.getValue();
 
@@ -53,10 +55,7 @@ public class urn_perun_group_resource_attribute_def_def_systemUnixGID extends Re
 			if(isSystemGroup.getValue() != null && (Integer) isSystemGroup.getValue() == 1) {
 				throw new WrongReferenceAttributeValueException(attribute, "Attribute cant be null if " + group + " on " + resource + " is system unix group.");
 			}
-		} else if(gid < 1) {
-			throw new WrongAttributeValueException(attribute,"GID number less than 1 is not allowed value.");
 		}
-
 
 		//Get facility for the resource
 		Facility facility = sess.getPerunBl().getResourcesManagerBl().getFacility(sess, resource);
@@ -94,12 +93,24 @@ public class urn_perun_group_resource_attribute_def_def_systemUnixGID extends Re
 	}
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		Integer gid = (Integer) attribute.getValue();
+		if (gid == null) {
+			return;
+		}
+		if (gid < 1) {
+			throw new WrongAttributeValueException(attribute,"GID number less than 1 is not allowed value.");
+		}
+	}
+
+	@Override
 	public List<String> getDependencies() {
 		List<String> dependecies = new ArrayList<String>();
 		dependecies.add(A_GR_systemUnixGroupName);
 		return dependecies;
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF);

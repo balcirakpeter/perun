@@ -34,10 +34,10 @@ public class urn_perun_vo_attribute_def_def_membershipExpirationRules extends Vo
 	Pattern loaPattern = Pattern.compile("^(([0-9]+,)|([0-9]+,[ ]))*[0-9]+$");
 	Pattern periodLoaPattern = Pattern.compile("^[0-9]+[|](([0-9]+[.][0-9]+[.])|([+][0-9]+(d|m|y)))[.]?$");
 
-	public void checkAttributeValue(PerunSessionImpl sess, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
 		Map<String, String> attrValue = new LinkedHashMap<String, String>();
 
-		//For no value is correct (it means no rules)
 		if(attribute.getValue() == null) return;
 
 		//save value to map attrValue
@@ -124,10 +124,12 @@ public class urn_perun_vo_attribute_def_def_membershipExpirationRules extends Vo
 		}
 	}
 
+	@Override
 	public Attribute fillAttribute(PerunSessionImpl sess, Vo vo, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeAssignmentException {
 		return new Attribute(attribute);
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_VO_ATTR_DEF);

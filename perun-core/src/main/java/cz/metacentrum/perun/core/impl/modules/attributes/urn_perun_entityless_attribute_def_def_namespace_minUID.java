@@ -19,19 +19,28 @@ import cz.metacentrum.perun.core.implApi.modules.attributes.EntitylessAttributes
 public class  urn_perun_entityless_attribute_def_def_namespace_minUID extends EntitylessAttributesModuleAbstract implements EntitylessAttributesModuleImplApi {
 
 
+	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, String key, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		Integer minUID = (Integer) attribute.getValue();
 		if(minUID != null) {
-			if(minUID<1) throw new WrongAttributeValueException(attribute, "Attribute value must be min 1.");
+			Attribute maxUIDAttr;
 			try {
-				Attribute maxUIDAttr = perunSession.getPerunBl().getAttributesManagerBl().getAttribute(perunSession, key, AttributesManager.NS_ENTITYLESS_ATTR_DEF + ":namespace-maxUID");
+				maxUIDAttr = perunSession.getPerunBl().getAttributesManagerBl().getAttribute(perunSession, key, AttributesManager.NS_ENTITYLESS_ATTR_DEF + ":namespace-maxUID");
 			} catch (AttributeNotExistsException ex) {
 				throw new ConsistencyErrorException("Attribute namespace-maxUID is supposed to exist.",ex);
 			}
-			Integer maxUID = (Integer) attribute.getValue();
+			Integer maxUID = (Integer) maxUIDAttr.getValue();
 			if(maxUID != null) {
 				if(minUID > maxUID) throw new WrongAttributeValueException(attribute, "Attribute value must be less than maxUID. MaxUID = " + maxUID + ", and minUID try to set = " + minUID);
 			}
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, String key, Attribute attribute) throws WrongAttributeValueException {
+		Integer minUID = (Integer) attribute.getValue();
+		if(minUID != null) {
+			if(minUID<1) throw new WrongAttributeValueException(attribute, "Attribute value must be min 1.");
 		}
 	}
 

@@ -166,6 +166,12 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 		vo1 = perun.getVosManagerBl().createVo(sess, new Vo(0, "vo1Test", "v1T"));
 		vo2 = perun.getVosManagerBl().createVo(sess, new Vo(0, "vo2Test", "v2T"));
 
+		try {
+			perun.getAttributesManager().getAttributeDefinition(sess, perun.getResourcesManager().MEMBER_STATUS);
+		} catch (AttributeNotExistsException ex) {
+			setMemberStatusAttribute();
+		}
+
 		//Create Groups(members groups in vos), Members and Users from Candidates
 		Candidate can1 = new Candidate();
 		can1.setFirstName("user1");
@@ -9476,6 +9482,18 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 		Attribute attribute = new Attribute(attrDef);
 		attribute.setValue("Testing value");
 		return attribute;
+	}
+
+	private AttributeDefinition setMemberStatusAttribute() throws Exception {
+
+		AttributeDefinition attr = new AttributeDefinition();
+		attr.setNamespace(AttributesManager.NS_MEMBER_RESOURCE_ATTR_DEF);
+		attr.setFriendlyName("memberStatus");
+		attr.setDisplayName("Member status");
+		attr.setType(String.class.getName());
+		attr.setDescription("Member status to resource");
+
+		return perun.getAttributesManager().createAttribute(sess, attr);
 	}
 
 	private Map<AttributeDefinition, Set<AttributeDefinition>> getAllDependenciesMapForTesting() {

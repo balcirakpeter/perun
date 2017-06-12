@@ -25,7 +25,7 @@ public class urn_perun_group_attribute_def_def_vomsGroupName extends GroupAttrib
 	private static final Pattern pattern = Pattern.compile("^[^<>&=]*$");
 
 	@Override
-	public void checkAttributeValue(PerunSessionImpl perunSession, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		String vomsGroupName;
 
 		if(attribute.getValue() == null) {

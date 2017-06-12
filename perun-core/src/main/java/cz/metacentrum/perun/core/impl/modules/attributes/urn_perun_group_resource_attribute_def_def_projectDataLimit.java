@@ -50,12 +50,6 @@ public class urn_perun_group_resource_attribute_def_def_projectDataLimit extends
 		String projectDataLimitNumber = null;
 		String projectDataLimitLetter = null;
 
-		//Check if attribute value has the right exp pattern (can be null)
-		if(attribute.getValue() != null) {
-			Matcher testMatcher = testingPattern.matcher((String) attribute.getValue());
-			if(!testMatcher.find()) throw new WrongAttributeValueException(attribute, resource, group, "Format of quota must be something like ex.: 1.30M or 2500K, but it is " + attribute.getValue());
-		} else return;
-
 		//Get ProjectDataQuota attribute
 		try {
 			attrProjectDataQuota = perunSession.getPerunBl().getAttributesManagerBl().getAttribute(perunSession, resource, group, A_GR_projectDataQuota);
@@ -139,6 +133,17 @@ public class urn_perun_group_resource_attribute_def_def_projectDataLimit extends
 
 			if (limitNumber.compareTo(quotaNumber) < 0) {
 				throw new WrongReferenceAttributeValueException(attribute, attrProjectDataQuota, attribute + " must be more than or equals to " + attrProjectDataQuota);
+			}
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		//Check if attribute value has the right exp pattern (can be null)
+		if(attribute.getValue() != null) {
+			Matcher testMatcher = testingPattern.matcher((String) attribute.getValue());
+			if(!testMatcher.find()) {
+				throw new WrongAttributeValueException(attribute, resource, group, "Format of quota must be something like ex.: 1.30M or 2500K, but it is " + attribute.getValue());
 			}
 		}
 	}

@@ -82,6 +82,14 @@ public class urn_perun_member_resource_attribute_def_def_filesQuota extends Reso
 	}
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		Integer filesQuota = (Integer) attribute.getValue();
+		if(filesQuota != null && filesQuota < 0) {
+			throw new WrongAttributeValueException(attribute, resource, member, attribute + " cannot be less than 0.");
+		}
+	}
+
+	@Override
 	public List<String> getDependencies() {
 		List<String> dependecies = new ArrayList<String>();
 		dependecies.add(A_R_defaultFilesLimit);

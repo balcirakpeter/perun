@@ -32,6 +32,7 @@ public class urn_perun_resource_attribute_def_def_fairshareGroupName extends Res
 
 	private static final Pattern pattern = Pattern.compile("^[a-zA-Z]{1,12}$");
 
+	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		//Null is ok, it means this resource is not fairshare group
 		if (attribute.getValue() == null) {
@@ -39,12 +40,6 @@ public class urn_perun_resource_attribute_def_def_fairshareGroupName extends Res
 		}
 
 		String gName = (String) attribute.getValue();
-
-		//Test if gName matchers regex
-		Matcher matcher = pattern.matcher(gName);
-		if (!matcher.matches()) {
-			throw new WrongAttributeValueException(attribute, resource, "Wrong format of group fairshare name. Max length is 12, only letters are allowed.");
-		}
 
 		//On facility must be fairshare group name unique (between all resources of this facility)
 		Facility facility = perunSession.getPerunBl().getResourcesManagerBl().getFacility(perunSession, resource);
@@ -64,6 +59,19 @@ public class urn_perun_resource_attribute_def_def_fairshareGroupName extends Res
 		if(resourcesFairshareGroupNames.contains(gName)) throw new WrongAttributeValueException(attribute, resource, "This name is already taken (not unique). Choose another one.");
 	}
 
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			String gName = (String) attribute.getValue();
+			//Test if gName matchers regex
+			Matcher matcher = pattern.matcher(gName);
+			if (!matcher.matches()) {
+				throw new WrongAttributeValueException(attribute, resource, "Wrong format of group fairshare name. Max length is 12, only letters are allowed.");
+			}
+		}
+	}
+
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_RESOURCE_ATTR_DEF);

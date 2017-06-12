@@ -26,19 +26,17 @@ import cz.metacentrum.perun.core.implApi.modules.attributes.FacilityUserAttribut
  */
 public class urn_perun_user_facility_attribute_def_def_shell extends FacilityUserAttributesModuleAbstract implements FacilityUserAttributesModuleImplApi {
 
-	@Override
 	/**
 	 * Checks an attribute with shell for the user at the specified facility. There
 	 * must be at least some facilities allowed and also the user must have
 	 * an account there. In that case the new user's shell must be included
 	 * in allowed shells and also need to have correct format.
 	 */
+	@Override
 	public void checkAttributeValue(PerunSessionImpl session, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, WrongAttributeAssignmentException {
 		String shell = (String) attribute.getValue();
 
 		if (shell == null) return;
-
-		session.getPerunBl().getModulesUtilsBl().checkFormatOfShell(shell, attribute);
 
 		List<String> allowedShells = allShellsAtSpecifiedFacility(session, facility, user);
 
@@ -49,6 +47,14 @@ public class urn_perun_user_facility_attribute_def_def_shell extends FacilityUse
 		if (!allowedShells.contains(shell)) {
 			throw new WrongAttributeValueException(attribute, user, facility, "Such shell is not allowed at specified facility for the user.");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl session, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		String shell = (String) attribute.getValue();
+
+		if (shell == null) return;
+		session.getPerunBl().getModulesUtilsBl().checkFormatOfShell(shell, attribute);
 	}
 
 	/**
@@ -80,6 +86,7 @@ public class urn_perun_user_facility_attribute_def_def_shell extends FacilityUse
 		return dependencies;
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_FACILITY_ATTR_DEF);

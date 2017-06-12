@@ -20,15 +20,19 @@ import java.util.regex.Matcher;
  */
 public class urn_perun_user_attribute_def_def_rootMailAliasesMail extends UserAttributesModuleAbstract implements UserAttributesModuleImplApi {
 
-    public void checkAttributeValue(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+    @Override
+    public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
         String attributeValue = (String) attribute.getValue();
 
-        Matcher emailMatcher = Utils.emailPattern.matcher(attributeValue);
-        if (!emailMatcher.find()) {
-            throw new WrongAttributeValueException(attribute, user, "Email is not in correct form.");
+        if (attributeValue != null) {
+            Matcher emailMatcher = Utils.emailPattern.matcher(attributeValue);
+            if (!emailMatcher.find()) {
+                throw new WrongAttributeValueException(attribute, user, "Email is not in correct form.");
+            }
         }
     }
 
+    @Override
     public AttributeDefinition getAttributeDefinition() {
         AttributeDefinition attr = new AttributeDefinition();
         attr.setNamespace(AttributesManager.NS_USER_ATTR_DEF);

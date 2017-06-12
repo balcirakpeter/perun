@@ -40,7 +40,7 @@ public class urn_perun_member_resource_attribute_def_def_dataQuota extends Resou
 	long E = P * 1024;
 
 	@Override
-	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		Attribute attrDataLimit = null;
 		String dataQuota = null;
 		String dataLimit = null;

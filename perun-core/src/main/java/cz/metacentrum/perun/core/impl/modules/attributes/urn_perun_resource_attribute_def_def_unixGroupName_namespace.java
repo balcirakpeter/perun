@@ -46,9 +46,6 @@ public class urn_perun_resource_attribute_def_def_unixGroupName_namespace extend
 			throw new WrongAttributeValueException(attribute, "Attribute groupName-namespace for resourece can't be null.");
 		}
 
-		//Check attribute regex
-		sess.getPerunBl().getModulesUtilsBl().checkAttributeRegex(attribute, "^[-_.a-zA-Z0-9]+$");
-
 		//Check reserved unix group names
 		sess.getPerunBl().getModulesUtilsBl().checkReservedUnixGroupNames(attribute);
 
@@ -107,6 +104,14 @@ public class urn_perun_resource_attribute_def_def_unixGroupName_namespace extend
 
 		} catch(AttributeNotExistsException ex) {
 			throw new ConsistencyErrorException(ex);
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			//Check attribute regex
+			perunSession.getPerunBl().getModulesUtilsBl().checkAttributeRegex(attribute, "^[-_.a-zA-Z0-9]+$");
 		}
 	}
 

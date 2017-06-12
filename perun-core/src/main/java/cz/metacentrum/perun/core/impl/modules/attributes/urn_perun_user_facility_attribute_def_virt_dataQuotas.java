@@ -116,6 +116,7 @@ public class urn_perun_user_facility_attribute_def_virt_dataQuotas extends Facil
 		return strongDependencies;
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_VIRT);

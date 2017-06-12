@@ -22,7 +22,7 @@ public class urn_perun_user_attribute_def_def_elixirScopedAffiliation extends Us
 	private static final String REGEX = "^[member|affiliate|faculty]+@[-A-Za-z0-9]+(\\.[-A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$";
 
 	@Override
-	public void checkAttributeValue(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 
 		List<String> values = ((List<String>)attribute.getValue());
 		if (values != null && !values.isEmpty()) {

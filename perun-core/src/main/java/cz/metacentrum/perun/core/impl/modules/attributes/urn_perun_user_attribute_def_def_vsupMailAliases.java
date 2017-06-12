@@ -36,14 +36,17 @@ import static cz.metacentrum.perun.core.impl.modules.attributes.urn_perun_user_a
 public class urn_perun_user_attribute_def_def_vsupMailAliases extends UserAttributesModuleAbstract implements UserAttributesModuleImplApi {
 
 	@Override
-	public void checkAttributeValue(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
-
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		List<String> mails = (attribute.getValue() != null) ? ((List<String>)attribute.getValue()) : (new ArrayList<>());
 
 		for (String mail : mails) {
 			Matcher emailMatcher = emailPattern.matcher(mail);
 			if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "Following value of School mail aliases is not in a correct form: '"+mail+"'.");
 		}
+	}
+
+	@Override
+	public void checkAttributeValue(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
 
 		// TODO - check uniqueness within list of values ??
 
@@ -155,6 +158,7 @@ public class urn_perun_user_attribute_def_def_vsupMailAliases extends UserAttrib
 
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_DEF);

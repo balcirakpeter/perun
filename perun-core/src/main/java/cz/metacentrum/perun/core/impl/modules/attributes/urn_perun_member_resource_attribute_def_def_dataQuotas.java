@@ -24,7 +24,7 @@ import java.util.Map;
 public class urn_perun_member_resource_attribute_def_def_dataQuotas extends ResourceMemberAttributesModuleAbstract implements ResourceMemberAttributesModuleImplApi {
 
 	@Override
-	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		//needed variables with quota informations
 		Map<String, String> defaultQuotasMap = new HashMap<>();
 

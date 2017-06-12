@@ -24,8 +24,14 @@ public class urn_perun_user_attribute_def_def_kerberosAdminPrincipal extends Use
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
 		if(attribute.getValue() == null) throw new WrongAttributeValueException(attribute, user, "Attribute's value can't be null");
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		String value = (String) attribute.getValue();
-		if(!value.matches("^[-\\/_.a-zA-Z0-9]+@[-_.A-z0-9]+$")) throw new WrongAttributeValueException(attribute, user, "Attribute's value is not in correct format. format: login@realm");
+		if (value != null) {
+			if(!value.matches("^[-\\/_.a-zA-Z0-9]+@[-_.A-z0-9]+$")) throw new WrongAttributeValueException(attribute, user, "Attribute's value is not in correct format. format: login@realm");
+		}
 	}
 
 	@Override
@@ -33,6 +39,7 @@ public class urn_perun_user_attribute_def_def_kerberosAdminPrincipal extends Use
 		return new Attribute(attribute);
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_DEF);

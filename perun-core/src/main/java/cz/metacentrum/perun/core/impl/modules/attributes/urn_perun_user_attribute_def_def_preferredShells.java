@@ -19,7 +19,21 @@ import cz.metacentrum.perun.core.implApi.modules.attributes.UserAttributesModule
  */
 public class urn_perun_user_attribute_def_def_preferredShells extends UserAttributesModuleAbstract implements UserAttributesModuleImplApi {
 
-	public void checkAttributeValue(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+	@Override
+	public void checkAttributeValue(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		List<String> pshell = (List<String>) attribute.getValue();
+
+		if (pshell != null){
+			for(String shell : pshell){
+				if(shell == null){
+					throw new WrongAttributeValueException(attribute, user, "shell cannot be null");
+				}
+			}
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
 		List<String> pshell = (List<String>) attribute.getValue();
 
 		if (pshell != null){
@@ -30,13 +44,12 @@ public class urn_perun_user_attribute_def_def_preferredShells extends UserAttrib
 					}else{
 						sess.getPerunBl().getModulesUtilsBl().checkFormatOfShell(shell, attribute);
 					}
-				}else{
-					throw new WrongAttributeValueException(attribute, user, "shell cannot be null");
 				}
 			}
 		}
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_DEF);

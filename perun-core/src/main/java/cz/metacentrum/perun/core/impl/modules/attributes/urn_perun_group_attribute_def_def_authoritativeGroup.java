@@ -29,17 +29,24 @@ public class urn_perun_group_attribute_def_def_authoritativeGroup extends GroupA
 	private final static Logger log = LoggerFactory.getLogger(urn_perun_group_attribute_def_def_authoritativeGroup.class);
 
 
+	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException{
 		//Null value is ok, means no settings for group
 		if(attribute.getValue() == null) return;
 
 		//Member group can't have set this attribute
 		if(group.getName().equals(VosManager.MEMBERS_GROUP)) throw new WrongAttributeValueException(attribute, group, "Members group is authoritative automatic, there is not allowed to set this attribute for members group.");
-	
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException{
+		if(attribute.getValue() == null) return;
+
 		Integer value = (Integer) attribute.getValue();
 		if(value < 0 || value > 1) throw new WrongAttributeValueException(attribute, group, "Attribute can have only value 1 or 0 (true or false).");
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_GROUP_ATTR_DEF);

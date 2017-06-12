@@ -40,9 +40,6 @@ public class urn_perun_user_attribute_def_def_login_namespace_fedcloud extends u
 		String userLogin = (String) attribute.getValue();
 		if (userLogin == null) throw new WrongAttributeValueException(attribute, user, "Value can't be null");
 
-		//Check attribute regex
-		sess.getPerunBl().getModulesUtilsBl().checkAttributeRegex(attribute, "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
-
 		// Get all users who have set attribute urn:perun:user:attribute-def:def:login-namespace:[login-namespace], with the value.
 		List<User> usersWithSameLogin = sess.getPerunBl().getUsersManagerBl().getUsersByAttribute(sess, attribute);
 
@@ -56,6 +53,14 @@ public class urn_perun_user_attribute_def_def_login_namespace_fedcloud extends u
 			sess.getPerunBl().getUsersManagerBl().checkReservedLogins(sess, attribute.getFriendlyNameParameter(), userLogin);
 		} catch (AlreadyReservedLoginException ex) {
 			throw new WrongAttributeValueException(attribute, user, "Login in specific namespace already reserved.", ex);
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			//Check attribute regex
+			sess.getPerunBl().getModulesUtilsBl().checkAttributeRegex(attribute, "[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}");
 		}
 	}
 

@@ -56,10 +56,16 @@ public class urn_perun_user_facility_attribute_def_def_homeMountPoint extends Fa
 		if (!homeMntPointsOnAllResources.contains((String) attribute.getValue())) {
 			throw new WrongAttributeValueException(attribute, user, facility, "User's home mount point is invalid. Valid mount points: " + homeMntPointsOnAllResources);
 		}
-		Pattern pattern = Pattern.compile("^/[-a-zA-Z.0-9_/]*$*");
-		Matcher match = pattern.matcher((String) attribute.getValue());
-		if (!match.matches()) {
-			throw new WrongAttributeValueException(attribute, "Attribute has wrong format");
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			Pattern pattern = Pattern.compile("^/[-a-zA-Z.0-9_/]*$*");
+			Matcher match = pattern.matcher((String) attribute.getValue());
+			if (!match.matches()) {
+				throw new WrongAttributeValueException(attribute, "Attribute has wrong format");
+			}
 		}
 	}
 
@@ -90,6 +96,7 @@ public class urn_perun_user_facility_attribute_def_def_homeMountPoint extends Fa
 		return dependencies;
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_FACILITY_ATTR_DEF);

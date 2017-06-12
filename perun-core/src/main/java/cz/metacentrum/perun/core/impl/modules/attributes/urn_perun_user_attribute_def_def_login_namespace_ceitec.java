@@ -51,12 +51,14 @@ public class urn_perun_user_attribute_def_def_login_namespace_ceitec extends urn
 
 		// check uniqueness
 		super.checkAttributeValue(sess, user, attribute);
+	}
 
-		// plus check, that login is max 20 chars.
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		// check, that login is max 20 chars.
 		if (attribute.getValue() != null) {
 			if (((String)attribute.getValue()).length() > 20) throw new WrongAttributeValueException(attribute, user, "Login '" + attribute.getValue() + "' exceeds 20 chars limit.");
 		}
-
 	}
 
 	/**
@@ -130,6 +132,7 @@ public class urn_perun_user_attribute_def_def_login_namespace_ceitec extends urn
 		}
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_DEF);

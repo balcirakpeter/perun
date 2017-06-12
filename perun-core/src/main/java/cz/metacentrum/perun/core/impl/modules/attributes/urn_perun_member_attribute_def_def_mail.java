@@ -28,10 +28,20 @@ public class urn_perun_member_attribute_def_def_mail extends MemberAttributesMod
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+		if(attribute.getValue() == null) {
+			throw new WrongAttributeValueException(attribute, "Member mail can't be null.");
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		String attributeValue = null;
 
-		if(attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "Member mail can't be null.");
-		else attributeValue = (String) attribute.getValue();
+		if(attribute.getValue() == null) {
+			return;
+		}
+
+		attributeValue = (String) attribute.getValue();
 
 		Matcher emailMatcher = Utils.emailPattern.matcher(attributeValue);
 		if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, "Email is not in correct form.");
@@ -110,6 +120,7 @@ public class urn_perun_member_attribute_def_def_mail extends MemberAttributesMod
 		}*/
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_MEMBER_ATTR_DEF);

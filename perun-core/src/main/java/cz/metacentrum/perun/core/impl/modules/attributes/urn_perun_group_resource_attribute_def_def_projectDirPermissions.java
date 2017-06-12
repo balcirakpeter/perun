@@ -24,7 +24,8 @@ import java.util.regex.Pattern;
  */
 public class urn_perun_group_resource_attribute_def_def_projectDirPermissions extends ResourceGroupAttributesModuleAbstract implements ResourceGroupAttributesModuleImplApi {
 
-	public void checkAttributeValue(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		Integer permissions = (Integer) attribute.getValue();
 		//Permissions can be null (if null, it means DEFAULT 750)
 		if (permissions == null) return;
@@ -40,6 +41,7 @@ public class urn_perun_group_resource_attribute_def_def_projectDirPermissions ex
 		}
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF);

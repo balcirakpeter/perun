@@ -20,15 +20,15 @@ import cz.metacentrum.perun.core.implApi.modules.attributes.FacilityAttributesMo
 public class urn_perun_facility_attribute_def_def_quotaEnabled extends FacilityAttributesModuleAbstract implements FacilityAttributesModuleImplApi  {
 
 	@Override
-	public void checkAttributeValue(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
 		//Null means the same like 0 (not enabled)
 		if(attribute.getValue() == null) return;
-		
+
 		Integer quotaEnabled = (Integer) attribute.getValue();
 		if(quotaEnabled > 1 || quotaEnabled < 0) throw new WrongAttributeValueException(attribute, facility, null, "Attribute has only two possible options for quota: 0 - means not enabled, 1 - means enabled.");
-		 
 	}
 
+	@Override
 	public Attribute fillAttribute(PerunSessionImpl session, Facility facility, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeAssignmentException {
 		//Default is 0, it means quota is not enabled (null means the same)
 		Attribute retAttr = new Attribute(attribute);
@@ -36,6 +36,7 @@ public class urn_perun_facility_attribute_def_def_quotaEnabled extends FacilityA
 		return retAttr;
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_FACILITY_ATTR_DEF);

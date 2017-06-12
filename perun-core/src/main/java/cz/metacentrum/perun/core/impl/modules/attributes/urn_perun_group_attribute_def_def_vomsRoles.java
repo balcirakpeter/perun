@@ -28,7 +28,7 @@ public class urn_perun_group_attribute_def_def_vomsRoles extends GroupAttributes
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void checkAttributeValue(PerunSessionImpl perunSession, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		if(attribute.getValue() == null) {
 			return;
 		}

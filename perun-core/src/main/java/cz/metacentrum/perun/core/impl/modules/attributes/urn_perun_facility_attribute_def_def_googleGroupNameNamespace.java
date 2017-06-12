@@ -31,6 +31,7 @@ public class urn_perun_facility_attribute_def_def_googleGroupNameNamespace exten
 		}
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_FACILITY_ATTR_DEF);

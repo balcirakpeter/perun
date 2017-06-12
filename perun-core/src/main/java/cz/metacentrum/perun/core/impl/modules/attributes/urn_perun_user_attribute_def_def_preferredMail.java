@@ -21,14 +21,19 @@ public class urn_perun_user_attribute_def_def_preferredMail extends UserAttribut
 
 	private static final String A_M_mail = AttributesManager.NS_MEMBER_ATTR_DEF + ":mail";
 
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			String attributeValue = (String) attribute.getValue();
+
+			Matcher emailMatcher = Utils.emailPattern.matcher(attributeValue);
+			if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "Email is not in correct form.");
+		}
+	}
+
+	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
-		String attributeValue = null;
-
 		if(attribute.getValue() == null) throw new WrongAttributeValueException(attribute, user, "User preferred mail can't be set to null.");
-		else attributeValue = (String) attribute.getValue();
-
-		Matcher emailMatcher = Utils.emailPattern.matcher(attributeValue);
-		if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "Email is not in correct form.");
 
 		/* User preferredMail now can be anything
 		//user prefferedMail can be only one of memberMails if any
@@ -92,6 +97,7 @@ throw new InternalErrorException(ex);
 }
 }*/
 
+	@Override
 public AttributeDefinition getAttributeDefinition() {
 	AttributeDefinition attr = new AttributeDefinition();
 	attr.setNamespace(AttributesManager.NS_USER_ATTR_DEF);

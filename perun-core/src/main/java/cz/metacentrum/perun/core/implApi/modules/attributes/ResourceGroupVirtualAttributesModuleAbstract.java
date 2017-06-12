@@ -10,6 +10,7 @@ import cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentExceptio
 import cz.metacentrum.perun.core.api.exceptions.WrongAttributeValueException;
 import cz.metacentrum.perun.core.api.exceptions.WrongReferenceAttributeValueException;
 import cz.metacentrum.perun.core.impl.PerunSessionImpl;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,24 +21,24 @@ import java.util.List;
  *
  * @author Michal Stava <stavamichal@gmail.com>
  */
-public abstract class ResourceGroupVirtualAttributesModuleAbstract extends ResourceGroupAttributesModuleAbstract implements ResourceGroupVirtualAttributesModuleImplApi{
+public abstract class ResourceGroupVirtualAttributesModuleAbstract extends ResourceGroupAttributesModuleAbstract implements ResourceGroupVirtualAttributesModuleImplApi {
 
 
-	public Attribute getAttributeValue(PerunSessionImpl perunSession, Resource resource, Group group, AttributeDefinition attribute) throws InternalErrorException {
-		return new Attribute(attribute);
-	}
+    public Attribute getAttributeValue(PerunSessionImpl perunSession, Resource resource, Group group, AttributeDefinition attribute) throws InternalErrorException {
+        return new Attribute(attribute);
+    }
 
-	public boolean setAttributeValue(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
-		return false;
-	}
+    public boolean setAttributeValue(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
+        return false;
+    }
 
-	public boolean removeAttributeValue(PerunSessionImpl perunSession, Resource resource, Group group, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
-		return false;
-	}
+    public boolean removeAttributeValue(PerunSessionImpl perunSession, Resource resource, Group group, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+        return false;
+    }
 
-	@Override
-	public List<String> resolveVirtualAttributeValueChange(PerunSessionImpl perunSession, String message) throws InternalErrorException, WrongReferenceAttributeValueException, AttributeNotExistsException, WrongAttributeAssignmentException {
-		return new ArrayList<String>();
-	}
+    @Override
+    public List<String> resolveVirtualAttributeValueChange(PerunSessionImpl perunSession, String message) throws InternalErrorException, WrongReferenceAttributeValueException, AttributeNotExistsException, WrongAttributeAssignmentException {
+        return new ArrayList<String>();
+    }
 
 }

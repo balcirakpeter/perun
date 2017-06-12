@@ -2986,6 +2986,137 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 		//TODO
 	}
 
+	public void checkAttributeSyntax(PerunSession sess, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+		//Call attribute module
+		FacilityAttributesModuleImplApi facilityModule = getFacilityAttributeModule(sess, attribute);
+		if(facilityModule == null) return; //facility module doesn't exists
+		try {
+			facilityModule.checkAttributeSyntax((PerunSessionImpl) sess, facility, attribute);
+		} catch(WrongAttributeAssignmentException ex) {
+			throw new InternalErrorException(ex);
+		}
+
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+		//Call attribute module
+		VoAttributesModuleImplApi voModule = getVoAttributeModule(sess, attribute);
+		if(voModule == null) return; //module doesn't exists
+		try {
+			voModule.checkAttributeSyntax((PerunSessionImpl) sess, vo, attribute);
+		} catch(WrongAttributeAssignmentException ex) {
+			throw new InternalErrorException(ex);
+		}
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException,WrongReferenceAttributeValueException {
+		//Call attribute module
+		GroupAttributesModuleImplApi groupModule = getGroupAttributeModule(sess, attribute);
+		if(groupModule == null) return; //module doesn't exists
+		try {
+			groupModule.checkAttributeSyntax((PerunSessionImpl) sess, group, attribute);
+		} catch(WrongAttributeAssignmentException ex) {
+			throw new InternalErrorException(ex);
+		}
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException  {
+		ResourceAttributesModuleImplApi attributeModule = getResourceAttributeModule(sess, attribute);
+		if(attributeModule == null) return;
+		try {
+			attributeModule.checkAttributeSyntax((PerunSessionImpl) sess, resource, attribute);
+		} catch(WrongAttributeAssignmentException ex) {
+			throw new InternalErrorException(ex);
+		}
+	}
+
+	public void checkAttributesSyntax(PerunSession sess, Resource resource, List<Attribute> attributes) throws PrivilegeException, InternalErrorException, ResourceNotExistsException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+		for(Attribute attribute : attributes) {
+			checkAttributeSyntax(sess, resource, attribute);
+		}
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Resource resource, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+		//Call attribute module
+		ResourceMemberAttributesModuleImplApi resourceMemberGroupModule = getResourceMemberAttributeModule(sess, attribute);
+		if(resourceMemberGroupModule == null) return; //facility module doesn't exists
+		try {
+			resourceMemberGroupModule.checkAttributeSyntax((PerunSessionImpl) sess, resource, member, attribute);
+		} catch(WrongAttributeAssignmentException ex) {
+			throw new InternalErrorException(ex);
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSession sess, Member member, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+		//Call attribute module
+		MemberGroupAttributesModuleImplApi memberGroupAttributeModule = getMemberGroupAttributeModule(sess, attribute);
+		if(memberGroupAttributeModule == null) return; //memberGroupAttributesModule module doesn't exists
+		try {
+			memberGroupAttributeModule.checkAttributeSyntax((PerunSessionImpl) sess, member, group, attribute);
+		} catch(WrongAttributeAssignmentException ex) {
+			throw new InternalErrorException(ex);
+		}
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeValueException {
+		FacilityUserAttributesModuleImplApi attributeModule = getFacilityUserAttributeModule(sess, attribute);
+		if(attributeModule == null) return;
+		try {
+			attributeModule.checkAttributeSyntax((PerunSessionImpl) sess, facility, user, attribute);
+		} catch(WrongAttributeAssignmentException ex) {
+			throw new InternalErrorException(ex);
+		}
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, User user, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeValueException {
+		UserAttributesModuleImplApi attributeModule = getUserAttributeModule(sess, attribute);
+		if(attributeModule == null) return;
+		try {
+			attributeModule.checkAttributeSyntax((PerunSessionImpl) sess, user, attribute);
+		} catch (WrongAttributeAssignmentException ex) {
+			throw new InternalErrorException(ex);
+		}
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Member member, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeValueException {
+		MemberAttributesModuleImplApi attributeModule = getMemberAttributeModule(sess, attribute);
+		if(attributeModule == null) return;
+		try {
+			attributeModule.checkAttributeSyntax((PerunSessionImpl) sess, member, attribute);
+		} catch (WrongAttributeAssignmentException ex) {
+			throw new InternalErrorException(ex);
+		}
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeValueException {
+		UserExtSourceAttributesModuleImplApi attributeModule = getUserExtSourceAttributeModule(sess, attribute);
+		if(attributeModule == null) return;
+		try {
+			attributeModule.checkAttributeSyntax((PerunSessionImpl) sess, ues, attribute);
+		} catch (WrongAttributeAssignmentException ex) {
+			throw new InternalErrorException(ex);
+		}
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Host host, Attribute attribute) throws InternalErrorException, WrongAttributeValueException {
+		//TODO
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+		ResourceGroupAttributesModuleImplApi attributeModule = getResourceGroupAttributeModule(sess, attribute);
+		if(attributeModule == null) return;
+		try {
+			attributeModule.checkAttributeSyntax((PerunSessionImpl) sess, resource,group, attribute);
+		} catch(WrongAttributeAssignmentException ex) {
+			throw new InternalErrorException(ex);
+		}
+	}
+
+	public void checkAttributeSyntax(PerunSession sess, String key, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeValueException {
+		//TODO
+	}
+
 	public boolean removeAttribute(PerunSession sess, String key, AttributeDefinition attribute) throws InternalErrorException {
 		try {
 			if(0 < jdbc.update("delete from entityless_attr_values where attr_id=? and subject=?", attribute.getId(), key)) {

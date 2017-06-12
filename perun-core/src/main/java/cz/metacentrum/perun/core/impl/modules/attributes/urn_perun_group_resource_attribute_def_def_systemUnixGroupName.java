@@ -24,10 +24,12 @@ public class urn_perun_group_resource_attribute_def_def_systemUnixGroupName exte
 	private static final String A_GR_systemUnixGID = AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF + ":systemUnixGID";
 	private static final String A_GR_systemIsUnixGroup = AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF + ":isSystemUnixGroup";
 
+	@Override
 	public Attribute fillAttribute(PerunSessionImpl sess, Resource resource, Group group, AttributeDefinition attributeDefinition) throws InternalErrorException, WrongAttributeAssignmentException {
 		return new Attribute(attributeDefinition);
 	}
 
+	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException{
 
 		String groupName = (String) attribute.getValue();
@@ -46,8 +48,6 @@ public class urn_perun_group_resource_attribute_def_def_systemUnixGroupName exte
 			if(isSystemGroup.getValue() != null && (Integer) isSystemGroup.getValue()==1) {
 				throw new WrongReferenceAttributeValueException(attribute, "Attribute cant be null if " + group + " on " + resource + " is system unix group.");
 			}
-		} else if(groupName.matches("^[-_a-zA-Z0-9]*$")!=true) {
-			throw new WrongAttributeValueException(attribute,"String with other chars than numbers, letters or symbols _ and - is not allowed value.");
 		}
 
 		//Get facility for the resource
@@ -90,12 +90,26 @@ public class urn_perun_group_resource_attribute_def_def_systemUnixGroupName exte
 	}
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+		String groupName = (String) attribute.getValue();
+
+		if(groupName==null) {
+			return;
+		}
+		if(!groupName.matches("^[-_a-zA-Z0-9]*$")) {
+			throw new WrongAttributeValueException(attribute,"String with other chars than numbers, letters or symbols _ and - is not allowed value.");
+		}
+	}
+
+	@Override
 	public List<String> getDependencies() {
 		List<String> dependecies = new ArrayList<String>();
 		dependecies.add(A_GR_systemUnixGID);
 		return dependecies;
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF);

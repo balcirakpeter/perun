@@ -24,32 +24,37 @@ public class urn_perun_vo_attribute_def_def_fromEmail extends VoAttributesModule
 	private static final Pattern pattern = Pattern.compile("^\".+\" <.+>$");
 
 	@Override
-	public void checkAttributeValue(PerunSessionImpl sess, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
-		String fromEmail = null;
+	public void checkAttributeSyntax(PerunSessionImpl sess, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			String fromEmail = null;
 
-		// null attribute
-		if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "Vo fromEmail cannot be null.");
+			// wrong type of the attribute
+			if (!(attribute.getValue() instanceof String)) throw new WrongAttributeValueException(attribute, "Wrong type of the attribute. Expected: String");
 
-		// wrong type of the attribute
-		if (!(attribute.getValue() instanceof String)) throw new WrongAttributeValueException(attribute, "Wrong type of the attribute. Expected: String");
+			fromEmail = (String) attribute.getValue();
 
-		fromEmail = (String) attribute.getValue();
+			if (!(sess.getPerunBl().getModulesUtilsBl().isNameOfEmailValid(sess, fromEmail))){
 
-		if (!(sess.getPerunBl().getModulesUtilsBl().isNameOfEmailValid(sess, fromEmail))){
+				Matcher match = pattern.matcher(fromEmail);
 
-			Matcher match = pattern.matcher(fromEmail);
+				if (!match.matches()) {
+					throw new WrongAttributeValueException(attribute, "Vo : " + vo.getName() + " has fromEmail " + fromEmail + " which is not valid. It has to be in form \"header\" <correct email> or just correct email.");
+				}else{
 
-			if (!match.matches()) {
-				throw new WrongAttributeValueException(attribute, "Vo : " + vo.getName() + " has fromEmail " + fromEmail + " which is not valid. It has to be in form \"header\" <correct email> or just correct email.");
-			}else{
+					String[] emailParts = fromEmail.split("[<>]+");
 
-				String[] emailParts = fromEmail.split("[<>]+");
-
-				if (!(sess.getPerunBl().getModulesUtilsBl().isNameOfEmailValid(sess, emailParts[1]))){
-					throw new WrongAttributeValueException(attribute, "Vo : " + vo.getName() +" has email in <> " + emailParts[1] +" which is not valid.");
+					if (!(sess.getPerunBl().getModulesUtilsBl().isNameOfEmailValid(sess, emailParts[1]))){
+						throw new WrongAttributeValueException(attribute, "Vo : " + vo.getName() +" has email in <> " + emailParts[1] +" which is not valid.");
+					}
 				}
 			}
 		}
+	}
+
+	@Override
+	public void checkAttributeValue(PerunSessionImpl sess, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		// null attribute
+		if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "Vo fromEmail cannot be null.");
 	}
 
 	@Override

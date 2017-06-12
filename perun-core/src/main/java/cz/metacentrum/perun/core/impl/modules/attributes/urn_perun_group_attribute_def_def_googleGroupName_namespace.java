@@ -30,10 +30,7 @@ public class urn_perun_group_attribute_def_def_googleGroupName_namespace extends
 		if(groupName == null) {
 			// if this is group attribute, its ok
 			return;
-		}else if(!groupName.matches("^[-_a-zA-Z0-9']+$")){
-			throw new WrongAttributeValueException(attribute, group, "GroupName attributte content invalid characters. Allowed are only letters, numbers and characters _ and -.");
 		}
-
 		//TODO Check reserved google group names
 		//sess.getPerunBl().getModulesUtilsBl().checkReservedGoogleGroupNames(attribute);
 
@@ -57,6 +54,19 @@ public class urn_perun_group_attribute_def_def_googleGroupName_namespace extends
 			}
 			//if not, than can't use already used groupName
 			if(!haveRights) throw new WrongAttributeValueException(attribute, group, "GroupName is already used in this namespace: " + attribute.getFriendlyNameParameter() + " and you haven't right to use it.");
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		//prepare groupName value variable
+		String groupName = null;
+		if(attribute.getValue() != null) groupName = (String) attribute.getValue();
+
+		if(groupName == null) {
+			return;
+		} else if(!groupName.matches("^[-_a-zA-Z0-9']+$")){
+			throw new WrongAttributeValueException(attribute, group, "GroupName attributte content invalid characters. Allowed are only letters, numbers and characters _ and -.");
 		}
 	}
 
