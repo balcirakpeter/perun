@@ -1,6 +1,7 @@
 package cz.metacentrum.perun.core.blImpl;
 
 import cz.metacentrum.perun.core.api.PerunPrincipal;
+
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,6 +85,85 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		getPerunBl().getAuditer().log(sess, "{} created in {} as subgroup of {}", group, vo, parentGroup);
 
 		return group;
+	}
+
+	public void moveGroup(PerunSession sess, Group destinationGroup, Group movingGroup) throws InternalErrorException {
+
+		// check if moving group or destination group is null
+		if (destinationGroup == null || movingGroup == null){
+			throw new InternalErrorException("Moving group and destination group cannot be null.");
+		}
+
+		// check if both groups are from same VO
+		if (destinationGroup.getVoId() != movingGroup.getVoId()) {
+			throw new InternalErrorException("Groups are not from same VO");
+		}
+
+		// check if moving group is the same as destination group
+		if (destinationGroup.getId() == movingGroup.getId()) {
+			throw new InternalErrorException("Moving group cannot be the same as destination group.");
+		}
+
+		// check if moving group is already in destination group
+		if (movingGroup.getParentGroupId() != null && destinationGroup.getId() == movingGroup.getParentGroupId()){
+			throw new InternalErrorException("Moving group is already in destination group as subGroup.");
+		}
+
+		List<Group> movingGroupAllSubGroups = getAllSubGroups(sess, movingGroup);
+
+		// check if destination group exists as subGroup in moving group subGroups
+		if (movingGroupAllSubGroups.contains(destinationGroup)){
+			throw new InternalErrorException("Destination group is subGroup of Moving group.");
+		}
+
+		//Save old parent id for moving indirect members
+		int oldParentGroupId = movingGroup.getParentGroupId();
+		// We can move whole moving group tree under destination group
+		movingGroup.setParentGroupId(destinationGroup.getId());
+		movingGroup.setName(destinationGroup.getName()+":"+movingGroup.getShortName());
+		//we have to update group name in database
+		getGroupsManagerImpl().updateGroupName(sess, movingGroup);
+
+		List<Group> subGroups = getSubGroups(sess, movingGroup);
+		List<Group> levelSubGroups = new ArrayList<>();
+
+		// We have to properly set all subGroups names level by level
+		while(!subGroups.isEmpty()){
+			levelSubGroups.clear();
+			for (Group gr: subGroups) {
+				try{
+					gr.setName(getParentGroup(sess, gr).getName()+":"+gr.getShortName());
+				}catch(ParentGroupNotExistsException ex){
+					//that should never happen
+					throw new InternalErrorException("Parent group does not exists for group " + gr);
+				}
+				//we have to update each subGroup name in database
+				getGroupsManagerImpl().updateGroupName(sess, gr);
+				levelSubGroups.addAll(getSubGroups(sess, gr));
+			}
+			subGroups.clear();
+			subGroups.addAll(levelSubGroups);
+		}
+
+		// And finaly update whole moving group in database, like new parent...
+		updateGroup(sess, movingGroup);
+
+		//After that, we have to move indirect members as well
+		List<Member> members = getGroupMembers(sess, movingGroup);
+
+
+
+		try {
+			//Removing indirect members from old position
+			processRelationMembers(sess, groupsManagerImpl.getGroupById(sess, oldParentGroupId), members, movingGroup.getId(), false);
+			//Adding indirect members to new position
+			processRelationMembers(sess, groupsManagerImpl.getGroupById(sess, movingGroup.getParentGroupId()), members, movingGroup.getId(), true);
+		} catch (GroupOperationsException e) {
+			throw new InternalErrorException("Some operation was not allowed during proccessing members relations");
+		} catch (GroupNotExistsException e) {
+			throw new InternalErrorException("Some group does not exists...");
+		}
+
 	}
 
 	public void deleteGroup(PerunSession sess, Group group, boolean forceDelete) throws InternalErrorException, RelationExistsException, GroupAlreadyRemovedException, GroupAlreadyRemovedFromResourceException, GroupOperationsException, GroupNotExistsException {
@@ -415,6 +495,23 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	public Group getGroupByName(PerunSession sess, Vo vo, String name) throws InternalErrorException, GroupNotExistsException {
 		return getGroupsManagerImpl().getGroupByName(sess, vo, name);
 	}
+
+	public List<Group> getGroupsFromExtSource(PerunSession sess, ExtSource extSource, String searchString, int count) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupOperationsException{
+		List<Group> groups = new ArrayList<Group>();
+		try {
+			List<Map<String, String>> subjects = ((ExtSourceSimpleApi) extSource).findGroups(searchString, count);
+			for (Map<String, String> subject : subjects) {
+				Group subjectGroup = new Group();
+				subjectGroup.setName(subject.get("groupName"));
+				subjectGroup.setDescription(subject.get("groupDescription"));
+				groups.add(subjectGroup);
+			}
+		} catch (ExtSourceUnsupportedOperationException ex) {
+			throw new InternalErrorException("Some operation is not allowed for extSource " + extSource, ex);
+		}
+		return groups;
+	}
+
 
 	public void addMemberToMembersGroup(PerunSession sess, Group group,  Member member) throws InternalErrorException, AlreadyMemberException, WrongAttributeValueException, WrongReferenceAttributeValueException, NotMemberOfParentGroupException, GroupNotExistsException, GroupOperationsException {
 		// Check if the group IS memebers or administrators group
@@ -1057,6 +1154,47 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		return skippedMembers;
 	}
 
+	public List<String> synchronizeGroupStructure(PerunSession sess, Group baseGroup) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException, ExtSourceNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupOperationsException, GroupNotExistsException {
+		//needed variables for whole method
+		List<String> skippedGroups = new ArrayList<>();
+		ExtSource source = null;
+
+		log.info("Group structure synchronization {}: started.", baseGroup);
+
+		//Initialization of group extSource
+		source = getGroupExtSourceForSynchronization(sess, baseGroup);
+
+		//Prepare containers for work with groups
+		List<CandidateGroup> candidateGroupsToAdd = new ArrayList<>();
+		Map<CandidateGroup, Group> groupsToUpdate = new HashMap<>();
+		List<Group> groupsToRemove = new ArrayList<>();
+
+		//get all actual groups
+		List<Group> actualGroups = getAllSubGroups(sess, baseGroup);
+
+		//Get subjects from extSource
+		List<Map<String, String>> subjectGroups = getSubjectGroupsFromExtSource(sess, source, baseGroup);
+		//Convert subjects to candidate groups
+		List<CandidateGroup> candidateGroups = getPerunBl().getExtSourcesManagerBl().getCandidateGroups(sess, subjectGroups, source);
+
+		categorizeGroupsForSynchronization(sess, actualGroups, candidateGroups, candidateGroupsToAdd, groupsToUpdate, groupsToRemove);
+
+		//These next 3 operations have to be precisely in this order.
+
+		//Add not presented candidate groups under base group
+		addMissingGroupsWhileSynchronization(sess, baseGroup, candidateGroupsToAdd, skippedGroups);
+
+		//Update groups already presented under base group
+		updateExistingGroupsWhileSynchronization(sess, baseGroup, groupsToUpdate);
+
+		//Remove presented groups under base group who are not presented in synchronized ExtSource
+		removeFormerGroupsWhileSynchronization(sess, baseGroup, groupsToRemove);
+
+		log.info("Group structure synchronization {}: ended.", baseGroup);
+
+		return skippedGroups;
+	}
+
 	/**
 	 * Force group synchronization.
 	 *
@@ -1678,6 +1816,42 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	}
 
 	/**
+	 * This method fill 3 group structures which get as parameters:
+	 * 1. groupsToUpdate - Candidates with equivalent Groups from Perun for purpose of updating attributes and statuses
+	 * 2. candidateGroupsToAdd - New groups
+	 * 3. groupsToRemove - Former groups which are not in synchronized ExtSource now
+	 *
+	 * @param sess
+	 * @param currentGroups current groups
+	 * @param candidateGroups to be synchronized from extSource
+	 * @param groupsToUpdate 1. container (more above)
+	 * @param candidateGroupsToAdd 2. container (more above)
+	 * @param groupsToRemove 3. container (more above)
+	 *
+	 * @throws InternalErrorException
+	 */
+	private void categorizeGroupsForSynchronization(PerunSession sess, List<Group> currentGroups, List<CandidateGroup> candidateGroups, List<CandidateGroup> candidateGroupsToAdd, Map<CandidateGroup, Group> groupsToUpdate, List<Group> groupsToRemove) throws InternalErrorException {
+		candidateGroupsToAdd.addAll(candidateGroups);
+		groupsToRemove.addAll(currentGroups);
+		//mapping structure for more efficient searching
+		Map<String, Group> mappingStructure = new HashMap<>();
+		for(Group group: currentGroups) {
+			mappingStructure.put(group.getShortName(), group);
+		}
+
+		//try to find already existing candidateGroups between groups
+		for(CandidateGroup candidateGroup: candidateGroups) {
+			String candidateShortName = candidateGroup.getShortName();
+			if(mappingStructure.containsKey(candidateShortName)) {
+				//candidateGroup exists, will be updated
+				groupsToUpdate.put(candidateGroup, mappingStructure.get(candidateShortName));
+				candidateGroupsToAdd.remove(candidateGroup);
+				groupsToRemove.remove(mappingStructure.get(candidateShortName));
+			}
+		}
+	}
+
+	/**
 	 * Get ExtSource by name from attribute group:groupMembersExtSource.
 	 * Attribute can be null so if is not set, use default source.
 	 *
@@ -1720,7 +1894,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	 * @throws AttributeNotExistsException if groupExtSource attribute not exists in perun Database
 	 * @throws ExtSourceNotExistsException if extSource set in Group attribute not exists
 	 */
-	private ExtSource getGroupExtSourceForSynchronization(PerunSession sess, Group group) throws InternalErrorException, WrongAttributeAssignmentException, AttributeNotExistsException, ExtSourceNotExistsException {
+	public ExtSource getGroupExtSourceForSynchronization(PerunSession sess, Group group) throws InternalErrorException, WrongAttributeAssignmentException, AttributeNotExistsException, ExtSourceNotExistsException {
 		//Get extSource name from group attribute
 		Attribute extSourceNameAttr = getPerunBl().getAttributesManagerBl().getAttribute(sess, group, GroupsManager.GROUPEXTSOURCE_ATTRNAME);
 		if (extSourceNameAttr == null || extSourceNameAttr.getValue() == null) {
@@ -1810,6 +1984,38 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			log.debug("Group synchronization {}: external group contains {} members.", group, subjects.size());
 		} catch (ExtSourceUnsupportedOperationException e2) {
 			throw new InternalErrorException("ExtSource " + source.getName() + " doesn't support getGroupSubjects", e2);
+		}
+		return subjects;
+	}
+
+	/**
+	 * Return List of subjects, where subject is map of attribute names and attribute values.
+	 * Every subject is structure for creating CandidateGroup from ExtSource.
+	 *
+	 * @param sess
+	 * @param source to get subjects from
+	 * @param group under which we will be synchronizing groups
+	 *
+	 * @return list of subjects
+	 *
+	 * @throws InternalErrorException if internal error occurs
+	 */
+	public List<Map<String, String>> getSubjectGroupsFromExtSource(PerunSession sess, ExtSource source, Group group) throws InternalErrorException {
+		//Get all group attributes and store tham to map (info like query, time interval etc.)
+		List<Attribute> groupAttributes = getPerunBl().getAttributesManagerBl().getAttributes(sess, group);
+		Map<String, String> groupAttributesMap = new HashMap<String, String>();
+		for (Attribute attr: groupAttributes) {
+			String value = BeansUtils.attributeValueToString(attr);
+			String name = attr.getName();
+			groupAttributesMap.put(name, value);
+		}
+		//-- Get Subjects in form of map where left string is name of attribute and right string is value of attribute, every subject is one map
+		List<Map<String, String>> subjects;
+		try {
+			subjects = ((ExtSourceSimpleApi) source).getSubjectGroups(groupAttributesMap);
+			log.debug("Group synchronization {}: external source contains {} group.", group, subjects.size());
+		} catch (ExtSourceUnsupportedOperationException e2) {
+			throw new InternalErrorException("ExtSource " + source.getName() + " doesn't support getSubjectGroups", e2);
 		}
 		return subjects;
 	}
@@ -2249,6 +2455,158 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	}
 
 	/**
+	 * Get Map groupsToUpdate and update their attributes.
+	 *
+	 * @param sess
+	 * @param baseGroup under which will be group structure synchronized
+	 * @param groupsToUpdate list of groups for updating in Perun by information from extSource
+	 *
+	 * @throws InternalErrorException if some internal error occurs
+	 */
+	private void updateExistingGroupsWhileSynchronization(PerunSession sess, Group baseGroup, Map<CandidateGroup, Group> groupsToUpdate) throws InternalErrorException {
+		//update every pair in map
+		// we don't have to update short name, because if short name is changed,
+		// group will be removed and created with new name.
+		// We don't have to update subGroups, because if some of the subGroups has changed parent,
+		// we update it separately in this method.
+		for(CandidateGroup candidateGroup: groupsToUpdate.keySet()) {
+			Group groupToUpdate = groupsToUpdate.get(candidateGroup);
+
+			//if description has changed, update it
+			if(!groupToUpdate.getDescription().equals(candidateGroup.getDescription())){
+				groupToUpdate.setDescription(candidateGroup.getDescription());
+			}
+
+			//if parentGroupName has changed, update it
+			String actualParentName;
+			try {
+				actualParentName = getGroupById(sess, groupToUpdate.getParentGroupId()).getShortName();
+			} catch (GroupNotExistsException e) {
+				//that should never happened, every group has to has at least base group as a parent
+				throw new InternalErrorException(e);
+			}
+
+			//if parent name of candidate group is null and actual group is not under base group,
+			// move actual group to base group
+			if((candidateGroup.getParentGroupName() == null)){
+				if(!actualParentName.equals(baseGroup.getShortName())){
+					moveGroup(sess, baseGroup, groupToUpdate);
+				}
+			}
+
+			//if parent names are not equal, check if under base group exists group with short name
+			//which equals parent name of candidate group.
+			//If there is such a group move actual group under that group
+			else if(!actualParentName.equals(candidateGroup.getParentGroupName())){
+				List<Group> subGroups = getAllSubGroups(sess, baseGroup);
+				for (Group subGroup : subGroups) {
+					if (subGroup.getShortName().equals(candidateGroup.getParentGroupName())) {
+						moveGroup(sess, subGroup, groupToUpdate);
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Get list of new candidateGroups and add them under the Group.
+	 *
+	 * @param sess
+	 * @param group under which we will be synchronizing groups
+	 * @param candidateGroupsToAdd list of new groups (candidateGroups)
+	 *
+	 * @throws InternalErrorException if some internal error occurs
+	 */
+	private void addMissingGroupsWhileSynchronization(PerunSession sess, Group group, List<CandidateGroup> candidateGroupsToAdd, List<String> skippedGroups) throws InternalErrorException, GroupOperationsException {
+		// Now add missing groups
+		for (CandidateGroup candidateGroup: candidateGroupsToAdd) {
+			Group destinationGroup = group;
+
+			String parent = candidateGroup.getParentGroupName();
+			//If parent is not null, we have to check if that parent exists under destinationGroup
+			if (parent != null) {
+				List<Group> subGroups = getAllSubGroups(sess, destinationGroup);
+				for (Group subGroup : subGroups) {
+					if (subGroup.getShortName().equals(parent)) {
+						destinationGroup = subGroup;
+					}
+				}
+			}
+			//We can finaly create group
+			Group createdGroup = null;
+			try {
+				createdGroup = createGroup(sess, destinationGroup, candidateGroup);
+				log.info("Group structure synchronization under base group {}: New Group id {} created during synchronization.", group, createdGroup.getId());
+			} catch (GroupExistsException e) {
+				throw new ConsistencyErrorException("Trying to create existing group.");
+			}
+
+			/*ExtSource source = candidateGroup.getExtSource();
+
+			//Now we have to check if there is some lost connection between parent and child group
+			List<String> createdGroupSubGroups = null;
+			try {
+				createdGroupSubGroups = ((ExtSourceSimpleApi) source).getSubGroupsNames(candidateGroup.getShortName());
+			} catch (SubjectNotExistsException e) {
+				//that should not happened
+				throw new InternalErrorException(e);
+			} catch (ExtSourceUnsupportedOperationException e) {
+				throw new InternalErrorException(e);
+			}
+			if(!createdGroupSubGroups.isEmpty()){
+				//We doesn't need all sub groups because if we create group which doesn't have parent in this structure, it will be created under base group
+				List<Group> baseGroupSubGroups = getSubGroups(sess, group);
+
+				for (Group gr: baseGroupSubGroups){
+					if (createdGroupSubGroups.contains(gr.getShortName())){
+						moveGroup(sess, createdGroup, gr);
+					}
+				}
+			}*/
+		}
+	}
+
+	/**
+	 * Remove former groups (if they are not listed in ExtSource yet).
+	 *
+	 * @param sess
+	 * @param group to be synchronized
+	 * @param groupsToRemove list of groups to be removed from Group
+	 *
+	 * @throws InternalErrorException if some internal error occurs
+	 * @throws WrongAttributeAssignmentException if there is some problem with assignment of attribute
+	 * @throws MemberAlreadyRemovedException if member is already out of group when we trying to do this by synchronization
+	 */
+	private void removeFormerGroupsWhileSynchronization(PerunSession sess, Group group, List<Group> groupsToRemove) throws InternalErrorException, GroupOperationsException {
+
+		for (Group groupToRemove: groupsToRemove) {
+			List<Group> subGroups = getSubGroups(sess, groupToRemove);
+			if(!subGroups.isEmpty()){
+				//we have to move subGroups under base group
+				for (Group subGroup: subGroups) {
+					moveGroup(sess, group, subGroup);
+				}
+			}
+			//Now we can delete group
+			try {
+				//this is so groupToRemove will be updated if it was moved under another parent...
+				groupToRemove = getGroupById(sess, groupToRemove.getId());
+				deleteGroup(sess, groupToRemove, true);
+				log.info("Group structure synchronization {}: Group id {} removed.", group, groupToRemove.getId());
+			} catch (RelationExistsException e) {
+				e.printStackTrace();
+			} catch (GroupAlreadyRemovedException | GroupAlreadyRemovedFromResourceException e) {
+				//Group was probably removed before starting of synchronization removing process, log it and skip this group
+				log.debug("Group {} was removed from group {} before removing process. Skip this group.", groupToRemove, group);
+				continue;
+			} catch (GroupNotExistsException e) {
+				throw new ConsistencyErrorException("Trying to remove non-existing group.");
+			}
+		}
+	}
+
+	/**
 	 * Try to close both extSources (membersSource and group source)
 	 *
 	 * @param membersSource optional membersSource
@@ -2318,7 +2676,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		// check if result group is the same as operand group
 		if (resultGroup.getId() == operandGroup.getId()) {
 			throw new InternalErrorException("Result group cannot be the same as operand group.");
-		} 
+		}
 
 		// check if there is already a record of these two groups
 		if (this.groupsManagerImpl.isRelationBetweenGroups(resultGroup, operandGroup)) {
@@ -2379,4 +2737,5 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 
 		return false;
 	}
+
 }

@@ -19,6 +19,55 @@ import cz.metacentrum.perun.core.api.exceptions.SubjectNotExistsException;
  */
 public interface ExtSourceSimpleApi {
 	/**
+	 * Finds all groups in the external source, that contains searchString.
+	 *
+	 * This method is used for getting groups from external source and then use them to create local groups in perun.
+	 *
+	 * @param searchString
+	 * @return list of maps, which contains...
+	 * @throws InternalErrorException
+	 * @throws ExtSourceUnsupportedOperationException
+	 */
+	List<Map<String, String>> findGroups(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException;
+
+	/**
+	 * Finds all groups in the external source, that contains searchString.
+	 *
+	 * This method is used for getting groups from external source and then use them to create local groups in perun.
+	 *
+	 * @param searchString
+	 * @param maxResults limit returned results
+	 * @return list of maps, which contains...
+	 * @throws InternalErrorException
+	 * @throws ExtSourceUnsupportedOperationException
+	 */
+	List<Map<String, String>> findGroups(String searchString, int maxResults) throws InternalErrorException, ExtSourceUnsupportedOperationException;
+
+	/**
+	 * Finds all groups in the external source by ID.
+	 *
+	 * This method is used for getting groups from external source and then use them to create local groups in perun.
+	 *
+	 * @param groupID
+	 * @return map which contains...
+	 * @throws InternalErrorException
+	 * @throws ExtSourceUnsupportedOperationException
+	 * @throws SubjectNotExistsException
+	 */
+	Map<String, String> getGroupByID(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException;
+
+	/**
+	 * Finds all subGroups under specified group id in the external source.
+	 *
+	 * @param groupID of group which is parent for groups we are looking for
+	 * @return List containing names of subgroups
+	 * @throws InternalErrorException
+	 * @throws ExtSourceUnsupportedOperationException
+	 * @throws SubjectNotExistsException
+	 */
+	List<String> getSubGroupsNames(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException;
+
+	/**
 	 * Finds all subjects logins in the external source, that contains searchString.
 	 *
 	 * This method is used for getting all logins of subjects in external source and then use them to searching
@@ -65,6 +114,16 @@ public interface ExtSourceSimpleApi {
 	 * @throws ExtSourceUnsupportedOperationException
 	 */
 	List<Map<String, String>> getGroupSubjects(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException;
+
+	/**
+	 * Get the list of the subject groups in the external source.
+	 *
+	 * @param attributes map of attributes used for quering the external source
+	 * @return list of maps, which contains attr name and attr value
+	 * @throws InternalErrorException
+	 * @throws ExtSourceUnsupportedOperationException
+	 */
+	List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException;
 
 	/**
 	 * If extSource needs to be closed, this method must be called.

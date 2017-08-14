@@ -1,14 +1,11 @@
 package cz.metacentrum.perun.core.impl;
 
-import cz.metacentrum.perun.core.api.Attribute;
-import cz.metacentrum.perun.core.api.BeansUtils;
+import cz.metacentrum.perun.core.api.*;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
 
-import cz.metacentrum.perun.core.api.ExtSource;
-import cz.metacentrum.perun.core.api.GroupsManager;
 import cz.metacentrum.perun.core.api.exceptions.ExtSourceUnsupportedOperationException;
 import cz.metacentrum.perun.core.api.exceptions.SubjectNotExistsException;
 import cz.metacentrum.perun.core.blImpl.PerunBlImpl;
@@ -23,9 +20,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import cz.metacentrum.perun.core.api.RichMember;
-import cz.metacentrum.perun.core.api.RichUser;
-import cz.metacentrum.perun.core.api.UserExtSource;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 import cz.metacentrum.perun.core.api.exceptions.PerunException;
 import cz.metacentrum.perun.core.api.exceptions.RpcException;
@@ -68,6 +62,37 @@ public class ExtSourcePerun extends ExtSource implements ExtSourceApi {
 		return perun;
 	}
 
+
+	@Override
+	public List<Map<String,String>> findGroups(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		return findGroups(searchString, 0);
+	}
+
+	@Override
+	public List<Map<String,String>> findGroups(String searchString, int maxResults) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		setEnviroment();
+		List<Map<String,String>> subjects = getGroups(searchString);
+		if(maxResults != 0) {
+			if (subjects.size() > maxResults) {
+				subjects = subjects.subList(0, maxResults);
+			}
+		}
+		return subjects;
+	}
+
+	@Override
+	public Map<String,String> getGroupByID(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+		setEnviroment();
+		Map<String,String> subject = getGroup(groupID);
+		return subject;
+	}
+
+	@Override
+	public List<String> getSubGroupsNames(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+		/*setEnviroment();
+		return getSubGroups(groupID);*/
+		return new ArrayList<>();
+	}
 
 	public List<Map<String,String>> findSubjectsLogins(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
 		return findSubjectsLogins(searchString, 0);
@@ -189,6 +214,97 @@ public class ExtSourcePerun extends ExtSource implements ExtSourceApi {
 		if(matchesRichUsers.size() > 1) throw new InternalErrorException("There are more then one subject with login " + login + " in extSource " + extSourceNameForLogin + " in System perun with RPC url: " + perunUrl);
 		
 		return richUsers.get(0);
+	}
+
+	private Map<String,String> getGroup(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+		String query;
+		try {
+			// encode query params
+			query = "VoName= & groupID=" + URLEncoder.encode(groupID, "UTF-8");
+		} catch (UnsupportedEncodingException ex) {
+			// sent query params not encoded
+			query = "VoName= & groupID=" + groupID;
+		}
+
+		List<Group> groups;
+		try {
+			groups = this.call("groupsManager", "getGroupById", query).readList(Group.class);
+		} catch (PerunException ex) {
+			throw new InternalErrorException(ex);
+		}
+		if(groups.isEmpty()) throw new SubjectNotExistsException("There is no group with id " + groupID + " in extSource " + extSourceNameForLogin + " in System perun with RPC url: " + perunUrl);
+		if(groups.size() > 1) throw new InternalErrorException("There are more then one group with id " + groupID + " in extSource " + extSourceNameForLogin + " in System perun with RPC url: " + perunUrl);
+
+		Group group = groups.get(0);
+
+		Map<String,String> groupInMap = new HashMap<String,String>();
+
+		groupInMap.put("groupID", Integer.toString(group.getId()));
+		groupInMap.put("groupName", group.getName());
+		groupInMap.put("parentGroup", Integer.toString(group.getParentGroupId()));
+		groupInMap.put("groupDescription", group.getDescription());
+
+		return groupInMap;
+	}
+
+	private List<Map<String,String>> getGroups(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+
+		List<Map<String,String>> subjects = new ArrayList<>();
+		String query;
+		try {
+			// encode query params
+			query = "VoName= VoForGroup & searchString=" + URLEncoder.encode(searchString, "UTF-8");
+		} catch (UnsupportedEncodingException ex) {
+			// sent query params not encoded
+			query = "VoName= VoForGroup & searchString=" + searchString;
+		}
+
+		List<Group> groups;
+		try {
+			groups = this.call("groupsManager", "getGroupByName", query).readList(Group.class);
+		} catch (PerunException ex) {
+			throw new InternalErrorException(ex);
+		}
+
+		for(Group group: groups) {
+
+			Map<String, String> groupInMap = new HashMap<String, String>();
+
+			groupInMap.put("groupName", group.getName());
+			groupInMap.put("parentGroupName", group.getName());
+			groupInMap.put("groupDescription", group.getDescription());
+
+			subjects.add(groupInMap);
+		}
+		return subjects;
+
+	}
+
+	private List<String> getSubGroups(String groupID) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+
+		/*List<String> subGroups = new ArrayList<>();
+		String query;
+		try {
+			// encode query params
+			query = "VoName= VoForGroup & groupID=" + URLEncoder.encode(groupID, "UTF-8");
+		} catch (UnsupportedEncodingException ex) {
+			// sent query params not encoded
+			query = "VoName= VoForGroup & groupID=" + groupID;
+		}
+
+		List<Group> groups;
+		try {
+			groups = this.call("groupsManager", "getSubGroups", query).readList(Group.class);
+		} catch (PerunException ex) {
+			throw new InternalErrorException(ex);
+		}
+
+		for(Group group: groups) {
+			subGroups.add(group.getName());
+		}
+		return subGroups;*/
+		return new ArrayList<>();
+
 	}
 
 	private List<RichUser> findRichUsers(String substring) throws InternalErrorException {
@@ -331,6 +447,20 @@ public class ExtSourcePerun extends ExtSource implements ExtSourceApi {
 		}
 
 		throw new RpcException(RpcException.Type.UNKNOWN_EXCEPTION, "Failed to contact Perun server on URL: " + perunUrl, e);
+	}
+
+	@Override
+	public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		setEnviroment();
+		// Get the query for the group subjects
+		String queryForGroup = attributes.get(GroupsManager.GROUPSQUERY_ATTRNAME);
+
+		//If there is no query for group, throw exception
+		if(queryForGroup == null) throw new InternalErrorException("Attribute " + GroupsManager.GROUPSQUERY_ATTRNAME + " can't be null.");
+
+		List<Map<String,String>> subjectsFromGroup = getGroups(queryForGroup);
+
+		return subjectsFromGroup;
 	}
 
 	public void close() throws InternalErrorException {

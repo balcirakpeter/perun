@@ -24,6 +24,26 @@ public class ExtSourceKerberos extends ExtSource implements ExtSourceSimpleApi {
 
 	private final static Logger log = LoggerFactory.getLogger(ExtSourceKerberos.class);
 
+	@Override
+	public List<Map<String,String>> findGroups(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		return findGroups(searchString, 0);
+	}
+
+	@Override
+	public List<Map<String,String>> findGroups(String searchString, int maxResults) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		throw new ExtSourceUnsupportedOperationException();
+	}
+
+	@Override
+	public Map<String,String> getGroupByID(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+		throw new ExtSourceUnsupportedOperationException();
+	}
+
+	@Override
+	public List<String> getSubGroupsNames(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+		throw new ExtSourceUnsupportedOperationException();
+	}
+
 	public List<Map<String,String>> findSubjectsLogins(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
 		return findSubjectsLogins(searchString, 0);
 	}
@@ -38,6 +58,11 @@ public class ExtSourceKerberos extends ExtSource implements ExtSourceSimpleApi {
 
 	public List<Map<String, String>> getGroupSubjects(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
 		throw new ExtSourceUnsupportedOperationException();
+	}
+
+	@Override
+	public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		return null;
 	}
 
 	public void close() throws InternalErrorException, ExtSourceUnsupportedOperationException {

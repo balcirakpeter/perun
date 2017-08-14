@@ -59,6 +59,82 @@ public class ExtSourceLdap extends ExtSource implements ExtSourceApi {
 		return perun;
 	}
 
+	@Override
+	public List<Map<String,String>> findGroups(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		return findGroups(searchString, 0);
+	}
+
+	@Override
+	public List<Map<String,String>> findGroups(String searchString, int maxResults) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		// Prepare searchQuery
+		// attributes.get("groupQuery") contains query template, e.g. (gid=?), ? will be replaced by the searchString
+		String query = (String) getAttributes().get("groupQuery");
+		if (query == null) {
+			throw new InternalErrorException("query attributes is required");
+		}
+		query = query.replaceAll("\\?", searchString);
+
+		String base = (String) getAttributes().get("base");
+		if (base == null) {
+			throw new InternalErrorException("base attributes is required");
+		}
+		return this.querySource(query, base, maxResults);
+	}
+
+	@Override
+	public Map<String,String> getGroupByID(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+		// Prepare searchQuery
+		// attributes.get("groupIDQuery") contains query template, e.g. (gid=?), ? will be replaced by the groupID
+		String query = (String) getAttributes().get("groupIDQuery");
+		if (query == null) {
+			throw new InternalErrorException("groupIDQuery attributes is required");
+		}
+		query = query.replaceAll("\\?", groupID);
+
+		String base = (String) getAttributes().get("base");
+		if (base == null) {
+			throw new InternalErrorException("base attributes is required");
+		}
+
+		List<Map<String, String>> subjects = this.querySource(query, base, 0);
+
+		if (subjects.size() > 1) {
+			throw new SubjectNotExistsException("There are more than one results for the group ID: " + groupID);
+		}
+
+		if (subjects.size() == 0) {
+			throw new SubjectNotExistsException(groupID);
+		}
+
+		return subjects.get(0);
+	}
+
+	@Override
+	public List<String> getSubGroupsNames(String groupShortName) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+		/*// Prepare searchQuery
+		// attributes.get("groupQuery") contains query template, e.g. (gid=?), ? will be replaced by the groupID
+		String query = (String) getAttributes().get("subGroupsQuery");
+		if (query == null) {
+			throw new InternalErrorException("query attributes is required");
+		}
+		query = query.replaceAll("\\?", groupShortName);
+
+		String base = (String) getAttributes().get("base");
+		if (base == null) {
+			throw new InternalErrorException("base attributes is required");
+		}
+		List<Map<String, String>> subjects = this.querySource(query, base, Integer.MAX_VALUE);
+		List<String> subGroups = new ArrayList<>();
+
+		for (Map<String, String> subject: subjects) {
+			subGroups.add(subject.get("groupName"));
+		}
+
+		return subGroups;*/
+
+		return new ArrayList<>();
+	}
+
 	public List<Map<String,String>> findSubjectsLogins(String searchString) throws InternalErrorException {
 		return findSubjectsLogins(searchString, 0);
 	}
@@ -167,6 +243,11 @@ public class ExtSourceLdap extends ExtSource implements ExtSourceApi {
 				throw new InternalErrorException(e);
 			}
 		}
+	}
+
+	@Override
+	public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		return null;
 	}
 
 	protected void initContext() throws InternalErrorException {

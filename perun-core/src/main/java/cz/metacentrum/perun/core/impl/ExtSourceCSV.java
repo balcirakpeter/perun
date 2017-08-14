@@ -24,273 +24,432 @@ import org.slf4j.LoggerFactory;
  */
 public class ExtSourceCSV extends ExtSource implements ExtSourceApi {
 
-    private final static Logger log = LoggerFactory.getLogger(ExtSourceCSV.class);
+	private final static Logger log = LoggerFactory.getLogger(ExtSourceCSV.class);
 
-    private String file = null;
-    private String query = null;
-    private String[] header = null;
+	private String file = null;
+	private String query = null;
+	private String[] header = null;
 
-    private static PerunBlImpl perunBl;
+	private static PerunBlImpl perunBl;
 
-    // filled by spring (perun-core.xml)
-    public static PerunBlImpl setPerunBlImpl(PerunBlImpl perun) {
-        perunBl = perun;
-        return perun;
-    }
+	// filled by spring (perun-core.xml)
+	public static PerunBlImpl setPerunBlImpl(PerunBlImpl perun) {
+		perunBl = perun;
+		return perun;
+	}
 
-    @Override
-    public List<Map<String, String>> findSubjectsLogins(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
-        throw new ExtSourceUnsupportedOperationException("For CSV using this method is not optimized, use findSubjects instead.");
-    }
+	@Override
+	public List<Map<String, String>> findGroups(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		return findGroups(searchString, 0);
+	}
 
-    @Override
-    public List<Map<String, String>> findSubjectsLogins(String searchString, int maxResults) throws InternalErrorException, ExtSourceUnsupportedOperationException {
-        throw new ExtSourceUnsupportedOperationException("For CSV using this method is not optimized, use findSubjects instead.");
-    }
+	@Override
+	public List<Map<String, String>> findGroups(String searchString, int maxResults) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		try {
+			query = getAttributes().get("groupQuery");
 
-    @Override
-    public List<Map<String, String>> findSubjects(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
-        return findSubjects(searchString, 0);
-    }
+			if (query == null || query.isEmpty()) {
+				throw new InternalErrorException("query attribute is required");
+			}
 
-    @Override
-    public List<Map<String, String>> findSubjects(String searchString, int maxResults) throws InternalErrorException, ExtSourceUnsupportedOperationException {
-        try {
-            query = getAttributes().get("query");
+			if (searchString == null) {
+				throw new InternalErrorException("search string can't be null");
+			}
 
-            if (query == null || query.isEmpty()) {
-                throw new InternalErrorException("query attribute is required");
-            }
+			//Replace '?' by searchString
+			query = query.replaceAll("\\?", searchString);
 
-            if (searchString == null) {
-                throw new InternalErrorException("search string can't be null");
-            }
+			//Get csv file
+			prepareEnvironment();
 
-            //Replace '?' by searchString
-            query = query.replaceAll("\\?", searchString);
+			return csvParsing(query, maxResults);
 
-            //Get csv file 
-            prepareEnvironment();
+		} catch (IOException ex) {
+			log.error("IOException in findGroups() method while parsing csv file", ex);
+		}
 
-            return csvParsing(query, maxResults);
+		return null;
+	}
 
-        } catch (IOException ex) {
-            log.error("IOException in findSubjects() method while parsing csv file", ex);
-        }
+	@Override
+	public Map<String, String> getGroupByID(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+		try {
+			query = getAttributes().get("groupIDQuery");
 
-        return null;
-    }
+			if (query == null || query.isEmpty()) {
+				throw new InternalErrorException("groupIDQuery attribute is required");
+			}
 
-    @Override
-    public Map<String, String> getSubjectByLogin(String login) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
-        try {
-            query = getAttributes().get("loginQuery");
+			if (groupID == null || groupID.isEmpty()) {
+				throw new InternalErrorException("group ID string can't be null or empty");
+			}
 
-            if (query == null || query.isEmpty()) {
-                throw new InternalErrorException("loginQuery attribute is required");
-            }
+			//Replace '?' by searchString
+			query = query.replaceAll("\\?", groupID);
 
-            if (login == null || login.isEmpty()) {
-                throw new InternalErrorException("login string can't be null or empty");
-            }
+			//Get csv file
+			prepareEnvironment();
 
-            //Replace '?' by searchString
-            query = query.replaceAll("\\?", login);
+			List<Map<String, String>> subjects = this.csvParsing(query, 0);
 
-            //Get csv file 
-            prepareEnvironment();
+			if (subjects.isEmpty()) {
+				throw new SubjectNotExistsException("Group ID: " + groupID);
+			}
+			if (subjects.size() > 1) {
+				throw new InternalErrorException("External source must return exactly one result, search string: " + groupID);
+			}
 
-            List<Map<String, String>> subjects = this.csvParsing(query, 0);
+			return subjects.get(0);
 
-            if (subjects.isEmpty()) {
-                throw new SubjectNotExistsException("Login: " + login);
-            }
-            if (subjects.size() > 1) {
-                throw new InternalErrorException("External source must return exactly one result, search string: " + login);
-            }
+		} catch (IOException ex) {
+			log.error("IOException in getGroupByID() method while parsing csv file", ex);
+		}
 
-            return subjects.get(0);
+		return null;
+	}
 
-        } catch (IOException ex) {
-            log.error("IOException in getSubjectByLogin() method while parsing csv file", ex);
-        }
+	@Override
+	public List<String> getSubGroupsNames(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+		/*try {
+			query = getAttributes().get("subGroupsQuery");
 
-        return null;
-    }
+			if (query == null || query.isEmpty()) {
+				throw new InternalErrorException("subGroupsQuery attribute is required");
+			}
 
-    @Override
-    public List<Map<String, String>> getGroupSubjects(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
-        try {
-            // Get the query for the group subjects
-            String queryForGroup = attributes.get(GroupsManager.GROUPMEMBERSQUERY_ATTRNAME);
+			if (groupID == null || groupID.isEmpty()) {
+				throw new InternalErrorException("group ID string can't be null or empty");
+			}
 
-            //If there is no query for group, throw exception
-            if (queryForGroup == null) {
-                throw new InternalErrorException("Attribute " + GroupsManager.GROUPMEMBERSEXTSOURCE_ATTRNAME + " can't be null.");
-            }
+			//Replace '?' by searchString
+			query = query.replaceAll("\\?", groupID);
 
-            //Get csv file
-            prepareEnvironment();
+			//Get csv file
+			prepareEnvironment();
 
-            return csvParsing(queryForGroup, 0);
+			List<String> subjects = this.csvSubGroupsParsing(query);
 
-        } catch (IOException ex) {
-            log.error("IOException in getGroupSubjects() method while parsing csv file", ex);
-        }
-        return null;
-    }
+			return subjects;
 
-    @Override
-    public void close() throws InternalErrorException, ExtSourceUnsupportedOperationException {
-        throw new ExtSourceUnsupportedOperationException("For CSV, using this method is not optimized, use findSubjects instead.");
-    }
+		} catch (IOException ex) {
+			log.error("IOException in getGroupByID() method while parsing csv file", ex);
+		}
 
-    private void prepareEnvironment() throws InternalErrorException {
-        //Get csv files
-        file = (String) getAttributes().get("file");
-        if (file == null || file.isEmpty()) {
-            throw new InternalErrorException("File cannot be empty!");
-        }
-    }
+		return null;*/
+		return new ArrayList<>();
+	}
 
-    private List<Map<String, String>> csvParsing(String query, int maxResults) throws InternalErrorException, FileNotFoundException, IOException {
-        List<Map<String, String>> subjects = new ArrayList<Map<String, String>>();
+	@Override
+	public List<Map<String, String>> findSubjectsLogins(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		throw new ExtSourceUnsupportedOperationException("For CSV using this method is not optimized, use findSubjects instead.");
+	}
 
-        FileReader fileReader = new FileReader(file);
-        if (fileReader == null) {
-            throw new FileNotFoundException("File was not found!");
-        }
+	@Override
+	public List<Map<String, String>> findSubjectsLogins(String searchString, int maxResults) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		throw new ExtSourceUnsupportedOperationException("For CSV using this method is not optimized, use findSubjects instead.");
+	}
 
-        CSVReader reader = new CSVReader(fileReader);
+	@Override
+	public List<Map<String, String>> findSubjects(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		return findSubjects(searchString, 0);
+	}
 
-        header = reader.readNext();
-        if (header == null) {
-            throw new RuntimeException("No header in csv file");
-        }
+	@Override
+	public List<Map<String, String>> findSubjects(String searchString, int maxResults) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		try {
+			query = getAttributes().get("query");
 
-        String[] row;
+			if (query == null || query.isEmpty()) {
+				throw new InternalErrorException("query attribute is required");
+			}
 
-        while ((row = reader.readNext()) != null) {
+			if (searchString == null) {
+				throw new InternalErrorException("search string can't be null");
+			}
 
-            if (header.length != row.length) {
-                throw new RuntimeException("Csv file is not valid - some rows have different number of columns from the header row.");
-            }
+			//Replace '?' by searchString
+			query = query.replaceAll("\\?", searchString);
 
-            if (compareRowToQuery(row, query)) {
+			//Get csv file
+			prepareEnvironment();
 
-                Map<String, String> map = convertLineToMap(row);
+			return csvParsing(query, maxResults);
 
-                if (map != null) {
-                    subjects.add(map);
-                }
+		} catch (IOException ex) {
+			log.error("IOException in findSubjects() method while parsing csv file", ex);
+		}
 
-                if (maxResults > 0) {
-                    if (subjects.size() >= maxResults) {
-                        break;
-                    }
-                }
-            }
-        }
+		return null;
+	}
 
-        return subjects;
-    }
+	@Override
+	public Map<String, String> getSubjectByLogin(String login) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+		try {
+			query = getAttributes().get("loginQuery");
 
-    /**
-     * Comparison of 1 row in csv file with the query.
-     * - if the row would be result of the query, then this method returns true
-     * - if not, then this method returns false
-     *
-     * @param row 1 row from csv file
-     * @param query query we want to 'execute' on the row, e.g. nameOfColumn=valueInRow
-     * @return boolean
-     * @throws InternalErrorException
-     */
-    private boolean compareRowToQuery(String[] row, String query) throws InternalErrorException {
+			if (query == null || query.isEmpty()) {
+				throw new InternalErrorException("loginQuery attribute is required");
+			}
 
-        // symbol '=' indicates getSubjectByLogin() or getGroupSubjects method
-        int index = query.indexOf("=");
-        // word 'contains' indicates findSubjects() method
-        int indexContains = query.indexOf("contains");
+			if (login == null || login.isEmpty()) {
+				throw new InternalErrorException("login string can't be null or empty");
+			}
 
-        if (index != -1) {
-            String queryType = query.substring(0, index);
-            String value = query.substring(index + 1);
+			//Replace '?' by searchString
+			query = query.replaceAll("\\?", login);
 
-            for (int i = 0; i < row.length; i++) {
-                if ((header[i].compareTo(queryType) == 0 && row[i].compareTo(value) == 0)) {
-                    return true;
-                }
-            }
-        } else {
-            if (indexContains != -1) {
-                String queryType = query.substring(0, indexContains);
-                String value = query.substring(indexContains + "contains".trim().length());
+			//Get csv file
+			prepareEnvironment();
 
-                for (int i = 0; i < row.length; i++) {
-                    value = value.trim();
-                    queryType = queryType.trim();
+			List<Map<String, String>> subjects = this.csvParsing(query, 0);
 
-                    if (header[i].compareTo(queryType) == 0 && row[i].contains(value)) {
-                        return true;
-                    }
-                }
-            } else {
-                // if there's no symbol '=' or word 'contains' in the query
-                throw new InternalErrorException("Wrong query!");
-            }
-        }
+			if (subjects.isEmpty()) {
+				throw new SubjectNotExistsException("Login: " + login);
+			}
+			if (subjects.size() > 1) {
+				throw new InternalErrorException("External source must return exactly one result, search string: " + login);
+			}
 
-        return false;
-    }
+			return subjects.get(0);
 
-    /**
-     * Creates Map<String,String> from 1 row in csv file
-     * 
-     * @param line 1 row from csv file
-     * @return Map<String, String>, like <name,value>
-     * @throws InternalErrorException
-     */
-    private Map<String, String> convertLineToMap(String[] line) throws InternalErrorException {
+		} catch (IOException ex) {
+			log.error("IOException in getSubjectByLogin() method while parsing csv file", ex);
+		}
 
-        Map<String, String> lineAsMap = new HashMap<String, String>();
+		return null;
+	}
 
-        String mapping = getAttributes().get("csvMapping");
+	@Override
+	public List<Map<String, String>> getGroupSubjects(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		try {
+			// Get the query for the group subjects
+			String queryForGroup = attributes.get(GroupsManager.GROUPMEMBERSQUERY_ATTRNAME);
 
-        String[] mappingArray = mapping.split(",\n");
+			//If there is no query for group, throw exception
+			if (queryForGroup == null) {
+				throw new InternalErrorException("Attribute " + GroupsManager.GROUPMEMBERSEXTSOURCE_ATTRNAME + " can't be null.");
+			}
 
-        for (int i = 0; i < mappingArray.length; i++) {
+			//Get csv file
+			prepareEnvironment();
 
-            for (int j = 0; j < line.length; j++) {
+			return csvParsing(queryForGroup, 0);
 
-                String attr = mappingArray[i].trim();
+		} catch (IOException ex) {
+			log.error("IOException in getGroupSubjects() method while parsing csv file", ex);
+		}
+		return null;
+	}
 
-                int index = attr.indexOf("=");
+	@Override
+	public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		try {
+			// Get the query for the subject Groups
+			String queryForGroup = attributes.get(GroupsManager.GROUPSQUERY_ATTRNAME);
 
-                if (index <= 0) {
-                    throw new InternalErrorException("There is no text in csvMapping attribute or there is no '=' character.");
-                }
+			//If there is no query for group, throw exception
+			if (queryForGroup == null) {
+				throw new InternalErrorException("Attribute " + GroupsManager.GROUPSQUERY_ATTRNAME + " can't be null.");
+			}
 
-                String name = attr.substring(0, index);
-                String value = attr.substring(index + 1);
+			//Get csv file
+			prepareEnvironment();
 
-                if (value.startsWith("{")) {
-                    
-                    // exclude curly brackets from value
-                    value = value.substring(1, value.length() - 1);
+			return csvParsing(queryForGroup, 0);
 
-                    if (value.compareTo(header[j]) == 0) {
-                        value = line[j];
-                        lineAsMap.put(name.trim(), value.trim());
-                        break;
-                    }
-                } else {
-                    lineAsMap.put(name.trim(), value.trim());
-                    break;
-                }
-            }
-        }
-        return lineAsMap;
-    }
+		} catch (IOException ex) {
+			log.error("IOException in getGroupSubjects() method while parsing csv file", ex);
+		}
+		return null;
+	}
+
+	@Override
+	public void close() throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		throw new ExtSourceUnsupportedOperationException("For CSV, using this method is not optimized, use findSubjects instead.");
+	}
+
+	private void prepareEnvironment() throws InternalErrorException {
+		//Get csv files
+		file = (String) getAttributes().get("file");
+		if (file == null || file.isEmpty()) {
+			throw new InternalErrorException("File cannot be empty!");
+		}
+	}
+
+	private List<String> csvSubGroupsParsing(String query) throws InternalErrorException, FileNotFoundException, IOException {
+		List<String> subjects = new ArrayList<>();
+
+		FileReader fileReader = new FileReader(file);
+		if (fileReader == null) {
+			throw new FileNotFoundException("File was not found!");
+		}
+
+		CSVReader reader = new CSVReader(fileReader);
+
+		header = reader.readNext();
+		if (header == null) {
+			throw new RuntimeException("No header in csv file");
+		}
+
+		String[] row;
+
+		while ((row = reader.readNext()) != null) {
+
+			if (header.length != row.length) {
+				throw new RuntimeException("Csv file is not valid - some rows have different number of columns from the header row.");
+			}
+
+			if (compareRowToQuery(row, query)) {
+
+				Map<String, String> map = convertLineToMap(row);
+
+				if (map != null) {
+					subjects.add(map.get("groupName"));
+				}
+			}
+		}
+
+		return subjects;
+	}
+
+	private List<Map<String, String>> csvParsing(String query, int maxResults) throws InternalErrorException, FileNotFoundException, IOException {
+		List<Map<String, String>> subjects = new ArrayList<Map<String, String>>();
+
+		FileReader fileReader = new FileReader(file);
+		if (fileReader == null) {
+			throw new FileNotFoundException("File was not found!");
+		}
+
+		CSVReader reader = new CSVReader(fileReader);
+
+		header = reader.readNext();
+		if (header == null) {
+			throw new RuntimeException("No header in csv file");
+		}
+
+		String[] row;
+
+		while ((row = reader.readNext()) != null) {
+
+			if (header.length != row.length) {
+				throw new RuntimeException("Csv file is not valid - some rows have different number of columns from the header row.");
+			}
+
+			if (compareRowToQuery(row, query)) {
+
+				Map<String, String> map = convertLineToMap(row);
+
+				if (map != null) {
+					subjects.add(map);
+				}
+
+				if (maxResults > 0) {
+					if (subjects.size() >= maxResults) {
+						break;
+					}
+				}
+			}
+		}
+
+		return subjects;
+	}
+
+	/**
+	 * Comparison of 1 row in csv file with the query.
+	 * - if the row would be result of the query, then this method returns true
+	 * - if not, then this method returns false
+	 *
+	 * @param row 1 row from csv file
+	 * @param query query we want to 'execute' on the row, e.g. nameOfColumn=valueInRow
+	 * @return boolean
+	 * @throws InternalErrorException
+	 */
+	private boolean compareRowToQuery(String[] row, String query) throws InternalErrorException {
+
+		// symbol '=' indicates getSubjectByLogin() or getGroupSubjects method
+		int index = query.indexOf("=");
+		// word 'contains' indicates findSubjects() method
+		int indexContains = query.indexOf("contains");
+
+		if (index != -1) {
+			String queryType = query.substring(0, index);
+			String value = query.substring(index + 1);
+
+			for (int i = 0; i < row.length; i++) {
+				if ((header[i].compareTo(queryType) == 0 && row[i].compareTo(value) == 0)) {
+					return true;
+				}
+			}
+		} else {
+			if (indexContains != -1) {
+				String queryType = query.substring(0, indexContains);
+				String value = query.substring(indexContains + "contains".trim().length());
+
+				for (int i = 0; i < row.length; i++) {
+					value = value.trim();
+					queryType = queryType.trim();
+
+					if (header[i].compareTo(queryType) == 0 && row[i].contains(value)) {
+						return true;
+					}
+				}
+			} else {
+				// if there's no symbol '=' or word 'contains' in the query
+				throw new InternalErrorException("Wrong query!");
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Creates Map<String,String> from 1 row in csv file
+	 *
+	 * @param line 1 row from csv file
+	 * @return Map<String, String>, like <name,value>
+	 * @throws InternalErrorException
+	 */
+	private Map<String, String> convertLineToMap(String[] line) throws InternalErrorException {
+
+		Map<String, String> lineAsMap = new HashMap<String, String>();
+
+		String mapping = getAttributes().get("csvMapping");
+
+		String[] mappingArray = mapping.split(",\n");
+
+		for (int i = 0; i < mappingArray.length; i++) {
+
+			for (int j = 0; j < line.length; j++) {
+
+				String attr = mappingArray[i].trim();
+
+				int index = attr.indexOf("=");
+
+				if (index <= 0) {
+					throw new InternalErrorException("There is no text in csvMapping attribute or there is no '=' character.");
+				}
+
+				String name = attr.substring(0, index);
+				String value = attr.substring(index + 1);
+
+				if (value.startsWith("{")) {
+
+					// exclude curly brackets from value
+					value = value.substring(1, value.length() - 1);
+
+					if (value.compareTo(header[j]) == 0) {
+						value = line[j];
+						lineAsMap.put(name.trim(), value.trim());
+						break;
+					}
+				} else {
+					lineAsMap.put(name.trim(), value.trim());
+					break;
+				}
+			}
+		}
+		return lineAsMap;
+	}
 
 	protected Map<String,String> getAttributes() {
 		return perunBl.getExtSourcesManagerBl().getAttributes(this);

@@ -66,6 +66,98 @@ public class ExtSourceXML extends ExtSource implements ExtSourceApi {
 	//Pattern for looking replacement in regex string
 	private Pattern pattern = Pattern.compile("([^\\\\]|^)(\\\\\\\\)*\\/([^\\\\]|$)");
 
+	@Override
+	public List<Map<String, String>> findGroups(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		return findGroups(searchString, 0);
+	}
+
+	@Override
+	public List<Map<String, String>> findGroups(String searchString, int maxResults) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		//prepare string for xpath (use concat for chars ' and  ")
+		searchString = convertToXpathSearchString(searchString);
+
+		//Get Query attribute from extSources.xml config file
+		query = (String) getAttributes().get("groupXpath");
+		if (query == null || query.isEmpty()) {
+			throw new InternalErrorException("query attributes is required");
+		}
+
+		//Replace '?' by searchString
+		if(searchString == null) {
+			throw new InternalErrorException("search string can't be null");
+		}
+		query = query.replaceAll("\\?", searchString);
+
+		//Get file or uri of xml
+		prepareEnviroment();
+
+		return xpathParsing(query, maxResults);
+	}
+
+	@Override
+	public Map<String, String> getGroupByID(String groupID) throws InternalErrorException, SubjectNotExistsException {
+		//prepare string for xpath (use concat for chars ' and  ")
+		groupID = convertToXpathSearchString(groupID);
+
+		//Get Query attribute from extSources.xml config file
+		query = (String) getAttributes().get("groupIDXpath");
+		if (query == null || query.isEmpty()) {
+			throw new InternalErrorException("query attributes is required");
+		}
+
+		//Replace '?' by searchString
+		if(groupID == null || groupID.isEmpty()) {
+			throw new InternalErrorException("group ID string can't be null or empty");
+		}
+		query = query.replaceAll("\\?", groupID);
+
+		//Get file or uri of xml
+		prepareEnviroment();
+
+		List<Map<String, String>> subjects = this.xpathParsing(query, 0);
+
+		if (subjects.size() > 1) {
+			throw new SubjectNotExistsException("There are more than one results for the group ID: " + groupID);
+		}
+
+		if (subjects.size() == 0) {
+			throw new SubjectNotExistsException(groupID);
+		}
+
+		return subjects.get(0);
+	}
+
+	@Override
+	public List<String> getSubGroupsNames(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+		/*//prepare string for xpath (use concat for chars ' and  ")
+		groupID = convertToXpathSearchString(groupID);
+
+		//Get Query attribute from extSources.xml config file
+		query = (String) getAttributes().get("subGroupsXpath");
+		if (query == null || query.isEmpty()) {
+			throw new InternalErrorException("query attributes is required");
+		}
+
+		//Replace '?' by searchString
+		if(groupID == null || groupID.isEmpty()) {
+			throw new InternalErrorException("group ID string can't be null or empty");
+		}
+		query = query.replaceAll("\\?", groupID);
+
+		//Get file or uri of xml
+		prepareEnviroment();
+
+		List<Map<String, String>> subjects = this.xpathParsing(query, Integer.MAX_VALUE);
+
+		List<String> subGroups = new ArrayList<>();
+
+		for (Map<String, String> subject:subjects) {
+			subGroups.add(subject.get("groupName"));
+		}
+		return subGroups;*/
+		return new ArrayList<>();
+	}
+
 	public List<Map<String,String>> findSubjectsLogins(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
 		return findSubjectsLogins(searchString, 0);
 	}
@@ -144,7 +236,21 @@ public class ExtSourceXML extends ExtSource implements ExtSourceApi {
 		
 		return xpathParsing(queryForGroup, 0);
 	}
-	
+
+	@Override
+	public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		// Get the query for the group subjects
+		String queryForGroup = attributes.get(GroupsManager.GROUPSQUERY_ATTRNAME);
+
+		//If there is no query for group, throw exception
+		if(queryForGroup == null) throw new InternalErrorException("Attribute " + GroupsManager.GROUPSQUERY_ATTRNAME + " can't be null.");
+
+		//Get file or uri of xml
+		prepareEnviroment();
+
+		return xpathParsing(queryForGroup, 0);
+	}
+
 	protected void prepareEnviroment() throws InternalErrorException {
 		//Get file or uri of xml
 		file = (String) getAttributes().get("file");

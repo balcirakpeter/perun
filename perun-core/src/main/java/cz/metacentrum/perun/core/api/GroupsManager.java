@@ -27,6 +27,7 @@ import cz.metacentrum.perun.core.api.exceptions.VoNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentException;
 import cz.metacentrum.perun.core.api.exceptions.WrongAttributeValueException;
 import cz.metacentrum.perun.core.api.exceptions.WrongReferenceAttributeValueException;
+import cz.metacentrum.perun.core.api.exceptions.*;
 import cz.metacentrum.perun.core.api.exceptions.rt.InternalErrorRuntimeException;
 
 /**
@@ -44,6 +45,8 @@ import cz.metacentrum.perun.core.api.exceptions.rt.InternalErrorRuntimeException
 public interface GroupsManager {
 
 	// Attributes related to the external groups
+	// Contains query need to get the group members
+	public static final String GROUPSQUERY_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":groupsQuery";
 	// Contains query need to get the group members
 	public static final String GROUPMEMBERSQUERY_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":groupMembersQuery";
 	// Define the external source used for accessing the data about external group
@@ -220,6 +223,25 @@ public interface GroupsManager {
 	 * @throws InternalErrorRuntimeException
 	 */
 	Group getGroupByName(PerunSession perunSession, Vo vo, String name) throws GroupNotExistsException, InternalErrorException, PrivilegeException, VoNotExistsException;
+
+	/**
+	 * Get list of groups from ExtSource where group name contains searchString.
+	 *
+	 *
+	 * @param perunSession
+	 * @param extSource from which is group selected
+	 * @param searchString of group in extSource
+	 * @param count of group in extSource
+	 * @return list of groups from which we can create groups in perun
+	 *
+	 * @throws InternalErrorException if group.name contains ':' or other internal error occured
+	 * @throws WrongAttributeValueException
+	 * @throws WrongReferenceAttributeValueException
+	 * @throws ExtSourceNotExistsException
+	 * @throws GroupOperationsException
+	 */
+	List<Group> getGroupsFromExtSource(PerunSession perunSession, ExtSource extSource, String searchString, int count) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, ExtSourceNotExistsException, GroupOperationsException;
+
 
 	/**
 	 * Adds member of the VO to the group in the same VO.

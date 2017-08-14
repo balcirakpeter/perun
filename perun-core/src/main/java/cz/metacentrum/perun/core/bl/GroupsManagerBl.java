@@ -208,6 +208,22 @@ public interface GroupsManagerBl {
 	 */
 	Group getGroupByName(PerunSession perunSession, Vo vo, String name) throws InternalErrorException, GroupNotExistsException;
 
+	/**
+	 * Creates a new group from ExtSource and associate it with the VO as subgroup of the ExtSource group in the VO.
+	 *
+	 *
+	 * @param sess
+	 * @param extSource from which is group selected
+	 * @param searchString
+	 * @param count
+	 * @return list of groups
+	 *
+	 * @throws InternalErrorException if group.name contains ':' or other internal error occured
+	 * @throws WrongAttributeValueException
+	 * @throws WrongReferenceAttributeValueException
+	 * @throws GroupOperationsException
+	 */
+	List<Group> getGroupsFromExtSource(PerunSession sess, ExtSource extSource, String searchString, int count) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupOperationsException;
 
 	/**
 	 * Adds member of the VO to the group in the same VO. But not to administrators and members group.
@@ -806,6 +822,25 @@ public interface GroupsManagerBl {
 	List<String> synchronizeGroup(PerunSession sess, Group group) throws InternalErrorException, MemberAlreadyRemovedException, AttributeNotExistsException, WrongAttributeAssignmentException, ExtSourceNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupOperationsException, NotMemberOfParentGroupException, GroupNotExistsException;
 
 	/**
+	 * Synchronizes groups with the external source groups under base group.
+	 * If some groups from extSource were skipped, return info about them.
+	 * if not, return empty string instead, which means all groups was successfully load from extSource.
+	 *
+	 * @param sess
+	 * @param group base group under which will be synchroni
+	 * @return List of strings with skipped users with reasons why were skipped
+	 * @throws InternalErrorException
+	 * @throws AttributeNotExistsException
+	 * @throws WrongAttributeAssignmentException
+	 * @throws ExtSourceNotExistsException
+	 * @throws WrongAttributeValueException
+	 * @throws WrongReferenceAttributeValueException
+	 * @throws GroupOperationsException
+	 * @throws GroupNotExistsException
+	 */
+	List<String> synchronizeGroupStructure(PerunSession sess, Group group) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException, ExtSourceNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupOperationsException, GroupNotExistsException ;
+
+	/**
 	 * Synchronize the group with external group. It checks if the synchronization of the same group is already in progress.
 	 *
 	 * @param sess
@@ -1115,4 +1150,30 @@ public interface GroupsManagerBl {
 	 * @throws InternalErrorException
 	 */
 	void removeGroupUnion(PerunSession sess, Group resultGroup, Group operandGroup, boolean parentFlag) throws GroupOperationsException, InternalErrorException;
+
+	/**
+	 * Move one group structure under another group in same vo
+	 *
+	 * @param sess perun session
+	 * @param destinationGroup group to which is moving group moved
+	 * @param movingGroup group which is moved to destination group
+	 *
+	 * @throws InternalErrorException
+	 */
+	void moveGroup(PerunSession sess, Group destinationGroup, Group movingGroup) throws InternalErrorException;
+
+	/**
+	 * Just temporary solution
+	 * @param sess
+	 * @param source
+	 * @param group
+	 * @return
+	 * @throws InternalErrorException
+	 */
+	public List<Map<String, String>> getSubjectGroupsFromExtSource(PerunSession sess, ExtSource source, Group group) throws InternalErrorException;
+
+	/**
+	 * Just temporary solution
+ 	 */
+	public ExtSource getGroupExtSourceForSynchronization(PerunSession sess, Group group) throws InternalErrorException, WrongAttributeAssignmentException, AttributeNotExistsException, ExtSourceNotExistsException;
 }

@@ -47,6 +47,101 @@ public class ExtSourceVOOT extends ExtSource implements ExtSourceApi {
     }
 
     @Override
+    public List<Map<String, String>> findGroups(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+        return findGroups(searchString, 0);
+    }
+
+    @Override
+    public List<Map<String, String>> findGroups(String searchString, int maxResults) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+        /*query = getAttributes().get("groupQuery");
+
+        if (query == null || query.isEmpty()) {
+            throw new InternalErrorException("query attribute is required");
+        }
+
+        //Replace '?' by searchString
+        query = query.replaceAll("\\?", searchString);
+
+        prepareEnvironment();
+
+        try {
+            return getGroupsFromRemoteByQuery(maxResults);
+        } catch (IOException ex) {
+            log.error("IOException in findGroups() method while obtaining groups"
+                    + "from VOOT external source", ex);
+        }
+*/
+        return null;
+    }
+
+    @Override
+    public Map<String, String> getGroupByID(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+        /*query = getAttributes().get("groupIDQuery");
+
+        if (query == null || query.isEmpty()) {
+            throw new InternalErrorException("groupIDQuery attribute is required");
+        }
+
+        if (groupID == null || groupID.isEmpty()) {
+            throw new InternalErrorException("id string can't be null or empty");
+        }
+
+        //Replace '?' by searchString
+        query = query.replaceAll("\\?", groupID);
+
+        prepareEnvironment();
+
+        try {
+            List<Map<String, String>> subjects
+                    = getGroupsFromRemoteByQuery(0);
+
+            if (subjects.isEmpty()) {
+                throw new SubjectNotExistsException("group ID: " + groupID);
+            }
+            if (subjects.size() > 1) {
+                throw new InternalErrorException("External source must return"
+                        + " exactly one result, search string: " + groupID);
+            }
+
+            return subjects.get(0);
+        } catch (IOException ex) {
+            log.error("IOException in getgroupByID() method while obtaining"
+                    + "group from VOOT external source", ex);
+        }*/
+
+        return null;
+    }
+
+    @Override
+    public List<String> getSubGroupsNames(String groupID) throws InternalErrorException, SubjectNotExistsException, ExtSourceUnsupportedOperationException {
+        /*query = getAttributes().get("subGroupsQuery");
+
+        if (query == null || query.isEmpty()) {
+            throw new InternalErrorException("query attribute is required");
+        }
+
+        //Replace '?' by searchString
+        query = query.replaceAll("\\?", groupID);
+
+        prepareEnvironment();
+
+        List<String> subGroups = new ArrayList<>();
+
+        try {
+            List<Map<String, String>> subjects = getGroupsFromRemoteByQuery(Integer.MAX_VALUE);
+            for (Map<String, String> subject: subjects) {
+                subGroups.add(subject.get("groupName"));
+            }
+        } catch (IOException ex) {
+            log.error("IOException in findGroups() method while obtaining groups"
+                    + "from VOOT external source", ex);
+        }
+
+        return subGroups;*/
+        return new ArrayList<>();
+    }
+
+    @Override
     public List<Map<String, String>> findSubjectsLogins(String searchString) throws InternalErrorException, ExtSourceUnsupportedOperationException {
         throw new ExtSourceUnsupportedOperationException(
                 "For VOOT using this method is not optimized, use findSubjects instead.");
@@ -157,6 +252,38 @@ public class ExtSourceVOOT extends ExtSource implements ExtSourceApi {
     }
 
     @Override
+    public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+        List<Map<String, String>> subjects = new ArrayList<>();
+
+        try {
+            String queryForGroup = attributes.get(
+                    GroupsManager.GROUPSQUERY_ATTRNAME);
+
+            if (queryForGroup == null) {
+                throw new InternalErrorException("Attribute " +
+                        GroupsManager.GROUPSQUERY_ATTRNAME +
+                        " can't be null.");
+            }
+
+            prepareEnvironment();
+
+            List<Map<String, String>> parsedResult =
+                    getGroupsFromRemoteByQuery(queryForGroup);
+
+            for (Map map : parsedResult) {
+                if (map != null) {
+                    subjects.add(map);
+                }
+            }
+
+        } catch (IOException ex) {
+            log.error("IOException in getSubjectGroups() method while obtaining"
+                    + "groups from VOOT external source ", ex);
+        }
+        return subjects;
+    }
+
+    @Override
     public void close() throws ExtSourceUnsupportedOperationException {
         throw new ExtSourceUnsupportedOperationException(
                 "For VOOT using this method is not optimized, use findSubjects instead.");
@@ -191,8 +318,52 @@ public class ExtSourceVOOT extends ExtSource implements ExtSourceApi {
         return "Basic " + new String(Base64Coder.encode(userCredentials.getBytes()));
     }
 
+    private List<Map<String, String>> getGroupsFromRemoteByQuery(String queryForGroup) throws IOException {
+        List<Map<String, String>> groups = new ArrayList();
+
+        HttpURLConnection connection = createConnection(uriMembership);
+        InputStream is = null;
+        if (connection != null) {
+            is = connection.getInputStream();
+        }
+        if (is != null) {
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(is));
+            String line;
+
+            try {
+                while ((line = bufferedReader.readLine()) != null) {
+                    JSONObject obj = new JSONObject(line);
+                    JSONArray groupsArray = obj.getJSONArray("entry");
+
+                    for (int i = 0; i < groupsArray.length(); i++) {
+                        JSONObject group = groupsArray.getJSONObject(i);
+                        if (queryForGroup == null) {
+                            log.error("groupQuery in getGroupsFromRemoteByQuery() cannot be null");
+                        } else {
+                            int index = queryForGroup.indexOf("=");
+                            String queryType = queryForGroup.substring(0, index);
+                            String value = queryForGroup.substring(index + 1);
+
+                            if (queryType.equals("groupName")
+                                    && value.contains(group.getString("groupName"))) {
+                                groups.add(jsonGroupParsing(groupsArray.getJSONObject(i)));
+                            }
+                        }
+                    }
+
+                    return groups;
+                }
+            } finally {
+                bufferedReader.close();
+                connection.disconnect();
+            }
+        }
+        return null;
+    }
+
+
     // use uriMembership attribute to obtain list of available groups
-    private List<String> getGroupsFromRemote() throws IOException {
+    private List<String> getGroupsFromRemote() throws IOException, InternalErrorException {
         List<String> groups = new ArrayList();
 
         HttpURLConnection connection = createConnection(uriMembership);
@@ -344,6 +515,18 @@ public class ExtSourceVOOT extends ExtSource implements ExtSourceApi {
                 break;
             }
         }
+        return resultMap;
+    }
+
+    // method is used by getGroupsFromRemoteByQuery() method, creates MAP from required group
+    private Map<String, String> jsonGroupParsing(JSONObject group) {
+        Map<String, String> resultMap = new HashMap<>();
+        String name = group.getString("groupName");
+        resultMap.put("groupName", name.trim());
+        String parentName = group.getString("parentGroupName");
+        resultMap.put("parentGroupName", parentName.trim());
+        String desc = group.getString("groupDescription");
+        resultMap.put("groupDescription", desc.trim());
         return resultMap;
     }
 
