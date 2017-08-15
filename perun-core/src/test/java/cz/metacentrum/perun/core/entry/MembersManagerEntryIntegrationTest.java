@@ -9,17 +9,12 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 import cz.metacentrum.perun.core.api.*;
-import cz.metacentrum.perun.core.blImpl.AuthzResolverBlImpl;
+import cz.metacentrum.perun.core.api.exceptions.*;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
 
 import cz.metacentrum.perun.core.AbstractPerunIntegrationTest;
-import cz.metacentrum.perun.core.api.exceptions.AlreadyMemberException;
-import cz.metacentrum.perun.core.api.exceptions.ExtendMembershipException;
-import cz.metacentrum.perun.core.api.exceptions.MemberNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.UserNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.VoNotExistsException;
 
 /**
  * Integration tests for MembersManager
@@ -48,6 +43,12 @@ public class MembersManagerEntryIntegrationTest extends AbstractPerunIntegration
 	public void setUp() throws Exception {
 
 		extSource = perun.getExtSourcesManager().createExtSource(sess, extSource, null);
+
+		try {
+			perun.getAttributesManager().getAttributeDefinition(sess, perun.getResourcesManager().MEMBER_STATUS);
+		} catch (AttributeNotExistsException ex) {
+			setMemberStatusAttribute();
+		}
 
 		usersManagerEntry = perun.getUsersManager();
 		attributesManagerEntry = perun.getAttributesManager();
@@ -85,38 +86,6 @@ public class MembersManagerEntryIntegrationTest extends AbstractPerunIntegration
 		g1 = perun.getGroupsManagerBl().createGroup(sess, createdVo, new Group("TESTINGGROUP1", "TESTINGGROUP1"));
 		g2 = perun.getGroupsManagerBl().createGroup(sess, createdVo, new Group("TESTINGGROUP2", "TESTINGGROUP2"));
 		g3ing1 = perun.getGroupsManagerBl().createGroup(sess, g1, new Group("TESTINGGROUP3", "TESTINGGROUP3"));
-	}
-
-	@Test
-	public void getSponsoredMembers() throws Exception {
-		System.out.println(CLASS_NAME + "getSponsoredMembers");
-
-		Member sponsorMember = setUpMember3(createdVo);
-		User sponsorUser = perun.getUsersManagerBl().getUserByMember(sess, sponsorMember);
-		Group sponsors = new Group("sponsors","users able to sponsor");
-		sponsors = perun.getGroupsManagerBl().createGroup(sess,createdVo,sponsors);
-		AuthzResolverBlImpl.setRole(sess, sponsors, createdVo, Role.SPONSOR);
-		perun.getGroupsManagerBl().addMember(sess,sponsors,sponsorMember);
-
-		//no sponsored member has been created yet
-		assertTrue(perun.getMembersManagerBl().getSponsoredMembers(sess, createdVo).size() == 0);
-
-		Member sponsoredMember1 = perun.getMembersManagerBl().createSponsoredMember(sess, createdVo, "dummy", "Ing. Petr Draxler", "secret", sponsorUser, false);
-
-		//should contain one sponsored member
-		List<Member> sponsoredMembers = perun.getMembersManagerBl().getSponsoredMembers(sess, createdVo);
-
-		assertTrue(sponsoredMembers.size() == 1);
-		assertTrue(sponsoredMembers.contains(sponsoredMember1));
-
-		Member sponsoredMember2 = perun.getMembersManagerBl().createSponsoredMember(sess, createdVo, "dummy", "Miloš Zeman", "password", sponsorUser, false);
-
-		sponsoredMembers = perun.getMembersManagerBl().getSponsoredMembers(sess, createdVo);
-
-		//now should contain two sponsored members
-		assertTrue(sponsoredMembers.size() == 2);
-		assertTrue(sponsoredMembers.contains(sponsoredMember1));
-		assertTrue(sponsoredMembers.contains(sponsoredMember2));
 	}
 
 	@Test
@@ -1253,55 +1222,6 @@ public class MembersManagerEntryIntegrationTest extends AbstractPerunIntegration
 		assertTrue("results must contain member \"Pepa z Depa\"", members.contains(createdMember));
 	}
 
-	@Test
-	public void getMemberByExtSourceNameAndExtLogin() throws Exception {
-		System.out.println(CLASS_NAME + "getMemberByExtSourceNameAndExtLogin");
-
-		Member member = setUpMember(createdVo);
-		User user = perun.getUsersManagerBl().getUserByMember(sess, member);
-
-		String extSourceName = "MembersManagerEntryIntegrationTest";
-		String extLogin = Long.toHexString(Double.doubleToLongBits(Math.random()));
-		UserExtSource userExtSource = new UserExtSource();
-		ExtSource externalSource = new ExtSource(0, "testExtSource", "cz.metacentrum.perun.core.impl.ExtSourceInternal");
-		externalSource = perun.getExtSourcesManagerBl().createExtSource(sess, externalSource, null);
-		// gets real external source object from database
-		userExtSource.setExtSource(externalSource);
-		// put real external source into user's external source
-		userExtSource.setLogin(extLogin);
-		// set users login in his ext source
-		userExtSource = perun.getUsersManagerBl().addUserExtSource(sess, user, userExtSource);
-
-		extSourceName = userExtSource.getExtSource().getName();
-		extLogin = userExtSource.getLogin();
-		Member returnedMember = membersManagerEntry.getMemberByExtSourceNameAndExtLogin(sess, createdVo, extSourceName, extLogin);
-		assertEquals("members should be the same",member, returnedMember);
-
-	}
-
-	@Test
-	public void createSponsoredMember() throws Exception {
-		System.out.println(CLASS_NAME + "createSponsoredMember");
-		Member sponsorMember = setUpMember3(createdVo);
-		User sponsorUser = perun.getUsersManagerBl().getUserByMember(sess, sponsorMember);
-		Group sponsors = new Group("sponsors","users able to sponsor");
-		sponsors = perun.getGroupsManagerBl().createGroup(sess,createdVo,sponsors);
-		AuthzResolverBlImpl.setRole(sess, sponsors, createdVo, Role.SPONSOR);
-		perun.getGroupsManagerBl().addMember(sess,sponsors,sponsorMember);
-		//create guest
-		assertTrue("user must have SPONSOR role", perun.getVosManagerBl().isUserInRoleForVo(sess, sponsorUser, Role.SPONSOR, createdVo, true));
-		Member sponsoredMember = perun.getMembersManagerBl().createSponsoredMember(sess, createdVo, "dummy", "Ing. Jiří Novák, CSc.", "secret", sponsorUser, false);
-		assertNotNull("sponsored member must not be null",sponsoredMember);
-		assertTrue("sponsored memer must have flag 'sponsored' set",sponsoredMember.isSponsored());
-		assertTrue("sponsored member should have status VALID",sponsoredMember.getStatus()==Status.VALID);
-		//remove sponsor from sponsor group, thus the user loses role and member get expired
-		perun.getGroupsManagerBl().removeMember(sess,sponsors,sponsorMember);
-		//refresh from DB
-		sponsoredMember = perun.getMembersManagerBl().getMemberById(sess,sponsoredMember.getId());
-		assertTrue("sponsored member without sponsors should still have flag sponsored",sponsoredMember.isSponsored());
-		assertTrue("sponsored member without sponsors must be expired",sponsoredMember.getStatus()==Status.EXPIRED);
-	}
-
 	private Attribute setUpAttribute(String type, String friendlyName, String namespace, Object value) throws Exception {
 		Attribute attr = new Attribute();
 		attr.setNamespace(namespace);
@@ -1360,28 +1280,6 @@ public class MembersManagerEntryIntegrationTest extends AbstractPerunIntegration
 
 	}
 
-	private Member setUpMember3(Vo vo) throws Exception {
-		Candidate candidate = setUpCandidate3();
-		Member member = perun.getMembersManagerBl().createMemberSync(sess, vo, candidate); // candidates.get(0)
-		// set first candidate as member of test VO
-		assertNotNull("No member created", member);
-		usersForDeletion.add(perun.getUsersManager().getUserByMember(sess, member));
-		Attribute attrEmail = new Attribute(attributesManagerEntry.getAttributeDefinition(sess, AttributesManager.NS_MEMBER_ATTR_DEF+":mail"));
-		attrEmail.setValue("jan@sponsor.cz");
-		attributesManagerEntry.setAttribute(sess, member, attrEmail);
-
-		User user = usersManagerEntry.getUserByMember(sess, member);
-		Attribute attrLogin = new Attribute();
-		attrLogin.setNamespace(AttributesManager.NS_USER_ATTR_DEF);
-		attrLogin.setFriendlyName("login-namespace:dummy");
-		attrLogin.setType(String.class.getName());
-		attrLogin = new Attribute(attributesManagerEntry.createAttribute(sess, attrLogin));
-		attrLogin.setValue("111111");
-		attributesManagerEntry.setAttribute(sess, user, attrLogin);
-		return member;
-
-	}
-
 	private Candidate setUpCandidate() {
 
 		String userFirstName = "FirstTest";
@@ -1422,22 +1320,16 @@ public class MembersManagerEntryIntegrationTest extends AbstractPerunIntegration
 
 	}
 
-	private Candidate setUpCandidate3() {
+	private AttributeDefinition setMemberStatusAttribute() throws Exception {
 
-		String userFirstName = "Jan";
-		String userLastName = "Sponzor";
-		String extLogin = "aaaaaaa";
+		AttributeDefinition attr = new AttributeDefinition();
+		attr.setNamespace(AttributesManager.NS_MEMBER_RESOURCE_ATTR_DEF);
+		attr.setFriendlyName("memberStatus");
+		attr.setDisplayName("Member status");
+		attr.setType(String.class.getName());
+		attr.setDescription("Member status to resource");
 
-		Candidate candidate = new Candidate();  //Mockito.mock(Candidate.class);
-		candidate.setFirstName(userFirstName);
-		candidate.setId(0);
-		candidate.setMiddleName("");
-		candidate.setLastName(userLastName);
-		candidate.setTitleBefore("");
-		candidate.setTitleAfter("");
-		final UserExtSource userExtSource = new UserExtSource(extSource, extLogin);
-		candidate.setUserExtSource(userExtSource);
-		candidate.setAttributes(new HashMap<String,String>());
-		return candidate;
+		return perun.getAttributesManager().createAttribute(sess, attr);
 	}
+
 }

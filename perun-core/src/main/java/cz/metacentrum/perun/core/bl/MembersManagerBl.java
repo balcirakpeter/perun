@@ -283,19 +283,28 @@ public interface MembersManagerBl {
 	 * Generates account with params in given namespace, which is used to create a new Candidate for MembersManager.createSpecificMember
 	 * with SPONSORED type and is asynchronously validated after that
 	 *
-	 * @param sess session
+	 * @param sess
 	 * @param params map with parameters for generating account in namespace
 	 * @param namespace namespace to generate account in
 	 * @param extSource external source
 	 * @param extSourcePostfix login postfix if external source uses postfix after login from given namespace, e.g. "@muni.cz"
 	 * @param owner owner of newly created member
 	 * @param vo vo to create member in
-	 * @param loa level of assurance
+	 * @param loa
 	 * @return newly created Member
+	 * @throws InternalErrorException
+	 * @throws ExtendMembershipException
+	 * @throws AlreadyMemberException
+	 * @throws WrongReferenceAttributeValueException
+	 * @throws WrongAttributeValueException
+	 * @throws GroupOperationsException
+	 * @throws PasswordCreationFailedException
+	 * @throws ExtSourceNotExistsException
+	 * @throws LoginNotExistsException
+	 * @throws UserNotExistsException
 	 *
-	 * @deprecated replaced by {@link #createSponsoredMember(PerunSession, Vo, String, String, String, User, boolean)}
+	 * @see cz.metacentrum.perun.core.bl.MembersManagerBl#createSpecificMember(PerunSession, Vo, Candidate, List<User>, SpecificUserType)
 	 */
-	@Deprecated
 	Member createSponsoredAccount(PerunSession sess, Map<String, String> params, String namespace, ExtSource extSource, String extSourcePostfix, User owner, Vo vo, int loa) throws InternalErrorException, PasswordCreationFailedException, PasswordOperationTimeoutException, PasswordStrengthFailedException, GroupOperationsException, ExtendMembershipException, AlreadyMemberException, WrongReferenceAttributeValueException, WrongAttributeValueException, UserNotExistsException, ExtSourceNotExistsException, LoginNotExistsException;
 
 	/**
@@ -1194,22 +1203,6 @@ public interface MembersManagerBl {
 	boolean canBeMemberWithReason(PerunSession sess, Vo vo, User user, String loa) throws InternalErrorException, ExtendMembershipException;
 
 	/**
-	 * Get member by extSourceName, extSourceLogin and Vo
-	 *
-	 * @param sess
-	 * @param extSourceName name of extSource
-	 * @param extLogin login of user in extSource
-	 * @param vo Vo where we are looking for member
-	 * @return member
-	 * @throws ExtSourceNotExistsException
-	 * @throws UserExtSourceNotExistsException
-	 * @throws MemberNotExistsException
-	 * @throws UserNotExistsException
-	 * @throws InternalErrorException
-	 */
-	Member getMemberByExtSourceNameAndExtLogin(PerunSession sess, Vo vo, String extSourceName, String extLogin) throws ExtSourceNotExistsException, UserExtSourceNotExistsException, MemberNotExistsException, UserNotExistsException, InternalErrorException, VoNotExistsException, PrivilegeException;
-
-	/**
 	 * Returns the date to which will be extended member's expiration time.
 	 *
 	 * @param sess
@@ -1283,50 +1276,4 @@ public interface MembersManagerBl {
 	 */
 	void sendPasswordResetLinkEmail(PerunSession sess, Member member, String namespace, String url) throws InternalErrorException;
 
-	/**
-	 * Creates a new sponsored member.
-	 * @param session session
-	 * @param vo vo
-	 * @param namespace used for selecting external system in which guest user account will be created
-	 * @param guestName full name or other designation
-	 * @param password password
-	 * @param sponsor sponsoring user
-	 * @param asyncValidation
-	 * @return created member
-	 */
-	Member createSponsoredMember(PerunSession session, Vo vo, String namespace, String guestName, String password, User sponsor, boolean asyncValidation) throws MemberNotExistsException, InternalErrorException, AlreadyMemberException, LoginNotExistsException, PasswordOperationTimeoutException, PasswordCreationFailedException, PasswordStrengthFailedException, ExtendMembershipException, GroupOperationsException, WrongAttributeValueException, ExtSourceNotExistsException, WrongReferenceAttributeValueException;
-
-	/**
-	 * Links sponsored and sponsoring users in a given VO.
-	 * @param session session
-	 * @param vo vo
-	 * @param sponsored sponsored
-	 * @param sponsor sponsor
-	 * @return member
-	 */
-	Member sponsorMember(PerunSession session, Vo vo, User sponsored, User sponsor) throws MemberNotExistsException, InternalErrorException, AlreadyMemberException, MemberNotSponsoredException;
-
-	/**
-	 * Gets list of members that are sponsored by the user in the vo.
-	 */
-	List<Member> getSponsoredMembers(PerunSession sess, Vo vo, User user) throws InternalErrorException;
-
-	/**
-	 * Gets list of sponsored members of a VO.
-	 * @param sess session
-	 * @param vo virtual organization from which are the sponsored members chosen
-	 * @throws InternalErrorException if given parameters are invalid
-	 * @return list of members from given vo who are sponsored
-	 */
-	List<Member> getSponsoredMembers(PerunSession sess, Vo vo) throws InternalErrorException;
-
-	/**
-	 * Removes a sponsor.
-	 */
-	void removeSponsor(PerunSession sess, Member sponsoredMember, User sponsor) throws InternalErrorException;
-
-	/**
-	 * Extends expiration date. Sponsored members cannot apply for membership extension, this method allows a sponsor to extend it.
-	 */
-	String extendExpirationForSponsoredMember(PerunSession sess, Member sponsoredMember, User sponsorUser) throws InternalErrorException;
 }

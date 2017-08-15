@@ -72,7 +72,7 @@ import cz.metacentrum.perun.core.api.UserExtSource;
 import cz.metacentrum.perun.core.api.Vo;
 import cz.metacentrum.perun.core.api.exceptions.ActionTypeNotExistsException;
 
-import cz.metacentrum.perun.core.api.exceptions.AttributeDefinitionExistsException;
+import cz.metacentrum.perun.core.api.exceptions.AttributeExistsException;
 import cz.metacentrum.perun.core.api.exceptions.AttributeNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.ConsistencyErrorException;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
@@ -859,28 +859,6 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 							"left join member_resource_attr_values mem_res on id=mem_res.attr_id and member_id=:mId and resource_id=:rId " +
 							"where namespace in ( :nSO,:nSD,:nSV ) and attr_names.attr_name in ( :attrNames )",
 					parameters, new AttributeRowMapper(sess, this, member, resource));
-		} catch(EmptyResultDataAccessException ex) {
-			return new ArrayList<Attribute>();
-		} catch(RuntimeException ex) {
-			throw new InternalErrorException(ex);
-		}
-	}
-
-	@Override
-	public List<Attribute> getAttributes(PerunSession sess, Resource resource, Group group, List<String> attrNames) throws InternalErrorException {
-		MapSqlParameterSource parameters = new MapSqlParameterSource();
-		parameters.addValue("gId", group.getId());
-		parameters.addValue("rId", resource.getId());
-		parameters.addValue("nSO", AttributesManager.NS_GROUP_RESOURCE_ATTR_OPT);
-		parameters.addValue("nSD", AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF);
-		parameters.addValue("nSV", AttributesManager.NS_GROUP_RESOURCE_ATTR_VIRT);
-		parameters.addValue("attrNames", attrNames);
-
-		try {
-			return namedParameterJdbcTemplate.query("select " + getAttributeMappingSelectQuery("grp_res") + " from attr_names " +
-							"left join group_resource_attr_values grp_res on id=grp_res.attr_id and group_id=:gId and resource_id=:rId " +
-							"where namespace in ( :nSO,:nSD,:nSV ) and attr_names.attr_name in ( :attrNames )",
-					parameters, new AttributeRowMapper(sess, this, group, resource));
 		} catch(EmptyResultDataAccessException ex) {
 			return new ArrayList<Attribute>();
 		} catch(RuntimeException ex) {
@@ -1951,7 +1929,7 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 		return getUserExtSourceVirtualAttributeModule(sess, attribute).setAttributeValue((PerunSessionImpl) sess, ues, attribute);
 	}
 
-	public AttributeDefinition createAttribute(PerunSession sess, AttributeDefinition attribute) throws InternalErrorException, AttributeDefinitionExistsException {
+	public AttributeDefinition createAttribute(PerunSession sess, AttributeDefinition attribute) throws InternalErrorException, AttributeExistsException {
 		if (!attribute.getFriendlyName().matches(AttributesManager.ATTRIBUTES_REGEXP)) {
 			throw new InternalErrorException(new IllegalArgumentException("Wrong attribute name " + attribute.getFriendlyName() + ", attribute name must match " + AttributesManager.ATTRIBUTES_REGEXP));
 		}
@@ -1967,7 +1945,7 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 
 			return attribute;
 		} catch (DataIntegrityViolationException e) {
-			throw new AttributeDefinitionExistsException("Attribute " + attribute.getName() + " already exists", attribute, e);
+			throw new AttributeExistsException("Attribute " + attribute.getName() + " already exists", e);
 		} catch (RuntimeException e) {
 			throw new InternalErrorException(e);
 		}
@@ -2267,7 +2245,7 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 		try {
 			return jdbc.query("select " + getAttributeMappingSelectQuery("mem_gr") + " from attr_names " +
 							"join service_required_attrs on id=service_required_attrs.attr_id and service_required_attrs.service_id=? " +
-							"left join member_group_attr_values mem_gr on id=mem_gr.attr_id and mem_gr.group_id=? and member_id=? " +
+							"left join member_group_attr_values mem_gr on id=mem.attr_id and mem_gr.group_id=? and member_id=? " +
 							"where namespace in (?,?,?)",
 					new AttributeRowMapper(sess, this, member), service.getId(), group.getId(), member.getId(), AttributesManager.NS_MEMBER_GROUP_ATTR_DEF, AttributesManager.NS_MEMBER_GROUP_ATTR_OPT, AttributesManager.NS_MEMBER_GROUP_ATTR_VIRT);
 		} catch(RuntimeException ex) {

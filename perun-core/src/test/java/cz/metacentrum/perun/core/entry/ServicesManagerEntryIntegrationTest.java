@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 
 import cz.metacentrum.perun.core.api.*;
+import org.junit.Before;
 import org.junit.Test;
 
 import cz.metacentrum.perun.core.AbstractPerunIntegrationTest;
@@ -50,7 +51,17 @@ public class ServicesManagerEntryIntegrationTest extends AbstractPerunIntegratio
 	private Member member;
 	private Group group;
 
-	// SetUp moved to every method to speed up.
+	@Before
+	public void setUp() throws Exception {
+
+		try {
+			perun.getAttributesManager().getAttributeDefinition(sess, perun.getResourcesManager().MEMBER_STATUS);
+		} catch (AttributeNotExistsException ex) {
+			setMemberStatusAttribute();
+		}
+
+		// Other SetUp moved to every method.
+	}
 
 	@Test
 	public void createService() throws Exception {
@@ -1564,7 +1575,7 @@ public class ServicesManagerEntryIntegrationTest extends AbstractPerunIntegratio
 		attribute = new AttributeDefinition();
 		attribute.setFriendlyName("ServicesManagerTestAttribute");
 		attribute.setDescription("TestingAttribute");
-		attribute.setNamespace(AttributesManager.NS_ENTITYLESS_ATTR_DEF);
+		attribute.setNamespace("Testing");
 		attribute.setType(String.class.getName());
 
 		attribute = perun.getAttributesManager().createAttribute(sess, attribute);
@@ -1637,6 +1648,18 @@ public class ServicesManagerEntryIntegrationTest extends AbstractPerunIntegratio
 		assertNotNull("unable to create a group",returnedGroup);
 		return returnedGroup;
 
+	}
+
+	private AttributeDefinition setMemberStatusAttribute() throws Exception {
+
+		AttributeDefinition attr = new AttributeDefinition();
+		attr.setNamespace(AttributesManager.NS_MEMBER_RESOURCE_ATTR_DEF);
+		attr.setFriendlyName("memberStatus");
+		attr.setDisplayName("Member status");
+		attr.setType(String.class.getName());
+		attr.setDescription("Member status to resource");
+
+		return perun.getAttributesManager().createAttribute(sess, attr);
 	}
 
 }

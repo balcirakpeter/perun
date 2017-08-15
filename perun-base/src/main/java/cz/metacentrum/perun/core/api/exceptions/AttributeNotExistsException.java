@@ -11,6 +11,8 @@ import cz.metacentrum.perun.core.api.exceptions.rt.AttributeNotExistsRuntimeExce
 public class AttributeNotExistsException extends EntityNotExistsException {
 	static final long serialVersionUID = 0;
 
+	private Attribute attribute;
+
 	public AttributeNotExistsException(AttributeNotExistsRuntimeException rt) {
 		super(rt.getMessage(),rt);
 	}
@@ -27,4 +29,12 @@ public class AttributeNotExistsException extends EntityNotExistsException {
 		super(cause);
 	}
 
+	public AttributeNotExistsException(Attribute attribute) {
+		super(attribute.toString());
+		this.attribute = attribute;
+	}
+
+	public Attribute getAttribute() {
+		return attribute;
+	}
 }

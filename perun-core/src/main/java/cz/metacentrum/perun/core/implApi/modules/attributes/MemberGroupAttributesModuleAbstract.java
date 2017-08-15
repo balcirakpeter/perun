@@ -15,21 +15,25 @@ import cz.metacentrum.perun.core.impl.PerunSessionImpl;
  * -----------------------------------------------------------------------------
  * Implements methods for modules to perform default function.
  * In the function that the method in the module does nothing, it is not necessary to implement it, simply extend this abstract class.
- *
+ * <p>
  * author: Oliver Mrázik
  * version: 2015-03-22
  */
 public class MemberGroupAttributesModuleAbstract extends AttributesModuleAbstract implements MemberGroupAttributesModuleImplApi {
 
-	public void checkAttributeValue(PerunSessionImpl perunSession, Member member, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+    public void checkAttributeValue(PerunSessionImpl perunSession, Member member, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 
-	}
+    }
 
-	public Attribute fillAttribute(PerunSessionImpl session, Member member, Group group, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeAssignmentException {
-		return new Attribute(attribute);
-	}
+    public Attribute fillAttribute(PerunSessionImpl session, Member member, Group group, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeAssignmentException {
+        return new Attribute(attribute);
+    }
 
-	public void changedAttributeHook(PerunSessionImpl session, Member member, Group group, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
+    public void changedAttributeHook(PerunSessionImpl session, Member member, Group group, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
 
-	}
+    }
+
+    public void checkAttributeSyntax(PerunSessionImpl perunSession, Member member, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+    }
 }

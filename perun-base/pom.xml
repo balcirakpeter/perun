@@ -60,6 +60,7 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
+				<version>2.6</version>
 				<executions>
 					<execution>
 						<goals>
@@ -172,7 +173,7 @@
 
 			<properties>
 				<perun.build.type>production</perun.build.type>
-				<skipTests>true</skipTests >
+				<maven.test.skip>true</maven.test.skip>
 			</properties>
 
 		</profile>

@@ -189,6 +189,11 @@
 		</dependency>
 
 		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+		</dependency>
+
+		<dependency>
 			<groupId>cglib</groupId>
 			<artifactId>cglib-nodep</artifactId>
 		</dependency>
@@ -260,7 +265,7 @@
 				<!-- Oracle jdbc driver -->
 				<dependency>
 					<groupId>com.oracle</groupId>
-					<artifactId>ojdbc8</artifactId>
+					<artifactId>ojdbc7</artifactId>
 				</dependency>
 				<!-- Oracle internationalization -->
 				<dependency>
@@ -292,7 +297,7 @@
 			</activation>
 			<properties>
 				<perun.build.type>production</perun.build.type>
-				<skipTests>true</skipTests>
+				<maven.test.skip>true</maven.test.skip>
 			</properties>
 			<dependencies>
 				<!-- DBs -->
@@ -306,7 +311,7 @@
 				<!-- Oracle jdbc driver -->
 				<dependency>
 					<groupId>com.oracle</groupId>
-					<artifactId>ojdbc8</artifactId>
+					<artifactId>ojdbc7</artifactId>
 				</dependency>
 				<!-- Oracle internationalization -->
 				<dependency>

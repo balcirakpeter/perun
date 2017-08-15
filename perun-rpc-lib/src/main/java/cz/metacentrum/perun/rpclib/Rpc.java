@@ -6,7 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import cz.metacentrum.perun.core.api.exceptions.AttributeDefinitionExistsException;
+import cz.metacentrum.perun.core.api.exceptions.AttributeExistsException;
 import cz.metacentrum.perun.core.api.exceptions.AttributeNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.ConsistencyErrorException;
 import cz.metacentrum.perun.core.api.exceptions.DestinationAlreadyAssignedException;
@@ -616,13 +616,13 @@ public class Rpc {
 			}
 		}
 
-		public static AttributeDefinition createAttribute(RpcCaller rpcCaller, AttributeDefinition attributeDefinition) throws PrivilegeException, InternalErrorException, AttributeDefinitionExistsException {
+		public static AttributeDefinition createAttribute(RpcCaller rpcCaller, AttributeDefinition attributeDefinition) throws PrivilegeException, InternalErrorException, AttributeExistsException {
 			Map<String, Object> params = new HashMap<String, Object>();
 			params.put("attribute", attributeDefinition);
 
 			try {
 				return rpcCaller.call("attributesManager", "createAttribute", params).read(AttributeDefinition.class);
-			} catch (AttributeDefinitionExistsException e) {
+			} catch (AttributeExistsException e) {
 				throw e;
 			} catch (PrivilegeException e) {
 				throw e;

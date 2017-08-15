@@ -375,24 +375,6 @@ public interface UsersManager {
 	void removeUserExtSource(PerunSession perunSession, User user, UserExtSource userExtSource) throws InternalErrorException, UserNotExistsException, UserExtSourceNotExistsException, PrivilegeException, UserExtSourceAlreadyRemovedException;
 
 	/**
-	 * Take UserExtSource from sourceUser and move it to the targetUser.
-	 *
-	 * It removes old UserExtSource with all it's attributes from sourceUser and creates and assigns the new one with
-	 * the same settings to target user.
-	 *
-	 * @param perunSession
-	 * @param sourceUser user with UserExtSource to move
-	 * @param targetUser user for who will be UserExtSource moved
-	 * @param userExtSource the UserExtSource which will be moved from sourceUser to targetUser
-	 *
-	 * @throws InternalErrorException
-	 * @throws UserExtSourceNotExistsException UserExtSourceNotExists or is not assigned to sourceUser
-	 * @throws UserNotExistsException one of the users not exists
-	 * @throws PrivilegeException
-	 */
-	void moveUserExtSource(PerunSession perunSession, User sourceUser, User targetUser, UserExtSource userExtSource) throws InternalErrorException, UserExtSourceNotExistsException, UserNotExistsException, PrivilegeException;
-
-	/**
 	 * Gets user's external source by the user's external login and external source.
 	 *
 	 * @param perunSession
@@ -420,36 +402,16 @@ public interface UsersManager {
 	List<Vo> getVosWhereUserIsAdmin(PerunSession perunSession, User user) throws InternalErrorException, UserNotExistsException, PrivilegeException;
 
 	/**
-	 * Returns list of Groups in Perun, where the User is a direct Administrator
-	 * or he is a member of any group which is Administrator of some of these Groups.
+	 * Returns list of Groups, where the user is an Administrator.
 	 *
 	 * @param perunSession
 	 * @param user
-	 *
-	 * @return list of Groups, where user or some of his groups is an Administrator
-	 *
+	 * @return list of Groups, where the user is an Administrator.
 	 * @throws InternalErrorException
 	 * @throws PrivilegeException
 	 * @throws UserNotExistsException
 	 */
 	List<Group> getGroupsWhereUserIsAdmin(PerunSession perunSession, User user) throws InternalErrorException, UserNotExistsException, PrivilegeException;
-
-	/**
-	 * Returns list of Groups in selected Vo, where the User is a direct Administrator
-	 * or he is a member of any group which is Administrator of some of these Groups.
-	 *
-	 * @param sess
-	 * @param vo selected Vo under which we are looking for groups
-	 * @param user manager of groups we are looking for
-	 *
-	 * @return list of Groups, where user or some of his groups (in the Vo) is an Administrator
-	 *
-	 * @throws InternalErrorException
-	 * @throws PrivilegeException user has no privileges to call this method
-	 * @throws UserNotExistsException the user not exists in Perun
-	 * @throws VoNotExistsException the vo not exists in Perun
-	 */
-	List<Group> getGroupsWhereUserIsAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException, PrivilegeException, UserNotExistsException, VoNotExistsException;
 
 	/**
 	 * Returns list of VOs, where the user is a member.
@@ -573,7 +535,7 @@ public interface UsersManager {
 	 * @throws InternalErrorException
 	 */
 	List<User> findUsersByExactName(PerunSession sess, String searchString) throws InternalErrorException, PrivilegeException;
-
+        
 	/**
 	 * Checks if the login is available in the namespace.
 	 *
@@ -1060,7 +1022,7 @@ public interface UsersManager {
 	 *
 	 * @param perunSession
 	 * @param userExtSource
-	 *
+	 * 
 	 * @throws InternalErrorException
 	 * @throws PrivilegeException
 	 * @throws UserExtSourceNotExistsException
@@ -1086,8 +1048,4 @@ public interface UsersManager {
 	 */
 	Map<String,String> generateAccount(PerunSession session, String namespace, Map<String, String> parameters) throws InternalErrorException, PrivilegeException;
 
-	/**
-	 * Gets list of users that sponsor the member.
-	 */
-	List<RichUser> getSponsors(PerunSession sess, Member member) throws InternalErrorException, PrivilegeException;
 }

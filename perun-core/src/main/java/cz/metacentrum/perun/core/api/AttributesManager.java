@@ -17,6 +17,11 @@ public interface AttributesManager {
 	public static final String NS_FACILITY_ATTR_CORE = "urn:perun:facility:attribute-def:core";
 	public static final String NS_FACILITY_ATTR_VIRT = "urn:perun:facility:attribute-def:virt";
 
+	public static final String NS_FACILITY_CLUSTER_ATTR_DEF= "urn:perun:facility:cluster:attribute-def:def";
+	public static final String NS_FACILITY_CLUSTER_ATTR_OPT = "urn:perun:facility:cluster:attribute-def:opt";
+	public static final String NS_FACILITY_CLUSTER_ATTR_CORE = "urn:perun:facility:cluster:attribute-def:core";
+	public static final String NS_FACILITY_CLUSTER_ATTR_VIRT = "urn:perun:facility:cluster:attribute-def:virt";
+
 	public static final String NS_RESOURCE_ATTR = "urn:perun:resource:attribute-def";
 	public static final String NS_RESOURCE_ATTR_DEF = "urn:perun:resource:attribute-def:def";
 	public static final String NS_RESOURCE_ATTR_OPT = "urn:perun:resource:attribute-def:opt";
@@ -89,9 +94,6 @@ public interface AttributesManager {
 	public static final String LOGIN_NAMESPACE = "login-namespace";
 
 	public static final String ATTRIBUTES_REGEXP = "^[-a-zA-Z0-9.]+([:][-a-zA-Z0-9.]+)?$";
-
-	public static final String[] ENTITY_TYPES = {"facility", "resource", "member_resource", "member_group",
-	        "member", "user_facility", "user", "vo", "group", "host", "group_resource", "entityless", "ues"};
 
 	//public static final String NS_ATTR_DEF_FACILITY= NS_ATTR_DEF + ":facility";
 
@@ -347,29 +349,6 @@ public interface AttributesManager {
 	 */
 	List<Attribute> getAttributes(PerunSession sess, Resource resource, Group group, boolean workWithGroupAttributes) throws PrivilegeException, InternalErrorException, ResourceNotExistsException, GroupNotExistsException, GroupResourceMismatchException, WrongAttributeAssignmentException;
 
-	/**
-	 * Get all attributes associated with the group and the resource which have their name in list attrNames (empty too).
-	 * Virtual attribute too.
-	 *
-	 * PRIVILEGE: Get only those attributes the principal has access to.
-	 *
-	 * If workWithGroupAttributes is true, return also all group attributes in list of attrNames (with virtual attributes too).
-	 *
-	 * @param sess perun session
-	 * @param resource to get the attributes from
-	 * @param group to get the attributes from
-	 * @param attrNames list of attributes' names
-	 * @param workWithGroupAttributes if group attributes need to be return too
-	 * @return list of attributes
-	 *
-	 * @throws PrivilegeException if privileges are not given
-	 * @throws InternalErrorException if an exception raise in concrete implementation, the exception is wrapped in InternalErrorException
-	 * @throws ResourceNotExistsException if the resource doesn't exist
-	 * @throws GroupNotExistsException if the group doesn't exist
-	 * @throws GroupResourceMismatchException if group and resource are from the same vo
-	 * @throws WrongAttributeAssignmentException
-	 */
-	List<Attribute> getAttributes(PerunSession sess, Resource resource, Group group, List<String> attrNames, boolean workWithGroupAttributes) throws PrivilegeException, InternalErrorException, ResourceNotExistsException, GroupNotExistsException, GroupResourceMismatchException, WrongAttributeAssignmentException;
 
 	/**
 	 * Get all <b>non-empty</b> attributes associated with the group starts with name startPartOfName.
@@ -1779,11 +1758,11 @@ public interface AttributesManager {
 	 *
 	 * @return attribute with set id
 	 *
-	 * @throws AttributeDefinitionExistsException if attribute already exists
+	 * @throws AttributeExistsException if attribute already exists
 	 * @throws InternalErrorException if an exception raise in concrete implementation, the exception is wrapped in InternalErrorException
 	 * @throws PrivilegeException if privileges are not given
 	 */
-	AttributeDefinition createAttribute(PerunSession sess, AttributeDefinition attributeDefinition) throws PrivilegeException, InternalErrorException, AttributeDefinitionExistsException;
+	AttributeDefinition createAttribute(PerunSession sess, AttributeDefinition attributeDefinition) throws PrivilegeException, InternalErrorException, AttributeExistsException;
 
 	/**
 	 * Deletes the attribute.

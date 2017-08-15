@@ -3,7 +3,34 @@ package cz.metacentrum.perun.core.api;
 import java.util.List;
 import java.util.Map;
 
-import cz.metacentrum.perun.core.api.exceptions.*;
+import cz.metacentrum.perun.core.api.exceptions.AlreadyAdminException;
+import cz.metacentrum.perun.core.api.exceptions.AttributeNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.ExternallyManagedException;
+import cz.metacentrum.perun.core.api.exceptions.AlreadyMemberException;
+import cz.metacentrum.perun.core.api.exceptions.GroupAlreadyRemovedException;
+import cz.metacentrum.perun.core.api.exceptions.GroupAlreadyRemovedFromResourceException;
+import cz.metacentrum.perun.core.api.exceptions.GroupExistsException;
+import cz.metacentrum.perun.core.api.exceptions.GroupNotAdminException;
+import cz.metacentrum.perun.core.api.exceptions.GroupNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.GroupOperationsException;
+import cz.metacentrum.perun.core.api.exceptions.GroupRelationAlreadyExists;
+import cz.metacentrum.perun.core.api.exceptions.GroupRelationCannotBeRemoved;
+import cz.metacentrum.perun.core.api.exceptions.GroupRelationDoesNotExist;
+import cz.metacentrum.perun.core.api.exceptions.GroupRelationNotAllowed;
+import cz.metacentrum.perun.core.api.exceptions.GroupSynchronizationAlreadyRunningException;
+import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
+import cz.metacentrum.perun.core.api.exceptions.MemberNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.NotGroupMemberException;
+import cz.metacentrum.perun.core.api.exceptions.NotMemberOfParentGroupException;
+import cz.metacentrum.perun.core.api.exceptions.ParentGroupNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.PrivilegeException;
+import cz.metacentrum.perun.core.api.exceptions.RelationExistsException;
+import cz.metacentrum.perun.core.api.exceptions.UserNotAdminException;
+import cz.metacentrum.perun.core.api.exceptions.UserNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.VoNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentException;
+import cz.metacentrum.perun.core.api.exceptions.WrongAttributeValueException;
+import cz.metacentrum.perun.core.api.exceptions.WrongReferenceAttributeValueException;
 import cz.metacentrum.perun.core.api.exceptions.rt.InternalErrorRuntimeException;
 
 /**
@@ -38,16 +65,14 @@ public interface GroupsManager {
 
 	public static final String GROUP_SHORT_NAME_REGEXP = "^[-a-zA-Z.0-9_ ]+$";
 	public static final String GROUP_FULL_NAME_REGEXP = "^[-a-zA-Z.0-9_ ]+([:][-a-zA-Z.0-9_ ]+)*";
-
 	/**
-	 * Creates a new top-level group and associates it with the VO from parameter.
+	 * Creates a new top-level group and associate it with the VO.
 	 *
-	 * For this method the new group has always same shortName like Name.
-	 * Important: voId in object group is ignored
+	 * For this method (new group) has always same shortName like Name.
 	 *
 	 * @param perunSession
-	 * @param vo to associates group with
-	 * @param group new group with name without ":"
+	 * @param vo
+	 * @param group with name without ":"
 	 *
 	 * @return newly created top-level group
 	 *
@@ -525,24 +550,6 @@ public interface GroupsManager {
 	 * @throws GroupNotExistsException
 	 */
 	List<RichUser> getRichAdmins(PerunSession perunSession, Group group, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws InternalErrorException, UserNotExistsException, PrivilegeException, GroupNotExistsException;
-
-	/**
-	 * Get list of all richGroups with selected attributes assigned to resource.
-	 * Allowed namespaces of attributes are group and group-resource.
-	 *
-	 * Last step is filtration of attributes:
-	 * Attributes are filtered by rights of user in session. User get only those selected attributes he has rights to read.
-	 *
-	 * @param sess
-	 * @param resource resource to get assigned groups for
-	 * @param attrNames If empty, return all non-empty attributes. If not empty, return all selected attributes in allowed namespaces.
-	 * @return
-	 * @throws InternalErrorException
-	 * @throws WrongAttributeAssignmentException
-	 * @throws ResourceNotExistsException
-	 * @throws PrivilegeException
-	 */
-	List<RichGroup> getRichGroupsAssignedToResourceWithAttributesByNames(PerunSession sess, Resource resource, List<String> attrNames) throws InternalErrorException, WrongAttributeAssignmentException, ResourceNotExistsException, PrivilegeException;
 
 	/**
 	 * Gets list of all user administrators of this group.

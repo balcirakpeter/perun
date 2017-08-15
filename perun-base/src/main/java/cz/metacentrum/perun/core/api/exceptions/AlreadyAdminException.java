@@ -4,8 +4,10 @@ import cz.metacentrum.perun.core.api.*;
 import cz.metacentrum.perun.core.api.exceptions.rt.AlreadyAdminRuntimeException;
 
 /**
- * Should be named AlreadyInRoleException.
+ * Checked version of AlreadyAdminException.
  *
+ * @see cz.metacentrum.perun.core.api.exceptions.rt.AlreadyAdminRuntimeException
+ * @author Martin Kuba
  */
 public class AlreadyAdminException extends PerunException {
 	static final long serialVersionUID = 0;
@@ -18,7 +20,7 @@ public class AlreadyAdminException extends PerunException {
 	private Group group;
 	private Group authorizedGroup;
 	private SecurityTeam securityTeam;
-	private Role role;
+	private User sponsoredUser;
 
 	public AlreadyAdminException(AlreadyAdminRuntimeException rt) {
 		super(rt.getMessage(),rt);
@@ -41,17 +43,17 @@ public class AlreadyAdminException extends PerunException {
 		this.member = member;
 	}
 
-	public AlreadyAdminException(String message, Throwable cause, User user, Vo vo, Role role) {
+	// when user is already admin
+	public AlreadyAdminException(String message, Throwable cause, User user, Vo vo) {
 		super(message, cause);
 		this.user = user;
 		this.vo = vo;
-		this.role = role;
 	}
-
 
 	public AlreadyAdminException(String message, Throwable cause, User user, User sponsoredUser) {
 		super(message, cause);
 		this.user = user;
+		this.sponsoredUser = sponsoredUser;
 	}
 
 	public AlreadyAdminException(String message, Throwable cause, User user, Facility facility) {
@@ -83,11 +85,11 @@ public class AlreadyAdminException extends PerunException {
 		this.vo = vo;
 	}
 
-	public AlreadyAdminException(String message, Throwable cause, Group authorizedGroup, Vo vo, Role role) {
+	// when group is already admin
+	public AlreadyAdminException(String message, Throwable cause, Group authorizedGroup, Vo vo) {
 		super(message, cause);
 		this.authorizedGroup = authorizedGroup;
 		this.vo = vo;
-		this.role = role;
 	}
 
 	public AlreadyAdminException(String message, Throwable cause, Group authorizedGroup, Facility facility) {
@@ -105,6 +107,7 @@ public class AlreadyAdminException extends PerunException {
 	public AlreadyAdminException(String message, Throwable cause, Group authorizedGroup, User sponsoredUser) {
 		super(message, cause);
 		this.authorizedGroup = authorizedGroup;
+		this.sponsoredUser = sponsoredUser;
 	}
 
 	public AlreadyAdminException(String message, Throwable cause, Group authorizedGroup, Group group) {
@@ -182,7 +185,7 @@ public class AlreadyAdminException extends PerunException {
 		return securityTeam;
 	}
 
-	public Role getRole() {
-		return role;
+	public User getSponsoredUser() {
+		return sponsoredUser;
 	}
 }

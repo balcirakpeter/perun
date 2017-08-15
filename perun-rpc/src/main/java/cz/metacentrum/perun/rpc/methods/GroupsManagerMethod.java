@@ -28,8 +28,7 @@ public enum GroupsManagerMethod implements ManagerMethod {
 	 * @return Group Newly created group
 	 */
 	/*#
-	 * Creates a new group in the specific VO defined by object vo in parameter.
-	 * Important: voId in object group is ignored.
+	 * Creates a new group in a VO.
 	 *
 	 * @param vo int Parent VO <code>id</code>
 	 * @param group Group JSON Group class
@@ -562,29 +561,6 @@ public enum GroupsManagerMethod implements ManagerMethod {
 		public List<RichUser> call(ApiCaller ac, Deserializer parms) throws PerunException {
 			return ac.getGroupsManager().getRichAdminsWithAttributes(ac.getSession(),
 					ac.getGroupById(parms.readInt("group")));
-		}
-	},
-
-	/*#
-	 **
-	 * Get list of all richGroups with selected attributes assigned to resource.
-	 * Allowed namespaces of attributes are group and group-resource.
-	 *
-	 * Last step is filtration of attributes:
-	 * Attributes are filtered by rights of user in session. User get only those selected attributes he has rights to read.
-	 *
-	 * @param resource int Resource <code>id</code>
-	 * @param attrNames List<String> names of attributes
-	 * @return List<RichGroup> groups with attributes
-	 *
-	 */
-	getRichGroupsAssignedToResourceWithAttributesByNames {
-
-		@Override
-		public List<RichGroup> call(ApiCaller ac, Deserializer parms) throws PerunException {
-			return ac.getGroupsManager().getRichGroupsAssignedToResourceWithAttributesByNames(ac.getSession(),
-					ac.getResourceById(parms.readInt("resource")),
-					parms.readList("attrNames", String.class));
 		}
 	},
 

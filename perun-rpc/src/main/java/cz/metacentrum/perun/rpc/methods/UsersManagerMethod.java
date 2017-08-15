@@ -493,26 +493,6 @@ public enum UsersManagerMethod implements ManagerMethod {
 	},
 
 	/*#
-	 * Move user's external source from sourceUser to targetUser.
-	 * @param sourceUser int User <code>id</code>
-	 * @param targetUser int User <code>id</code>
-	 * @param userExtSource int UserExtSource <code>id</code>
-	 */
-	moveUserExtSource {
-
-		@Override
-		public Void call(ApiCaller ac, Deserializer parms) throws PerunException {
-			ac.stateChangingCheck();
-
-			ac.getUsersManager().moveUserExtSource(ac.getSession(),
-					ac.getUserById(parms.readInt("sourceUser")),
-					ac.getUserById(parms.readInt("targetUser")),
-					ac.getUserExtSourceById(parms.readInt("userExtSource")));
-			return null;
-		}
-	},
-
-	/*#
 	 * Get the user ext source by its id.
 	 *
 	 * @param userExtSource int UserExtSource <code>id</code>
@@ -743,32 +723,17 @@ public enum UsersManagerMethod implements ManagerMethod {
 	},
 
 	/*#
-	 * Returns list of Groups in Perun, where the User is a direct Administrator
-	 * or he is a member of any group which is Administrator of some of these Groups.
+	 * Returns list of Groups, where the user is an Administrator.
 	 *
 	 * @param user int User <code>id</code>
-	 * @return List<Group> Found Groups
-	 */
-	/*#
-	 * Returns list of Groups in selected Vo, where the User is a direct Administrator
-	 * or he is a member of any group which is Administrator of some of these Groups.
-	 *
-	 * @param user int User <code>id</code>
-	 * @param vo int Vo <code>id</code>
 	 * @return List<Group> Found Groups
 	 */
 	getGroupsWhereUserIsAdmin {
 
 		@Override
 		public List<Group> call(ApiCaller ac, Deserializer parms) throws PerunException {
-			if (parms.contains("vo")) {
-				return ac.getUsersManager().getGroupsWhereUserIsAdmin(ac.getSession(),
-						ac.getVoById(parms.readInt("vo")),
-						ac.getUserById(parms.readInt("user")));
-			} else {
-				return ac.getUsersManager().getGroupsWhereUserIsAdmin(ac.getSession(),
-						ac.getUserById(parms.readInt("user")));
-			}
+			return ac.getUsersManager().getGroupsWhereUserIsAdmin(ac.getSession(),
+					ac.getUserById(parms.readInt("user")));
 		}
 	},
 
@@ -1254,5 +1219,4 @@ public enum UsersManagerMethod implements ManagerMethod {
 		}
 
 	};
-
 }

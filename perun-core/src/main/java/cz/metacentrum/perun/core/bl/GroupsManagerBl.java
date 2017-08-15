@@ -62,14 +62,13 @@ public interface GroupsManagerBl {
 
 
 	/**
-	 * Creates a new top-level group and associates it with the VO from parameter.
+	 * Creates a new top-level group and associate it with the VO.
 	 *
-	 * For this method the new group has always same shortName like Name.
-	 * Important: voId in object group is ignored
+	 * For this method (new group) has always same shortName like Name.
 	 *
 	 * @param perunSession
-	 * @param vo to associates group with
-	 * @param group new group with name without ":"
+	 * @param vo
+	 * @param group with name without ":"
 	 *
 	 * @return newly created top-level group
 	 *
@@ -1024,18 +1023,6 @@ public interface GroupsManagerBl {
 	List<RichGroup> convertGroupsToRichGroupsWithAttributes(PerunSession sess, List<Group> groups) throws InternalErrorException;
 
 	/**
-	 * This method takes list of groups and resource and then creates list of RichGroups containing all group and group-resource attributes
-	 *
-	 * @param sess
-	 * @param resource specified resource to which are groups assigned
-	 * @param groups list of groups
-	 * @return list of RichGroups with attributes
-	 * @throws InternalErrorException
-	 * @throws WrongAttributeAssignmentException
-	 */
-	List<RichGroup> convertGroupsToRichGroupsWithAttributes(PerunSession sess, Resource resource, List<Group> groups) throws InternalErrorException, WrongAttributeAssignmentException;
-
-	/**
 	 * This method takes list of groups and creates list of RichGroups containing selected attributes
 	 *
 	 * @param sess
@@ -1045,33 +1032,6 @@ public interface GroupsManagerBl {
 	 * @throws InternalErrorException
 	 */
 	List<RichGroup> convertGroupsToRichGroupsWithAttributes(PerunSession sess, List<Group> groups, List<String> attrNames) throws InternalErrorException;
-
-	/**
-	 * This method takes list of groups, resource and list of attrNames and then creates list of RichGroups containing
-	 * all selected group and group-resource attributes by list (attributes from other namespaces are skipped).
-	 * If attribute is in the list, it can be return with empty value if it is not set.
-	 *
-	 * @param sess
-	 * @param resource
-	 * @param groups
-	 * @param attrNames list of selected attributes (even with empty values), if it is empty, return all possible non-empty attributes
-	 * @return list of RichGroups with selected attributes
-	 * @throws InternalErrorException
-	 * @throws WrongAttributeAssignmentException
-	 */
-	List<RichGroup> convertGroupsToRichGroupsWithAttributes(PerunSession sess, Resource resource, List<Group> groups, List<String> attrNames) throws InternalErrorException, WrongAttributeAssignmentException;
-
-	/**
-	 * Get all RichGroups with selected attributes assigned to the resource.
-	 *
-	 * @param sess
-	 * @param resource the resource to get assigned groups from it
-	 * @param attrNames list of selected attributes (even with empty values), if it is empty, return all possible non-empty attributes
-	 * @return list of RichGroups with selected attributes assigned to the resource
-	 * @throws InternalErrorException
-	 * @throws WrongAttributeAssignmentException
-	 */
-	List<RichGroup> getRichGroupsWithAttributesAssignedToResource(PerunSession sess, Resource resource, List<String> attrNames) throws InternalErrorException, WrongAttributeAssignmentException;
 
 	/**
 	 * Returns all RichGroups containing selected attributes

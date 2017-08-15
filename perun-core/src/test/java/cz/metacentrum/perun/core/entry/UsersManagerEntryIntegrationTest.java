@@ -50,6 +50,12 @@ public class UsersManagerEntryIntegrationTest extends AbstractPerunIntegrationTe
 	@Before
 	public void setUp() throws Exception {
 
+		try {
+			perun.getAttributesManager().getAttributeDefinition(sess, perun.getResourcesManager().MEMBER_STATUS);
+		} catch (AttributeNotExistsException ex) {
+			setMemberStatusAttribute();
+		}
+
 		usersManager = perun.getUsersManager();
 		// set random name and logins during every setUp method
 		userFirstName = Long.toHexString(Double.doubleToLongBits(Math.random()));
@@ -540,63 +546,6 @@ public class UsersManagerEntryIntegrationTest extends AbstractPerunIntegrationTe
 
 	}
 
-	@Test (expected=UserExtSourceNotExistsException.class)
-	public void removeUserExtSourceWithAttribute() throws Exception {
-		System.out.println(CLASS_NAME + "removeUserExtSourceWithAttribute");
-
-		//Attribute 1
-		String name = "testingUEAttribute1";
-		Attribute userExtSourceAttribute1 = this.createUserExtSourceAttribute(name);
-		userExtSourceAttribute1.setValue(name);
-		perun.getAttributesManagerBl().setAttribute(sess, userExtSource, userExtSourceAttribute1);
-		//Attribute 1
-		name = "testingUEAttribute2";
-		Attribute userExtSourceAttribute2 = this.createUserExtSourceAttribute(name);
-		userExtSourceAttribute2.setValue(name);
-		perun.getAttributesManagerBl().setAttribute(sess, userExtSource, userExtSourceAttribute2);
-
-		usersManager.removeUserExtSource(sess, user, userExtSource);
-
-		usersManager.getUserExtSourceById(sess, userExtSource.getId());
-		// shloudn't get removed user ext source from DB
-	}
-
-	@Test
-	public void moveUserExtSource() throws Exception {
-		System.out.println(CLASS_NAME + "removeUserExtSourceWithAttribute");
-		
-		//TargetUser
-		User targetUser = setUpEmptyUser();
-
-		usersManager.moveUserExtSource(sess, user, targetUser, userExtSource);
-
-		UserExtSource returnedUserExtSource = usersManager.getUserExtSourceById(sess, userExtSource.getId());
-		assertEquals("returned user extSource should be assigned to the targetUser", targetUser.getId(), returnedUserExtSource.getUserId());
-	}
-
-	@Test
-	public void moveUserExtSourceWithAttribute() throws Exception {
-		System.out.println(CLASS_NAME + "removeUserExtSourceWithAttribute");
-
-		//Attribute 1
-		String name = "testingUEAttribute1";
-		Attribute userExtSourceAttribute1 = this.createUserExtSourceAttribute(name);
-		userExtSourceAttribute1.setValue(name);
-		perun.getAttributesManagerBl().setAttribute(sess, userExtSource, userExtSourceAttribute1);
-		//Attribute 1
-		name = "testingUEAttribute2";
-		Attribute userExtSourceAttribute2 = this.createUserExtSourceAttribute(name);
-		userExtSourceAttribute2.setValue(name);
-		perun.getAttributesManagerBl().setAttribute(sess, userExtSource, userExtSourceAttribute2);
-		//TargetUser
-		User targetUser = setUpEmptyUser();
-
-		usersManager.moveUserExtSource(sess, user, targetUser, userExtSource);
-
-		UserExtSource returnedUserExtSource = usersManager.getUserExtSourceById(sess, userExtSource.getId());
-		assertEquals("returned user extSource should be assigned to the targetUser", targetUser.getId(), returnedUserExtSource.getUserId());
-	}
-
 	@Test (expected=UserNotExistsException.class)
 	public void removeUserExtSourceWhenUserNotExist() throws Exception {
 		System.out.println(CLASS_NAME + "removeUserExtSourceWhenUserNotExist");
@@ -670,57 +619,13 @@ public class UsersManagerEntryIntegrationTest extends AbstractPerunIntegrationTe
 		System.out.println(CLASS_NAME + "getGroupsWhereUserIsAdmin");
 
 		Member member = setUpMember(vo);
+		Group group = setUpGroup(vo, member);
 		User returnedUser = usersManager.getUserByMember(sess, member);
-
-		Group group1 = setUpGroup(vo, member, "testGroup1");
-		Group group2 = setUpGroup(vo, member, "testGroup2");
-		Group group3 = setUpGroup(vo, member, "testGroup3");
-		perun.getGroupsManager().removeAdmin(sess, group3, returnedUser);
-		perun.getGroupsManager().addAdmin(sess, group3, group2);
-		Group group4 = setUpGroup(vo, member, "testGroup4");
-		perun.getGroupsManager().removeAdmin(sess, group4, returnedUser);
-
-		Vo vo2 = new Vo(0, "voForTest2", "voForTest2");
-		vo2 = perun.getVosManagerBl().createVo(sess, vo2);
-		Member member2 = setUpMember(vo2);
-		Group group5 = setUpGroup(vo2, member2, "testGroup5");
 
 		List<Group> groups = usersManager.getGroupsWhereUserIsAdmin(sess, returnedUser);
-		assertTrue("our user should be admin at least in 4 groups", groups.size() >= 4);
-		assertTrue("created group1 should be between returned groups and it is not", groups.contains(group1));
-		assertTrue("created group2 should be between returned groups and it is not", groups.contains(group2));
-		assertTrue("created group3 should be between returned groups and it is not", groups.contains(group3));
-		assertTrue("created group5 should be between returned groups and it is not", groups.contains(group5));
-		assertTrue("created group4 should not be between returned groups and it is", !groups.contains(group4));
-	}
+		assertTrue("our user should be admin in one group", groups.size() >= 1);
+		assertTrue("created group is not between them", groups.contains(group));
 
-	@ Test
-	public void getGroupsWhereUserIsAdminWithSelectedVo() throws Exception {
-		System.out.println(CLASS_NAME + "getGroupsWhereUserIsAdminWithSelectedVo");
-
-		Member member = setUpMember(vo);
-		User returnedUser = usersManager.getUserByMember(sess, member);
-
-		Group group1 = setUpGroup(vo, member, "testGroup1");
-		Group group2 = setUpGroup(vo, member, "testGroup2");
-		Group group3 = setUpGroup(vo, member, "testGroup3");
-		perun.getGroupsManager().removeAdmin(sess, group3, returnedUser);
-		perun.getGroupsManager().addAdmin(sess, group3, group2);
-		Group group4 = setUpGroup(vo, member, "testGroup4");
-		perun.getGroupsManager().removeAdmin(sess, group4, returnedUser);
-
-		Vo vo2 = new Vo(0, "voForTest2", "voForTest2");
-		vo2 = perun.getVosManagerBl().createVo(sess, vo2);
-		Member member2 = setUpMember(vo2);
-		Group group5 = setUpGroup(vo2, member2, "testGroup5");
-
-		List<Group> groups = usersManager.getGroupsWhereUserIsAdmin(sess, vo, returnedUser);
-		assertTrue("our user should be admin at least in 4 groups", groups.size() >= 3);
-		assertTrue("created group1 should be between returned groups and it is not", groups.contains(group1));
-		assertTrue("created group2 should be between returned groups and it is not", groups.contains(group2));
-		assertTrue("created group3 should be between returned groups and it is not", groups.contains(group3));
-		assertTrue("created group5 should not be between returned groups and it is", !groups.contains(group5));
-		assertTrue("created group4 should not be between returned groups and it is", !groups.contains(group4));
 	}
 
 	@Test (expected=UserNotExistsException.class)
@@ -1054,16 +959,14 @@ public class UsersManagerEntryIntegrationTest extends AbstractPerunIntegrationTe
 	}
 
 	private Group setUpGroup(Vo vo, Member member) throws Exception {
-		return setUpGroup(vo, member, "UserManagerTestGroup");
-	}
 
-	private Group setUpGroup(Vo vo, Member member, String groupName) throws Exception {
-		Group group = new Group(groupName,"");
+		Group group = new Group("UserManagerTestGroup","");
 		group = perun.getGroupsManager().createGroup(sess, vo, group);
 		perun.getGroupsManager().addMember(sess, group, member);
 		User user = perun.getUsersManagerBl().getUserByMember(sess, member);
 		perun.getGroupsManager().addAdmin(sess, group, user);
 		return group;
+
 	}
 
 	private Candidate setUpCandidate(){
@@ -1128,15 +1031,15 @@ public class UsersManagerEntryIntegrationTest extends AbstractPerunIntegrationTe
 		return candidate;
 	}
 
-	private Attribute createUserExtSourceAttribute(String name) throws Exception {
-		AttributeDefinition attrDef = new AttributeDefinition();
-		attrDef.setNamespace(AttributesManager.NS_UES_ATTR_DEF);
-		attrDef.setDescription(name);
-		attrDef.setFriendlyName(name);
-		attrDef.setType(String.class.getName());
-		attrDef = perun.getAttributesManagerBl().createAttribute(sess, attrDef);
-		Attribute attribute = new Attribute(attrDef);
-		attribute.setValue("Testing value");
-		return attribute;
+	private AttributeDefinition setMemberStatusAttribute() throws Exception {
+
+		AttributeDefinition attr = new AttributeDefinition();
+		attr.setNamespace(AttributesManager.NS_MEMBER_RESOURCE_ATTR_DEF);
+		attr.setFriendlyName("memberStatus");
+		attr.setDisplayName("Member status");
+		attr.setType(String.class.getName());
+		attr.setDescription("Member status to resource");
+
+		return perun.getAttributesManager().createAttribute(sess, attr);
 	}
 }

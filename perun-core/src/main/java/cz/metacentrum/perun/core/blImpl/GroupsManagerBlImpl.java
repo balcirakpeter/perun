@@ -14,7 +14,6 @@ import java.util.TreeMap;
 
 import cz.metacentrum.perun.core.api.*;
 import cz.metacentrum.perun.core.api.exceptions.*;
-import cz.metacentrum.perun.core.api.exceptions.rt.WrongAttributeAssignmentRuntimeException;
 import cz.metacentrum.perun.core.implApi.ExtSourceApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -137,7 +136,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	 * @throws RelationExistsException Raise only if forceDelete is false and the group has any subgroup or member.
 	 * @throws GroupAlreadyRemovedException if there are 0 rows affected by deleting from DB
 	 */
-	private void deleteAnyGroup(PerunSession sess, Group group, boolean forceDelete) throws InternalErrorException, RelationExistsException, GroupAlreadyRemovedException, GroupAlreadyRemovedFromResourceException, GroupOperationsException, GroupNotExistsException, GroupRelationDoesNotExist, GroupRelationCannotBeRemoved {
+	protected void deleteAnyGroup(PerunSession sess, Group group, boolean forceDelete) throws InternalErrorException, RelationExistsException, GroupAlreadyRemovedException, GroupAlreadyRemovedFromResourceException, GroupOperationsException, GroupNotExistsException, GroupRelationDoesNotExist, GroupRelationCannotBeRemoved {
 		Vo vo = this.getVo(sess, group);
 
 		if (getGroupsManagerImpl().getSubGroupsCount(sess, group) > 0) {
@@ -336,7 +335,6 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			// now all members which left in membersFromDeletedGroup list are totally removed members from this group,
 			// so we need to log them to auditer
 			for(Member m: membersFromDeletedGroup) {
-				notifyMemberRemovalFromGroup(sess, parentGroup, m);
 				getPerunBl().getAuditer().log(sess, "{} was removed from {} totally.", m, parentGroup);
 			}
 			parentGroupId=parentGroup.getParentGroupId();
@@ -480,7 +478,10 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			processRelationMembers(sess, groupsManagerImpl.getGroupById(sess, groupId), Collections.singletonList(member), group.getId(), true);
 		}
 
-		setRequiredAttributes(sess, member, group);
+		List<Resource> resources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, group);
+		for (Resource resource : resources) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+		}
 	}
 
 	/**
@@ -499,45 +500,25 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	protected List<Member> addIndirectMembers(PerunSession sess, Group group, List<Member> members, int sourceGroupId) throws InternalErrorException, AlreadyMemberException, WrongAttributeValueException, WrongReferenceAttributeValueException {
 		// save list of old group members
 		List<Member> oldMembers = this.getGroupMembers(sess, group);
-		List<Member> membersToAdd = new ArrayList<>(members);
 
-		for (Member member : membersToAdd) {
+		for (Member member : members) {
 			groupsManagerImpl.addMember(sess, group, member, MembershipType.INDIRECT, sourceGroupId);
 		}
 
+		// get list of new members
+		List<Member> newMembers = this.getGroupMembers(sess, group);
 		// select only newly added members
-		membersToAdd.removeAll(oldMembers);
+		newMembers.removeAll(oldMembers);
 
-		for (Member member : membersToAdd) {
-			setRequiredAttributes(sess, member, group);
+		for (Member member : newMembers) {
+			List<Resource> resources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, group);
+			for (Resource resource : resources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+			}
 			getPerunBl().getAuditer().log(sess, "{} added to {}.", member, group);
 		}
 
-		return membersToAdd;
-	}
-
-	/**
-	 * Set required attributes when adding new direct or indirect members.
-	 * @param sess perun session
-	 * @param member member
-	 * @param group group
-	 * @throws InternalErrorException
-	 * @throws WrongAttributeValueException
-	 * @throws WrongReferenceAttributeValueException
-	 */
-	private void setRequiredAttributes(PerunSession sess, Member member, Group group) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
-		// setting required attributes
-		User user = getPerunBl().getUsersManagerBl().getUserByMember(sess, member);
-		List<Resource> resources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, group);
-		for (Resource resource : resources) {
-			Facility facility = getPerunBl().getResourcesManagerBl().getFacility(sess, resource);
-			// check members attributes
-			try {
-				getPerunBl().getAttributesManagerBl().setRequiredAttributes(sess, facility, resource, user, member);
-			} catch(WrongAttributeAssignmentException | AttributeNotExistsException ex) {
-				throw new ConsistencyErrorException(ex);
-			}
-		}
+		return newMembers;
 	}
 
 	/**
@@ -548,10 +529,17 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	 * @param members list of members to remove
 	 * @param sourceGroupId id of a group from which members originate
 	 * @return list of members that were removed (their only record in the group was deleted)
+	 * @throws InternalErrorException
+	 * @throws AlreadyMemberException
+	 * @throws WrongAttributeValueException
+	 * @throws WrongReferenceAttributeValueException
+	 * @throws NotGroupMemberException
 	 */
-	private List<Member> removeIndirectMembers(PerunSession sess, Group group, List<Member> members, int sourceGroupId) throws InternalErrorException, AlreadyMemberException, WrongAttributeValueException, WrongReferenceAttributeValueException, NotGroupMemberException {
-		List<Member> membersToRemove = new ArrayList<>(members);
-		for (Member member: membersToRemove) {
+	protected List<Member> removeIndirectMembers(PerunSession sess, Group group, List<Member> members, int sourceGroupId) throws InternalErrorException, AlreadyMemberException, WrongAttributeValueException, WrongReferenceAttributeValueException, NotGroupMemberException {
+		// save list of old group members
+		List<Member> oldMembers = this.getGroupMembers(sess, group);
+
+		for (Member member: members) {
 			member.setSourceGroupId(sourceGroupId);
 			groupsManagerImpl.removeMember(sess, group, member);
 		}
@@ -559,14 +547,13 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		// get list of new members
 		List<Member> newMembers = this.getGroupMembers(sess, group);
 		// get only removed members
-		membersToRemove.removeAll(newMembers);
+		oldMembers.removeAll(newMembers);
 
-		for(Member removedIndirectMember: membersToRemove) {
-			notifyMemberRemovalFromGroup(sess, group, removedIndirectMember);
+		for(Member removedIndirectMember: oldMembers) {
 			getPerunBl().getAuditer().log(sess, "{} was removed from {} totally.", removedIndirectMember, group);
 		}
 
-		return membersToRemove;
+		return oldMembers;
 	}
 
 	public void removeMember(PerunSession sess, Group group, Member member) throws InternalErrorException, NotGroupMemberException, GroupNotExistsException, GroupOperationsException {
@@ -587,7 +574,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		}
 	}
 
-	private void removeDirectMember(PerunSession sess, Group group, Member member) throws InternalErrorException, NotGroupMemberException, GroupNotExistsException, GroupOperationsException {
+	protected void removeDirectMember(PerunSession sess, Group group, Member member) throws InternalErrorException, NotGroupMemberException, GroupNotExistsException, GroupOperationsException {
 		member.setSourceGroupId(group.getId());
 		getGroupsManagerImpl().removeMember(sess, group, member);
 		if (this.getGroupsManagerImpl().isGroupMember(sess, group, member)) {
@@ -595,7 +582,6 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			//If member was indirect in group before, we don't need to change anything in other groups
 			return;
 		} else {
-			notifyMemberRemovalFromGroup(sess, group, member);
 			getPerunBl().getAuditer().log(sess, "{} was removed from {} totally.", member, group);
 		}
 
@@ -605,24 +591,6 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			processRelationMembers(sess, groupsManagerImpl.getGroupById(sess, groupId), Collections.singletonList(member), group.getId(), false);
 		}
 
-	}
-
-	/**
-	 * When a member is removed from a group, and the group is in a role, the member's user loses that role, which may need processing.
-	 */
-	private void notifyMemberRemovalFromGroup(PerunSession sess, Group group, Member member) throws InternalErrorException {
-		log.debug("notifyMemberRemovalFromGroup(group={},member={})",group.getName(),member);
-		User user = perunBl.getUsersManagerBl().getUserByMember(sess, member);
-		//list of VOs for which the group is in role SPONSOR
-		List<Vo> vos = AuthzResolverBlImpl.getVosForGroupInRole(sess, group, Role.SPONSOR);
-		for (Vo vo : vos) {
-			log.debug("Group {} has role SPONSOR in vo {}",group.getName(),vo.getShortName());
-			//if the user is not SPONSOR directly or through another group, he/she loses the role
-			if(!perunBl.getVosManagerBl().isUserInRoleForVo(sess, user, Role.SPONSOR, vo, true)) {
-				log.debug("user {} lost role SPONSOR when removed from group {}",user.getLastName(),group.getName());
-				perunBl.getVosManagerBl().handleUserLostVoRole(sess, user, vo, Role.SPONSOR);
-			}
-		}
 	}
 
 	public List<Member> getGroupMembers(PerunSession sess, Group group) throws InternalErrorException {
@@ -1479,8 +1447,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			String voadmin = ((AuthzResolver.isAuthorized(sess, Role.VOADMIN, rg) ? "VOADMIN" : ""));
 			String voobserver = ((AuthzResolver.isAuthorized(sess, Role.VOOBSERVER, rg) ? "VOOBSERVER" : ""));
 			String groupadmin = ((AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, rg) ? "GROUPADMIN" : ""));
-			String facilityadmin = ((AuthzResolver.isAuthorized(sess, Role.FACILITYADMIN) ? "FACILITYADMIN" : ""));
-			String key = voadmin + voobserver + groupadmin + facilityadmin;
+			String key = voadmin + voobserver + groupadmin;
 
 			//Filtering group attributes
 			if(rg.getAttributes() != null) {
@@ -1536,14 +1503,6 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		return richGroups;
 	}
 
-	public List<RichGroup> convertGroupsToRichGroupsWithAttributes(PerunSession sess, Resource resource, List<Group> groups) throws InternalErrorException, WrongAttributeAssignmentException {
-		List<RichGroup> richGroups = new ArrayList<>();
-		for(Group group: groups) {
-			richGroups.add(new RichGroup(group, getPerunBl().getAttributesManagerBl().getAttributes(sess, resource, group, true)));
-		}
-		return richGroups;
-	}
-
 	public List<RichGroup> convertGroupsToRichGroupsWithAttributes(PerunSession sess, List<Group> groups, List<String> attrNames) throws InternalErrorException {
 		if (attrNames == null) return convertGroupsToRichGroupsWithAttributes(sess, groups);
 		List<RichGroup> richGroups = new ArrayList<>();
@@ -1551,20 +1510,6 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			richGroups.add(new RichGroup(group, this.getPerunBl().getAttributesManagerBl().getAttributes(sess, group, attrNames)));
 		}
 		return richGroups;
-	}
-
-	public List<RichGroup> convertGroupsToRichGroupsWithAttributes(PerunSession sess, Resource resource, List<Group> groups, List<String> attrNames) throws InternalErrorException, WrongAttributeAssignmentException {
-		if (attrNames == null) return convertGroupsToRichGroupsWithAttributes(sess, resource, groups);
-		List<RichGroup> richGroups = new ArrayList<>();
-		for(Group group: groups) {
-			richGroups.add(new RichGroup(group, getPerunBl().getAttributesManagerBl().getAttributes(sess, resource, group, attrNames, true)));
-		}
-		return richGroups;
-	}
-
-	public List<RichGroup> getRichGroupsWithAttributesAssignedToResource(PerunSession sess, Resource resource, List<String> attrNames) throws InternalErrorException, WrongAttributeAssignmentException {
-		List<Group> assignedGroups = getPerunBl().getResourcesManagerBl().getAssignedGroups(sess, resource);
-		return this.convertGroupsToRichGroupsWithAttributes(sess, resource, assignedGroups, attrNames);
 	}
 
 	public List<RichGroup> getAllRichGroupsWithAttributesByNames(PerunSession sess, Vo vo, List<String> attrNames)throws InternalErrorException{

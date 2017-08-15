@@ -247,6 +247,16 @@ public interface UsersManagerImplApi {
 	void updateUserExtSourceLastAccess(PerunSession perunSession, UserExtSource userExtSource) throws InternalErrorException;
 
 	/**
+	 * Gets list of all user external sources ids of the user.
+	 *
+	 * @param perunSession
+	 * @param user
+	 * @return list of user's external sources ids
+	 * @throws InternalErrorException
+	 */
+	List<Integer> getUserExtSourcesIds(PerunSession perunSession, User user) throws InternalErrorException;
+
+	/**
 	 * Gets list of all users external sources by specific type and extLogin.
 	 *
 	 * @param sess
@@ -283,14 +293,14 @@ public interface UsersManagerImplApi {
 	UserExtSource getUserExtSourceById(PerunSession sess, int id) throws InternalErrorException, UserExtSourceNotExistsException;
 
 	/**
-	 * Get List of user ext sources by user
+	 * Get list of user ext sources be their ids.
 	 *
-	 * @param sess session
-	 * @param user owner of extSources
-	 * @return List of user's UserExtSources
+	 * @param sess
+	 * @param ids
+	 * @return list of user external sources for ids
 	 * @throws InternalErrorException
 	 */
-	List<UserExtSource> getUserExtSources(PerunSession sess, User user) throws InternalErrorException;
+	List<UserExtSource> getUserExtsourcesByIds(PerunSession sess, List<Integer> ids) throws InternalErrorException;
 
 	/**
 	 * Adds user's external sources.
@@ -408,31 +418,14 @@ public interface UsersManagerImplApi {
 	List<Vo> getVosWhereUserIsAdmin(PerunSession perunSession, User user) throws InternalErrorException;
 
 	/**
-	 * Returns list of Groups in Perun, where the User is a direct Administrator
-	 * or he is a member of any group which is Administrator of some of these Groups.
+	 * Returns list of Groups, where the user is an Administrator.
 	 *
 	 * @param perunSession
 	 * @param user
-	 *
-	 * @return list of Groups, where user or some of his groups is an Administrator
-	 *
+	 * @return list of Groups, where the user is an Administrator.
 	 * @throws InternalErrorException
 	 */
 	List<Group> getGroupsWhereUserIsAdmin(PerunSession perunSession, User user) throws InternalErrorException;
-
-	/**
-	 * Returns list of Groups in selected Vo, where the User is a direct Administrator
-	 * or he is a member of any group which is Administrator of some of these Groups.
-	 *
-	 * @param sess
-	 * @param vo selected Vo under which we are looking for groups
-	 * @param user manager of groups we are looking for
-	 *
-	 * @return list of Groups, where user or some of his groups (in the Vo) is an Administrator
-	 *
-	 * @throws InternalErrorException
-	 */
-	List<Group> getGroupsWhereUserIsAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException;
 
 	/**
 	 * Returns list of Vos' ids, where the user is member.
@@ -487,7 +480,7 @@ public interface UsersManagerImplApi {
 	 * @throws InternalErrorException
 	 */
 	List<User> findUsersByName(PerunSession sess, String titleBefore, String firstName, String middleName, String lastName, String titleAfter) throws InternalErrorException;
-
+        
         /**
 	 * Returns list of users who exactly matches the searchString
 	 *
@@ -702,13 +695,4 @@ public interface UsersManagerImplApi {
 	 */
 	public PasswordManagerModule getPasswordManagerModule(PerunSession session, String namespace) throws InternalErrorException;
 
-	/**
-	 * Gets list of user that sponsored a member.
-	 */
-	List<User> getSponsors(PerunSession sess, Member sponsoredMember) throws InternalErrorException;
-
-	/**
-	 * Deletes all links to sponsors, even those marked as inactive.
-	 */
-	void deleteSponsorLinks(PerunSession sess, User sponsor) throws InternalErrorException;
 }

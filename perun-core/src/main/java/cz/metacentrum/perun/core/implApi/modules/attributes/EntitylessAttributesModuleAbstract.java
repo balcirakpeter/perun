@@ -15,19 +15,22 @@ import cz.metacentrum.perun.core.impl.PerunSessionImpl;
  * In the function that the method in the module does nothing, it is not necessary to implement it, simply extend this abstract class.
  *
  * @author Michal Stava <stavamichal@gmail.com>
- *
  */
 public abstract class EntitylessAttributesModuleAbstract extends AttributesModuleAbstract implements EntitylessAttributesModuleImplApi {
 
-	public void checkAttributeValue(PerunSessionImpl perunSession, String key, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+    public void checkAttributeValue(PerunSessionImpl perunSession, String key, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 
-	}
+    }
 
-	public Attribute fillAttribute(PerunSessionImpl session, String key, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeAssignmentException {
-		return new Attribute(attribute);
-	}
+    public Attribute fillAttribute(PerunSessionImpl session, String key, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeAssignmentException {
+        return new Attribute(attribute);
+    }
 
-	public void changedAttributeHook(PerunSessionImpl session, String key, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
+    public void changedAttributeHook(PerunSessionImpl session, String key, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
 
-	}
+    }
+
+    public void checkAttributeSyntax(PerunSessionImpl perunSession, String key, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+    }
 }

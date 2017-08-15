@@ -24,7 +24,7 @@ import cz.metacentrum.perun.core.api.User;
 import cz.metacentrum.perun.core.api.UserExtSource;
 import cz.metacentrum.perun.core.api.Vo;
 import cz.metacentrum.perun.core.api.exceptions.ActionTypeNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.AttributeDefinitionExistsException;
+import cz.metacentrum.perun.core.api.exceptions.AttributeExistsException;
 import cz.metacentrum.perun.core.api.exceptions.AttributeNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 import cz.metacentrum.perun.core.api.exceptions.ModuleNotExistsException;
@@ -211,18 +211,6 @@ public interface AttributesManagerImplApi {
 	 * @throws InternalErrorException if an exception raise in concrete implementation, the exception is wrapped in InternalErrorException
 	 */
 	List<Attribute> getAttributes(PerunSession sess, Member member, Resource resource, List<String> attrNames) throws InternalErrorException;
-
-	/**
-	 * Get all attributes (empty and virtual too) associated with the group on the resource which have name in list attrNames.
-	 *
-	 * @param sess perun session
-	 * @param resource to get the attributes for
-	 * @param group to get the attributes for
-	 * @param attrNames list of attributes names
-	 * @return list of selected attributes for group and resource objects
-	 * @throws InternalErrorException
-	 */
-	List<Attribute> getAttributes(PerunSession sess, Resource resource, Group group, List<String> attrNames) throws InternalErrorException;
 
 	/**
 	 * Get all attributes (empty and virtual too) associated with the user on the facility which have name in list attrNames.
@@ -996,10 +984,10 @@ public interface AttributesManagerImplApi {
 	 *
 	 * @return attribute with set id
 	 *
-	 * @throws AttributeDefinitionExistsException if attribute already exists
+	 * @throws AttributeExistsException if attribute already exists
 	 * @throws InternalErrorException if an exception raise in concrete implementation, the exception is wrapped in InternalErrorException
 	 */
-	AttributeDefinition createAttribute(PerunSession sess, AttributeDefinition attribute) throws InternalErrorException, AttributeDefinitionExistsException;
+	AttributeDefinition createAttribute(PerunSession sess, AttributeDefinition attribute) throws InternalErrorException, AttributeExistsException;
 
 	/**
 	 * Deletes the attribute. Definition and all values.

@@ -11,12 +11,18 @@ import java.util.*;
 import cz.metacentrum.perun.core.api.*;
 import cz.metacentrum.perun.core.api.exceptions.*;
 
-import cz.metacentrum.perun.core.api.exceptions.IllegalArgumentException;
-import cz.metacentrum.perun.core.api.exceptions.rt.*;
+import cz.metacentrum.perun.core.api.exceptions.rt.PasswordOperationTimeoutRuntimeException;
+import cz.metacentrum.perun.core.api.exceptions.rt.PasswordStrengthFailedRuntimeException;
 import cz.metacentrum.perun.core.implApi.modules.pwdmgr.PasswordManagerModule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import cz.metacentrum.perun.core.api.exceptions.rt.EmptyPasswordRuntimeException;
+import cz.metacentrum.perun.core.api.exceptions.rt.LoginNotExistsRuntimeException;
+import cz.metacentrum.perun.core.api.exceptions.rt.PasswordChangeFailedRuntimeException;
+import cz.metacentrum.perun.core.api.exceptions.rt.PasswordCreationFailedRuntimeException;
+import cz.metacentrum.perun.core.api.exceptions.rt.PasswordDeletionFailedRuntimeException;
+import cz.metacentrum.perun.core.api.exceptions.rt.PasswordDoesntMatchRuntimeException;
 import cz.metacentrum.perun.core.bl.PerunBl;
 import cz.metacentrum.perun.core.bl.UsersManagerBl;
 import cz.metacentrum.perun.core.impl.PerunSessionImpl;
@@ -344,7 +350,7 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 		}
 
 		// First delete all associated external sources to the user
-		removeAllUserExtSources(sess, user);
+		getUsersManagerImpl().removeAllUserExtSources(sess, user);
 		getPerunBl().getAuditer().log(sess, "All user ext sources removed for {}.", user);
 
 		// delete all authorships of users publications
@@ -414,8 +420,6 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 
 		//Remove user authz
 		AuthzResolverBlImpl.removeAllUserAuthz(sess, user);
-		//delete even inactive links
-		usersManagerImpl.deleteSponsorLinks(sess, user);
 
 		//Remove all users bans
 		List<BanOnFacility> bansOnFacility = getPerunBl().getFacilitiesManagerBl().getBansForUser(sess, user.getId());
@@ -453,7 +457,7 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 		User beforeUpdatingUser = getPerunBl().getUsersManagerBl().getUserById(sess, user.getId());
 		User afterUpdatingUser = getUsersManagerImpl().updateNameTitles(sess, user);
 
-		//Log only when something is changed
+		//Log only when something is changed		
 		// must audit like update user since it changes same object
 		if(!beforeUpdatingUser.equals(afterUpdatingUser)) getPerunBl().getAuditer().log(sess, "{} updated.", user);
 		return afterUpdatingUser;
@@ -469,7 +473,14 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 	}
 
 	public List<UserExtSource> getUserExtSources(PerunSession sess, User user) throws InternalErrorException {
-		return getUsersManagerImpl().getUserExtSources(sess, user);
+		List<Integer> ueasIds = getUsersManagerImpl().getUserExtSourcesIds(sess, user);
+		List<UserExtSource> ueas = getUsersManagerImpl().getUserExtsourcesByIds(sess, ueasIds);
+
+		return ueas;
+	}
+
+	public List<UserExtSource> getUserExtsourcesByIds(PerunSession sess, List<Integer> ids) throws InternalErrorException {
+		return getUsersManagerImpl().getUserExtsourcesByIds(sess, ids);
 	}
 
 	public UserExtSource getUserExtSourceById(PerunSession sess, int id) throws InternalErrorException, UserExtSourceNotExistsException {
@@ -486,8 +497,11 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 
 	public UserExtSource addUserExtSource(PerunSession sess, User user, UserExtSource userExtSource) throws InternalErrorException, UserExtSourceExistsException {
 		// Check if the userExtSource already exists
-		if(usersManagerImpl.userExtSourceExists(sess,userExtSource)) {
+		try {
+			getUsersManagerImpl().checkUserExtSourceExists(sess, userExtSource);
 			throw new UserExtSourceExistsException("UserExtSource " + userExtSource + " already exists.");
+		} catch (UserExtSourceNotExistsException e) {
+			// this is OK
 		}
 
 		// Check if userExtsource is type of IDP (special testing behavior)
@@ -506,52 +520,8 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 
 	public void removeUserExtSource(PerunSession sess, User user, UserExtSource userExtSource) throws InternalErrorException, UserExtSourceAlreadyRemovedException {
 		//FIXME zkontrolovat zda na userExtSource neni navazan nejaky member
-		//First remove all user extSource attributes before removing userExtSource
-		try {
-			getPerunBl().getAttributesManagerBl().removeAllAttributes(sess, userExtSource);
-		} catch (WrongReferenceAttributeValueException | WrongAttributeValueException ex) {
-			throw new InternalErrorException("Can't remove userExtSource because there is problem with removing all it's attributes.", ex);
-		}
 		getUsersManagerImpl().removeUserExtSource(sess, user, userExtSource);
 		getPerunBl().getAuditer().log(sess, "{} removed from {}.", userExtSource, user);
-	}
-
-	public void moveUserExtSource(PerunSession sess, User sourceUser, User targetUser, UserExtSource userExtSource) throws InternalErrorException {
-		List<Attribute> userExtSourceAttributes = getPerunBl().getAttributesManagerBl().getAttributes(sess, userExtSource);
-		Iterator<Attribute> iterator = userExtSourceAttributes.iterator();
-		//remove all virtual attributes (we don't need to take care about them)
-		while(iterator.hasNext()) {
-			Attribute attribute = iterator.next();
-			if(getPerunBl().getAttributesManagerBl().isVirtAttribute(sess, attribute)) iterator.remove();
-		}
-
-		//remove userExtSource
-		try {
-			this.removeUserExtSource(sess, sourceUser, userExtSource);
-		} catch (UserExtSourceAlreadyRemovedException ex) {
-			//this is little weird, will be better to report exception
-			throw new InternalErrorException("UserExtSource was unexpectedly removed while moving " + userExtSource +
-					" from " + sourceUser + " to " + targetUser);
-		}
-
-		//change userId for userExtSource
-		userExtSource.setUserId(targetUser.getId());
-		//add userExtSource to the targetUser
-		try {
-			userExtSource = this.addUserExtSource(sess, targetUser, userExtSource);
-		} catch (UserExtSourceExistsException ex) {
-			//someone moved this UserExtSource before us
-			throw new InternalErrorException("Moving " + userExtSource + " from " + sourceUser + " to " + targetUser +
-					" failed because someone already moved this UserExtSource.", ex);
-		}
-
-		//set all attributes back to this UserExtSource when it is already assigned to the targetUser
-		try {
-			getPerunBl().getAttributesManagerBl().setAttributes(sess, userExtSource, userExtSourceAttributes);
-		} catch (WrongAttributeAssignmentException | WrongReferenceAttributeValueException | WrongAttributeValueException ex) {
-			throw new InternalErrorException("Moving " + userExtSource + " from " + sourceUser + " to " + targetUser +
-					" failed because of problem with setting removed attributes back to the UserExtSource.", ex);
-		}
 	}
 
 	public UserExtSource getUserExtSourceByExtLogin(PerunSession sess, ExtSource source, String extLogin) throws InternalErrorException, UserExtSourceNotExistsException {
@@ -564,10 +534,6 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 
 	public List<Group> getGroupsWhereUserIsAdmin(PerunSession sess, User user) throws InternalErrorException {
 		return getUsersManagerImpl().getGroupsWhereUserIsAdmin(sess, user);
-	}
-
-	public List<Group> getGroupsWhereUserIsAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException {
-		return getUsersManagerImpl().getGroupsWhereUserIsAdmin(sess, vo, user);
 	}
 
 	public List<Vo> getVosWhereUserIsMember(PerunSession sess, User user) throws InternalErrorException {
@@ -1270,26 +1236,7 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 				} catch(UserExtSourceExistsException ex) {
 					//this is OK
 				}
-			} else if (loginNamespace.equals("dummy")) {
-				//dummy namespace for testing, it has accompanying DummyPasswordModule that just generates random numbers
-				ExtSource extSource;
-				try {
-					extSource = getPerunBl().getExtSourcesManagerBl().getExtSourceByName(sess, "https://dummy");
-				} catch (ExtSourceNotExistsException e) {
-					extSource =  new ExtSource("https://dummy",ExtSourcesManager.EXTSOURCE_IDP);
-					try {
-						extSource = getPerunBl().getExtSourcesManagerBl().createExtSource(sess, extSource, null);
-					} catch (ExtSourceExistsException e1) {
-						log.error("impossible or race condition",e1);
-					}
-				}
-				UserExtSource ues = new UserExtSource(extSource, userLogin + "@dummy");
-				ues.setLoa(2);
-				try {
-					getPerunBl().getUsersManagerBl().addUserExtSource(sess, user, ues);
-				} catch(UserExtSourceExistsException ex) {
-					//this is OK
-				}
+
 			}
 		} catch (WrongAttributeAssignmentException ex) {
 			throw new InternalErrorException(ex);
@@ -1929,7 +1876,7 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 		String requestId = Utils.cipherInput(m, true);
 		String namespace = getUsersManagerImpl().loadPasswordResetRequest(user, Integer.parseInt(requestId));
 
-		if (namespace.isEmpty()) throw new InternalErrorException("Password reset request is not valid anymore or doesn't existed at all for User: "+user);
+		if (namespace.isEmpty()) throw new InternalErrorException("Password reset request is not valid anymore or doesn't existed at all.");
 
 		List<Attribute> logins = perunBl.getAttributesManagerBl().getLogins(sess, user);
 		boolean found = false;
@@ -1991,26 +1938,8 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 		return getUsersManagerImpl().generateAccount(session, namespace, parameters);
 	}
 
-	@Override
-	public List<User> getSponsors(PerunSession sess, Member sponsoredMember) throws InternalErrorException {
-		if(!sponsoredMember.isSponsored()) {
-			throw new IllegalArgumentException("member "+sponsoredMember.getId()+" is not marked as sponsored");
-		}
-		return getUsersManagerImpl().getSponsors(sess, sponsoredMember);
-	}
-
 	private PasswordManagerModule getPasswordManagerModule(PerunSession session, String namespace) throws InternalErrorException {
 		return getUsersManagerImpl().getPasswordManagerModule(session, namespace);
 	}
 
-	@Override
-	public void removeAllUserExtSources(PerunSession sess, User user) throws InternalErrorException {
-		for(UserExtSource userExtSource : getUserExtSources(sess, user)) {
-			try {
-				removeUserExtSource(sess, user, userExtSource);
-			} catch (UserExtSourceAlreadyRemovedException ex) {
-				throw new InternalErrorException(ex);
-			}
-		}
-	}
 }

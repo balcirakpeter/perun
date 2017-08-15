@@ -498,29 +498,6 @@ public class AttributesManagerEntry implements AttributesManager {
 		return attributes;
 	}
 
-	public List<Attribute> getAttributes(PerunSession sess, Resource resource, Group group, List<String> attrNames, boolean workWithGroupAttributes) throws PrivilegeException, InternalErrorException, ResourceNotExistsException, GroupNotExistsException, GroupResourceMismatchException, WrongAttributeAssignmentException {
-		Utils.checkPerunSession(sess);
-		getPerunBl().getResourcesManagerBl().checkResourceExists(sess, resource);
-		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
-		List<Attribute> attributes = getAttributesManagerBl().getAttributes(sess, resource, group, attrNames, workWithGroupAttributes);
-		Iterator<Attribute> attrIter = attributes.iterator();
-		//Choose to which attributes has the principal access
-		while(attrIter.hasNext()) {
-			Attribute attrNext = attrIter.next();
-			if(getAttributesManagerBl().isFromNamespace(sess, attrNext, NS_GROUP_ATTR)) {
-				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.READ, attrNext, group, null)) attrIter.remove();
-				else attrNext.setWritable(AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, attrNext, group, null));
-			} else if(getAttributesManagerBl().isFromNamespace(sess, attrNext, NS_GROUP_RESOURCE_ATTR)) {
-				if(!AuthzResolver.isAuthorizedForAttribute(sess, ActionType.READ, attrNext, group, resource)) attrIter.remove();
-				else attrNext.setWritable(AuthzResolver.isAuthorizedForAttribute(sess, ActionType.WRITE, attrNext, group, resource));
-			} else {
-				throw new ConsistencyErrorException("One of getting attribute is not type of group or group_resource : " + attrNext);
-			}
-		}
-
-		return attributes;
-	}
-
 	public List<Attribute> getAttributes(PerunSession sess, Member member, boolean workWithUserAttributes) throws PrivilegeException, InternalErrorException, MemberNotExistsException {
 		Utils.checkPerunSession(sess);
 		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
@@ -1375,7 +1352,7 @@ public class AttributesManagerEntry implements AttributesManager {
 		getAttributesManagerBl().setAttribute(sess, ues, attribute);
 	}
 
-	public AttributeDefinition createAttribute(PerunSession sess, AttributeDefinition attribute) throws PrivilegeException, InternalErrorException, AttributeDefinitionExistsException {
+	public AttributeDefinition createAttribute(PerunSession sess, AttributeDefinition attribute) throws PrivilegeException, InternalErrorException, AttributeExistsException {
 		Utils.checkPerunSession(sess);
 		Utils.notNull(attribute, "attributeDefinition");
 		if(!AuthzResolver.isAuthorized(sess, Role.PERUNADMIN)) throw new PrivilegeException("Only perunAdmin can create new Attribute.");
@@ -2075,7 +2052,7 @@ public class AttributesManagerEntry implements AttributesManager {
 		return result;
 	}
 
-	public List<Attribute> getRequiredAttributes(PerunSession sess, Service service, Member member, Group group) throws PrivilegeException, InternalErrorException, ServiceNotExistsException, MemberNotExistsException, GroupNotExistsException {
+	public List<Attribute> getRequiredAttributes(PerunSession sess, Service service, Member member, Group group) throws PrivilegeException, InternalErrorException, ServiceNotExistsException, MemberNotExistsException, GroupNotExistsException, WrongAttributeAssignmentException {
 		Utils.checkPerunSession(sess);
 		getPerunBl().getServicesManagerBl().checkServiceExists(sess, service);
 		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);

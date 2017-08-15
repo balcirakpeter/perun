@@ -1,4 +1,4 @@
--- database version 3.1.44 (don't forget to update insert statement at the end of file)
+-- database version 3.1.43 (don't forget to update insert statement at the end of file)
 
 create user perunv3 identified by password;
 grant create session to perunv3;
@@ -197,7 +197,6 @@ create table members (
 	modified_at date default sysdate not null,
 	modified_by nvarchar2(1300) default user not null,
 	status char(1) default '0' not null,
-	sponsored char(1) default '0' not null,
 	created_by_uid integer,
 	modified_by_uid integer
 );
@@ -1134,19 +1133,6 @@ create table user_ext_source_attr_values (
 	modified_by_uid integer
 );
 
-CREATE TABLE members_sponsored (
-	active char(1) default '1' not null,
-	sponsored_id INTEGER NOT NULL,
-	sponsor_id INTEGER NOT NULL,
-	created_at date default sysdate not null,
-	created_by nvarchar2(1300) default user not null,
-	created_by_uid integer,
-	modified_at date default sysdate not null,
-	modified_by nvarchar2(1300) default user not null,
-	modified_by_uid integer
-);
-
-
 create sequence ATTR_NAMES_ID_SEQ maxvalue 1.0000E+28 nocache;
 create sequence AUDITER_CONSUMERS_ID_SEQ maxvalue 1.0000E+28 nocache;
 create sequence AUDITER_LOG_ID_SEQ maxvalue 1.0000E+28 nocache;
@@ -1337,8 +1323,6 @@ create index IDX_FK_FAC_BAN_USER on facilities_bans (user_id);
 create index IDX_FK_FAC_BAN_FAC on facilities_bans (facility_id);
 create index IDX_FK_UES_ATTR_VALUES_UES on user_ext_source_attr_values (user_ext_source_id);
 create index IDX_FK_UES_ATTR_VALUES_ATTR on user_ext_source_attr_values (attr_id);
-create index IDX_FK_MEMSPONS_USR ON members_sponsored(sponsor_id);
-create index IDX_FK_MEMSPONS_MEM ON members_sponsored(sponsored_id);
 
 alter table auditer_log add (constraint AUDLOG_PK primary key (id));
 alter table auditer_consumers add (constraint AUDCON_PK primary key (id),
@@ -1817,13 +1801,8 @@ constraint UESATTRVAL_UES_FK foreign key (user_ext_source_id) references user_ex
 constraint UESATTRVAL_ATTR_FK foreign key (attr_id) references attr_names(id)
 );
 
-alter table members_sponsored add (
-	constraint MEMSPONS_MEM_FK foreign key (sponsored_id) references members(id),
-	constraint MEMSPONS_USR_FK foreign key (sponsor_id) references users(id)
-);
-
 -- set initial Perun DB version
-insert into configurations values ('DATABASE VERSION','3.1.44');
+insert into configurations values ('DATABASE VERSION','3.1.43');
 
 -- insert membership types
 insert into membership_types (id, membership_type, description) values (1, 'DIRECT', 'Member is directly added into group');

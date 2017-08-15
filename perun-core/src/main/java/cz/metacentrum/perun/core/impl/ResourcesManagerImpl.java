@@ -130,6 +130,8 @@ public class ResourcesManagerImpl implements ResourcesManagerImplApi {
 
 	protected static final RichResourceExtractor RICH_RESOURCE_WITH_TAGS_EXTRACTOR = new RichResourceExtractor();
 
+	protected static final String APPROVED = "Approved";
+
 	private static class RichResourceExtractor implements ResultSetExtractor<List<RichResource>> {
 
 		public List<RichResource> extractData(ResultSet rs) throws SQLException, DataAccessException {
@@ -322,9 +324,12 @@ public class ResourcesManagerImpl implements ResourcesManagerImplApi {
 	public List<Member> getAllowedMembers(PerunSession sess, Resource resource) throws InternalErrorException {
 		try  {
 			return jdbc.query("select distinct " + MembersManagerImpl.memberMappingSelectQuery + " from groups_resources join groups on groups_resources.group_id=groups.id" +
-					" join groups_members on groups.id=groups_members.group_id join members on groups_members.member_id=members.id " +
-					" where groups_resources.resource_id=? and members.status!=? and members.status!=?", MembersManagerImpl.MEMBER_MAPPER, resource.getId(),
-					String.valueOf(Status.INVALID.getCode()), String.valueOf(Status.DISABLED.getCode()));
+					" join groups_members on groups.id=groups_members.group_id join members on groups_members.member_id=members.id" +
+					" join member_resource_attr_values on members.id=member_resource_attr_values.member_id" +
+					" where groups_resources.resource_id=? and member_resource_attr_values.resource_id=? and member_resource_attr_values.attr_value=?" +
+					" and members.status!=?"
+					, MembersManagerImpl.MEMBER_MAPPER, resource.getId(), resource.getId(), APPROVED
+					, String.valueOf(Status.DISABLED.getCode()));
 		} catch (EmptyResultDataAccessException e) {
 			return new ArrayList<Member>();
 		} catch (RuntimeException e) {

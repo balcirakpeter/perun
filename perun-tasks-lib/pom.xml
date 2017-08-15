@@ -128,7 +128,7 @@
 			</activation>
 			<properties>
 				<perun.build.type>production</perun.build.type>
-				<skipTests>true</skipTests>
+				<maven.test.skip>true</maven.test.skip>
 			</properties>
 		</profile>
 	</profiles>

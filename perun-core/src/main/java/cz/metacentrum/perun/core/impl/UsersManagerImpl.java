@@ -494,13 +494,23 @@ public class UsersManagerImpl implements UsersManagerImplApi {
 	}
 
 	public UserExtSource getUserExtSourceByExtLogin(PerunSession sess, ExtSource source, String extLogin) throws InternalErrorException, UserExtSourceNotExistsException {
+		int ueaId;
 		try {
-			return jdbc.queryForObject("select " + userExtSourceMappingSelectQuery + "," + ExtSourcesManagerImpl.extSourceMappingSelectQuery +
-			        " from user_ext_sources left join ext_sources " +
-					" on user_ext_sources.ext_sources_id=ext_sources.id " +
-					" where ext_sources.id=? and user_ext_sources.login_ext=?", USEREXTSOURCE_MAPPER, source.getId(), extLogin);
+			ueaId =  jdbc.queryForInt("select user_ext_sources.id from user_ext_sources left join ext_sources on " +
+					"user_ext_sources.ext_sources_id=ext_sources.id " +
+					"where ext_sources.id=? and user_ext_sources.login_ext=?", source.getId(), extLogin);
 		} catch (EmptyResultDataAccessException e) {
 			throw new UserExtSourceNotExistsException("ExtSource: " + source + " for extLogin " + extLogin, e);
+		} catch (RuntimeException e) {
+			throw new InternalErrorException(e);
+		}
+
+		return this.getUserExtSourceById(sess, ueaId);
+	}
+
+	public List<Integer> getUserExtSourcesIds(PerunSession sess, User user) throws InternalErrorException {
+		try {
+			return jdbc.query("select id from user_ext_sources where user_id=?", Utils.ID_MAPPER, user.getId());
 		} catch (RuntimeException e) {
 			throw new InternalErrorException(e);
 		}
@@ -540,6 +550,25 @@ public class UsersManagerImpl implements UsersManagerImplApi {
 		}
 	}
 
+	public List<UserExtSource> getUserExtsourcesByIds(PerunSession sess, List<Integer> ids) throws InternalErrorException {
+		if (ids.size() == 0) {
+			return new ArrayList<UserExtSource>();
+		}
+
+		MapSqlParameterSource parameters = new MapSqlParameterSource();
+		parameters.addValue("ids", ids);
+
+		try {
+			return namedParameterJdbcTemplate.query("select " + userExtSourceMappingSelectQuery + "," + ExtSourcesManagerImpl.extSourceMappingSelectQuery +
+					" from user_ext_sources left join ext_sources on user_ext_sources.ext_sources_id=ext_sources.id where" +
+					" user_ext_sources.id in ( :ids )", parameters, USEREXTSOURCE_MAPPER);
+		} catch(EmptyResultDataAccessException ex) {
+			return new ArrayList<UserExtSource>();
+		} catch (RuntimeException e) {
+			throw new InternalErrorException(e);
+		}
+	}
+
 	public UserExtSource getUserExtSourceById(PerunSession sess, int id) throws InternalErrorException, UserExtSourceNotExistsException {
 		try {
 			return jdbc.queryForObject("select " + userExtSourceMappingSelectQuery + "," + ExtSourcesManagerImpl.extSourceMappingSelectQuery +
@@ -550,18 +579,6 @@ public class UsersManagerImpl implements UsersManagerImplApi {
 		} catch (RuntimeException e) {
 			throw new InternalErrorException(e);
 		}
-	}
-
-	@Override
-	public List<UserExtSource> getUserExtSources(PerunSession sess, User user) throws InternalErrorException {
-		try {
-			return jdbc.query("SELECT " + userExtSourceMappingSelectQuery + "," + ExtSourcesManagerImpl.extSourceMappingSelectQuery +
-			        " FROM user_ext_sources left join ext_sources on user_ext_sources.ext_sources_id=ext_sources.id" +
-			        " WHERE user_ext_sources.user_id=?", USEREXTSOURCE_MAPPER, user.getId());
-		} catch (RuntimeException e) {
-			throw new InternalErrorException(e);
-		}
-
 	}
 
 	public void removeUserExtSource(PerunSession sess, User user, UserExtSource userExtSource) throws InternalErrorException, UserExtSourceAlreadyRemovedException {
@@ -583,31 +600,12 @@ public class UsersManagerImpl implements UsersManagerImplApi {
 
 	public List<Group> getGroupsWhereUserIsAdmin(PerunSession sess, User user) throws InternalErrorException {
 		try {
-			return jdbc.query("select distinct " + GroupsManagerImpl.groupMappingSelectQuery + " from groups where groups.id in " +
-							" (select group_id from authz where ( authz.user_id=? or  authz.authorized_group_id in " +
-							" (select distinct groups.id from groups join groups_members on groups_members.group_id=groups.id " +
-							" join members on groups_members.member_id=members.id where members.user_id=?) " +
-							" and authz.role_id=(select id from roles where roles.name=?))) ",
-					GroupsManagerImpl.GROUP_MAPPER, user.getId(), user.getId(), Role.GROUPADMIN.getRoleName());
+			return jdbc.query("select " + GroupsManagerImpl.groupMappingSelectQuery + " from authz join groups on authz.group_id=groups.id " +
+					" where authz.user_id=? and authz.role_id=(select id from roles where name='groupadmin')", GroupsManagerImpl.GROUP_MAPPER, user.getId());
 		} catch (EmptyResultDataAccessException e) {
 			return new ArrayList<Group>();
 		} catch (RuntimeException e) {
 			throw new InternalErrorException(e);
-		}
-	}
-
-	public List<Group> getGroupsWhereUserIsAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException {
-		try {
-			return jdbc.query("select distinct " + GroupsManagerImpl.groupMappingSelectQuery + " from groups where groups.id in " +
-							" (select group_id from authz where ( authz.user_id=? or  authz.authorized_group_id in " +
-							" (select distinct groups.id from groups join groups_members on groups_members.group_id=groups.id " +
-							" join members on groups_members.member_id=members.id where members.user_id=?) " +
-							" and authz.role_id=(select id from roles where roles.name=?))) and groups.vo_id=? ",
-					GroupsManagerImpl.GROUP_MAPPER, user.getId(), user.getId(), Role.GROUPADMIN.getRoleName(), vo.getId());
-		} catch (EmptyResultDataAccessException e) {
-			return new ArrayList<Group>();
-		} catch(RuntimeException ex) {
-			throw new InternalErrorException(ex);
 		}
 	}
 
@@ -1210,22 +1208,4 @@ public class UsersManagerImpl implements UsersManagerImplApi {
 
 	}
 
-	@Override
-	public List<User> getSponsors(PerunSession sess, Member sponsoredMember) throws InternalErrorException {
-		try {
-			return jdbc.query("SELECT " + userMappingSelectQuery + " FROM users JOIN members_sponsored ms ON (users.id=ms.sponsor_id)" +
-					"WHERE ms.active='1' AND ms.sponsored_id=? ", USER_MAPPER, sponsoredMember.getId());
-		} catch (RuntimeException ex) {
-			throw new InternalErrorException(ex);
-		}
-	}
-
-	@Override
-	public void deleteSponsorLinks(PerunSession sess, User sponsor) throws InternalErrorException {
-		try {
-			jdbc.update("DELETE FROM members_sponsored WHERE sponsor_id=?", sponsor.getId());
-		} catch (RuntimeException e) {
-			throw new InternalErrorException(e);
-		}
-	}
 }

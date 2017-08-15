@@ -24,12 +24,15 @@ import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 /**
  * Perun himself.
  *
+ * See {@link cz.metacentrum.perun.core.bl.PerunBl#bootstrap()} to find how to get
+ * an instance of Perun.
+ *
  * @author Slavek Licehammer glory@ics.muni.cz
  */
 public interface PerunBl extends Perun {
 
-	String PERUNVERSION = "3.0.0";
-	String INTERNALPRINCIPAL = "INTERNAL";
+	public static final String PERUNVERSION = "3.0.0";
+	public static final String INTERNALPRINCIPAL = "INTERNAL";
 
 	/**
 	 * Gets a (possibly cached) Perun session.
@@ -40,188 +43,201 @@ public interface PerunBl extends Perun {
 	PerunSession getPerunSession(PerunPrincipal actor, PerunClient client) throws InternalErrorException ;
 
 	/**
+	 * Gets an internal Perun session.
+	 * @throws InternalErrorException raised when session cannot be created.
+	 * @return perun session
+	 */
+	PerunSession getPerunSession() throws InternalErrorException ;
+
+	/**
 	 * Gets a groups manager.
 	 * @return groups manager
 	 */
-	GroupsManager getGroupsManager();
+	public GroupsManager getGroupsManager();
 
 	/**
 	 * Gets a resource manager.
 	 * @return resource manager
 	 */
-	FacilitiesManager getFacilitiesManager();
+	public FacilitiesManager getFacilitiesManager();
 
 	/**
 	 * Gets a database manager.
 	 * @return database manager
 	 */
-	DatabaseManager getDatabaseManager();
+	public DatabaseManager getDatabaseManager();
 	
 	/**
 	 * Gets a users manager.
 	 * @return users manager
 	 */
-	UsersManager getUsersManager();
+	public UsersManager getUsersManager();
 
 	/**
 	 * Gets a members manager.
 	 * @return members manager
 	 */
-	MembersManager getMembersManager();
+	public MembersManager getMembersManager();
 
 	/**
 	 * Gets a VOs manager.
 	 * @return VOs manager
 	 */
-	VosManager getVosManager();
+	public VosManager getVosManager();
 
 	/**
 	 * Gets a Resources manager.
 	 * @return Resources manager
 	 */
-	ResourcesManager getResourcesManager();
+	public ResourcesManager getResourcesManager();
 
 	/**
 	 * Gets a ExtSources manager.
 	 * @return ExtSources manager
 	 */
-	ExtSourcesManager getExtSourcesManager();
+	public ExtSourcesManager getExtSourcesManager();
 
 	/**
 	 * Gets a Attributes manager.
 	 * @return Attributes manager
 	 */
-	AttributesManager getAttributesManager();
+	public AttributesManager getAttributesManager();
 
 	/**
 	 * Gets a Services manager.
 	 * @return Services manager
 	 */
-	ServicesManager getServicesManager();
+	public ServicesManager getServicesManager();
 
 	/**
 	 * Gets a Owners manager.
 	 * @return Owners manager
 	 */
-	OwnersManager getOwnersManager();
+	public OwnersManager getOwnersManager();
 
 	/**
 	 * Gets a AuditMessages manager.
 	 * @return AuditMessages manager
 	 */
-	AuditMessagesManager getAuditMessagesManager();
+	public AuditMessagesManager getAuditMessagesManager();
 
 	/**
 	 * Gets a Messages manager.
 	 * @return Messages manager
 	 */
-	RTMessagesManager getRTMessagesManager();
+	public RTMessagesManager getRTMessagesManager();
 
 	/**
 	 * Gets a Security Teams manager.
 	 * @return Security Teams manager
 	 */
-	SecurityTeamsManager getSecurityTeamsManager();
+	public SecurityTeamsManager getSecurityTeamsManager();
 
 	/**
 	 * Gets a Searcher.
 	 * @return Searcher
 	 */
-	Searcher getSearcher();
+	public Searcher getSearcher();
 
 	/**
 	 * Gets a AuditMessages manager business logic.
 	 * @return groups manager
 	 */
-	AuditMessagesManagerBl getAuditMessagesManagerBl();
+	public AuditMessagesManagerBl getAuditMessagesManagerBl();
 
 	/**
 	 * Gets a groups manager buisness logic.
 	 * @return groups manager
 	 */
-	GroupsManagerBl getGroupsManagerBl();
+	public GroupsManagerBl getGroupsManagerBl();
 
 	/**
 	 * Gets a resource manager buisness logic.
 	 * @return resource manager
 	 */
-	FacilitiesManagerBl getFacilitiesManagerBl();
+	public FacilitiesManagerBl getFacilitiesManagerBl();
 
 	/**
 	 * Gets a database manager buisness logic.
 	 * @return database manager
 	 */
-	DatabaseManagerBl getDatabaseManagerBl();
+	public DatabaseManagerBl getDatabaseManagerBl();
 	
 	/**
 	 * Gets a users manager buisness logic.
 	 * @return users manager
 	 */
-	UsersManagerBl getUsersManagerBl();
+	public UsersManagerBl getUsersManagerBl();
 
 	/**
 	 * Gets a members manager buisness logic.
 	 * @return members manager
 	 */
-	MembersManagerBl getMembersManagerBl();
+	public MembersManagerBl getMembersManagerBl();
 
 	/**
 	 * Gets a VOs manager buisness logic.
 	 * @return VOs manager
 	 */
-	VosManagerBl getVosManagerBl();
+	public VosManagerBl getVosManagerBl();
 
 	/**
 	 * Gets a Resources manager buisness logic.
 	 * @return Resources manager
 	 */
-	ResourcesManagerBl getResourcesManagerBl();
+	public ResourcesManagerBl getResourcesManagerBl();
 
 	/**
 	 * Gets a ExtSources manager buisness logic.
 	 * @return ExtSources manager
 	 */
-	ExtSourcesManagerBl getExtSourcesManagerBl();
+	public ExtSourcesManagerBl getExtSourcesManagerBl();
 
 	/**
 	 * Gets a Attributes manager buisness logic.
 	 * @return Attributes manager
 	 */
-	AttributesManagerBl getAttributesManagerBl();
+	public AttributesManagerBl getAttributesManagerBl();
 
 	/**
 	 * Gets a Services manager buisness logic.
 	 * @return Services manager
 	 */
-	ServicesManagerBl getServicesManagerBl();
+	public ServicesManagerBl getServicesManagerBl();
 
 	/**
 	 * Gets a Owners manager buisness logic.
 	 * @return Owners manager
 	 */
-	OwnersManagerBl getOwnersManagerBl();
+	public OwnersManagerBl getOwnersManagerBl();
 
 	/**
 	 * Gets a Messages manager.
 	 * @return Messages manager
 	 */
-	RTMessagesManagerBl getRTMessagesManagerBl();
+	public RTMessagesManagerBl getRTMessagesManagerBl();
 
 	/**
 	 * Gets a Security Teams manager.
 	 * @return Security Teams manager
 	 */
-	SecurityTeamsManagerBl getSecurityTeamsManagerBl();
+	public SecurityTeamsManagerBl getSecurityTeamsManagerBl();
+
+	/**
+	 * Gets a AuthzResolver.
+	 * @return AuthzResolver
+	 */
+	public AuthzResolverBl getAuthzResolverBl();
 
 	/**
 	 * Gets a SearcherBl
 	 * @return SearcherBl
 	 */
-	SearcherBl getSearcherBl();
+	public SearcherBl getSearcherBl();
 
 	/**
 	 * Gets a ModulesUtilsBl
 	 * @return  ModulesUtilsBl
 	 */
-	ModulesUtilsBl getModulesUtilsBl();
+	public ModulesUtilsBl getModulesUtilsBl();
 }

@@ -377,6 +377,16 @@ public interface UsersManagerBl {
 	List<UserExtSource> getActiveUserExtSources(PerunSession sess, User user) throws InternalErrorException;
 
 	/**
+	 * Get list of user ext sources be their ids.
+	 *
+	 * @param sess
+	 * @param ids
+	 * @return list of user external sources for ids
+	 * @throws InternalErrorException
+	 */
+	List<UserExtSource> getUserExtsourcesByIds(PerunSession sess, List<Integer> ids) throws InternalErrorException;
+
+	/**
 	 * Adds user's external sources.
 	 *
 	 * @param perunSession
@@ -390,7 +400,6 @@ public interface UsersManagerBl {
 
 	/**
 	 * Removes user's external sources.
-	 * It also means removing all it's attributes.
 	 *
 	 * @param perunSession
 	 * @param user
@@ -399,21 +408,6 @@ public interface UsersManagerBl {
 	 * @throws UserExtSourceAlreadyRemovedException if there are 0 rows affected by deleting from DB
 	 */
 	void removeUserExtSource(PerunSession perunSession, User user, UserExtSource userExtSource) throws InternalErrorException, UserExtSourceAlreadyRemovedException;
-
-	/**
-	 * Take UserExtSource from sourceUser and move it to the targetUser.
-	 *
-	 * It removes old UserExtSource with all it's attributes from sourceUser and creates and assigns the new one with
-	 * the same settings to target user.
-	 *
-	 * @param perunSession
-	 * @param sourceUser user with UserExtSource to move
-	 * @param targetUser user for who will be UserExtSource moved
-	 * @param userExtSource the UserExtSource which will be moved from sourceUser to targetUser
-	 *
-	 * @throws InternalErrorException
-	 */
-	void moveUserExtSource(PerunSession perunSession, User sourceUser, User targetUser, UserExtSource userExtSource) throws InternalErrorException;
 
 	/**
 	 * Gets user's external source by the user's external login and external source.
@@ -437,31 +431,14 @@ public interface UsersManagerBl {
 	List<Vo> getVosWhereUserIsAdmin(PerunSession perunSession, User user) throws InternalErrorException;
 
 	/**
-	 * Returns list of Groups in Perun, where the User is a direct Administrator
-	 * or he is a member of any group which is Administrator of some of these Groups.
+	 * Returns list of Groups, where the user is an Administrator.
 	 *
 	 * @param perunSession
 	 * @param user
-	 *
-	 * @return list of Groups, where user or some of his groups is an Administrator
-	 *
+	 * @return list of Groups, where the user is an Administrator.
 	 * @throws InternalErrorException
 	 */
 	List<Group> getGroupsWhereUserIsAdmin(PerunSession perunSession, User user) throws InternalErrorException;
-
-	/**
-	 * Returns list of Groups in selected Vo, where the User is a direct Administrator
-	 * or he is a member of any group which is Administrator of some of these Groups.
-	 *
-	 * @param sess
-	 * @param vo selected Vo under which we are looking for groups
-	 * @param user manager of groups we are looking for
-	 *
-	 * @return list of Groups, where user or some of his groups (in the Vo) is an Administrator
-	 *
-	 * @throws InternalErrorException
-	 */
-	List<Group> getGroupsWhereUserIsAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException;
 
 	/**
 	 * Returns list of VOs, where the user is a member.
@@ -626,7 +603,7 @@ public interface UsersManagerBl {
 	 * @throws InternalErrorException
 	 */
 	List<User> findUsersByName(PerunSession sess, String titleBefore, String firstName, String middleName, String lastName, String titleAfter) throws InternalErrorException;
-
+        
 	/**
 	 * Returns list of users who exactly matches the searchString
 	 *
@@ -1141,18 +1118,4 @@ public interface UsersManagerBl {
 	 */
 	Map<String,String> generateAccount(PerunSession session, String namespace, Map<String, String> parameters) throws InternalErrorException;
 
-	/**
-	 * Gets list of users that sponsor the member.
-	 */
-	List<User> getSponsors(PerunSession sess, Member sponsoredMember) throws InternalErrorException;
-
-	/**
-	 * Removes all user's external sources.
-	 * It also means removing all it's attributes.
-	 *
-	 * @param sess session
-	 * @param user owner of external sources
-	 * @throws InternalErrorException
-	 */
-	void removeAllUserExtSources(PerunSession sess, User user) throws InternalErrorException;
 }

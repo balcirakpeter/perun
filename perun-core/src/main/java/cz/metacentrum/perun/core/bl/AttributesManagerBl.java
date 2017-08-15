@@ -24,7 +24,7 @@ import cz.metacentrum.perun.core.api.User;
 import cz.metacentrum.perun.core.api.UserExtSource;
 import cz.metacentrum.perun.core.api.Vo;
 import cz.metacentrum.perun.core.api.exceptions.ActionTypeNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.AttributeDefinitionExistsException;
+import cz.metacentrum.perun.core.api.exceptions.AttributeExistsException;
 import cz.metacentrum.perun.core.api.exceptions.AttributeNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 import cz.metacentrum.perun.core.api.exceptions.ModuleNotExistsException;
@@ -417,22 +417,6 @@ public interface AttributesManagerBl {
 	List<Attribute> getAttributes(PerunSession sess, Resource resource, Group group) throws InternalErrorException, WrongAttributeAssignmentException;
 
 	List<Attribute> getAttributes(PerunSession sess, Resource resource, Group group, boolean workWithGroupAttributes) throws InternalErrorException, WrongAttributeAssignmentException;
-
-	/**
-	 * Get selected attributes associated with the group on resource.
-	 * Get also empty and virtual attributes if they are selected in the list.
-	 * If list is empty, return all possible <b>non-empty</b> attributes.
-	 *
-	 * @param sess
-	 * @param resource the resource
-	 * @param group the group
-	 * @param workWithGroupAttributes if true, get also group attributes
-	 * @param attrNames list of selected attribtues
-	 * @return list of selected attributes associated with the group on resource
-	 * @throws InternalErrorException
-	 * @throws WrongAttributeAssignmentException
-	 */
-	List<Attribute> getAttributes(PerunSession sess, Resource resource, Group group, List<String> attrNames, boolean workWithGroupAttributes) throws InternalErrorException, WrongAttributeAssignmentException;
 
 	/**
 	 * Get all <b>non-empty</b> member, user, member-resource and user-facility attributes.
@@ -1025,7 +1009,7 @@ public interface AttributesManagerBl {
 	 * @return attribute
 	 *
 	 * @throws InternalErrorException if an exception raise in concrete implementation, the exception is wrapped in InternalErrorException
-	 * @throws WrongAttributeAssignmentException if atribute prefix does not match entity.
+	 * @throws WrongAttributeAssignmentException
 	 */
 	Attribute getAttribute(PerunSession sess, UserExtSource ues, String attributeName) throws InternalErrorException, WrongAttributeAssignmentException, AttributeNotExistsException;
 
@@ -1609,10 +1593,10 @@ public interface AttributesManagerBl {
 	 *
 	 * @return attribute with set id
 	 *
-	 * @throws AttributeDefinitionExistsException if attribute already exists
+	 * @throws AttributeExistsException if attribute already exists
 	 * @throws InternalErrorException if an exception raise in concrete implementation, the exception is wrapped in InternalErrorException
 	 */
-	AttributeDefinition createAttribute(PerunSession sess, AttributeDefinition attributeDefinition) throws InternalErrorException, AttributeDefinitionExistsException;
+	AttributeDefinition createAttribute(PerunSession sess, AttributeDefinition attributeDefinition) throws InternalErrorException, AttributeExistsException;
 
 	/**
 	 * Deletes the attribute.
@@ -2070,9 +2054,9 @@ public interface AttributesManagerBl {
 	 *
 	 * @throws InternalErrorException if an exception raise in concrete implementation, the exception is wrapped in InternalErrorException
 	 */
-	List<Attribute> getRequiredAttributes(PerunSession sess, Service service, Member member, Group group) throws InternalErrorException;
+	List<Attribute> getRequiredAttributes(PerunSession sess, Service service, Member member, Group group) throws InternalErrorException, WrongAttributeAssignmentException;
 
-	List<Attribute> getRequiredAttributes(PerunSession sess, Service service, Member member, Group group, boolean workWithUserAttributes) throws InternalErrorException;
+	List<Attribute> getRequiredAttributes(PerunSession sess, Service service, Member member, Group group, boolean workWithUserAttributes) throws InternalErrorException, WrongAttributeAssignmentException;
 
 	/**
 	 * Get memner, user, member-resource, user-facility attributes which are required by the service.

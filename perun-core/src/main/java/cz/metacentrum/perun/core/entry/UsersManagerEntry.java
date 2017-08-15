@@ -456,28 +456,6 @@ public class UsersManagerEntry implements UsersManager {
 		getUsersManagerBl().removeUserExtSource(sess, user, userExtSource);
 	}
 
-	public void moveUserExtSource(PerunSession sess, User sourceUser, User targetUser, UserExtSource userExtSource) throws InternalErrorException, UserExtSourceNotExistsException, UserNotExistsException, PrivilegeException {
-		Utils.checkPerunSession(sess);
-
-		// Authorization
-		if(!AuthzResolver.isAuthorized(sess, Role.PERUNADMIN)) {
-			throw new PrivilegeException(sess, "moveUserExtSource");
-		}
-
-		getUsersManagerBl().checkUserExists(sess, targetUser);
-		getUsersManagerBl().checkUserExists(sess, sourceUser);
-		// set userId, so checkUserExtSourceExists can check the userExtSource for the particular user
-		userExtSource.setUserId(sourceUser.getId());
-		getUsersManagerBl().checkUserExtSourceExists(sess, userExtSource);
-
-		if (userExtSource.isPersistent()) {
-			throw new InternalErrorException("Given UserExtSource: " + userExtSource + " is marked as persistent. " +
-					"It means it can not be removed.");
-		}
-
-		getUsersManagerBl().moveUserExtSource(sess, sourceUser, targetUser, userExtSource);
-	}
-
 	public UserExtSource getUserExtSourceByExtLogin(PerunSession sess, ExtSource source, String extLogin) throws InternalErrorException, PrivilegeException, ExtSourceNotExistsException, UserExtSourceNotExistsException {
 		Utils.checkPerunSession(sess);
 
@@ -518,20 +496,6 @@ public class UsersManagerEntry implements UsersManager {
 		getUsersManagerBl().checkUserExists(sess, user);
 
 		return getUsersManagerBl().getGroupsWhereUserIsAdmin(sess, user);
-	}
-
-	public List<Group> getGroupsWhereUserIsAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException, PrivilegeException, UserNotExistsException, VoNotExistsException {
-		Utils.checkPerunSession(sess);
-		getPerunBl().getVosManagerBl().checkVoExists(sess, vo);
-		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
-
-		// Authorization
-		if(!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.SELF, user)) {
-			throw new PrivilegeException(sess, "getGroupsWhereUserIsAdmin");
-		}
-
-		return getUsersManagerBl().getGroupsWhereUserIsAdmin(sess, vo, user);
 	}
 
 	public List<Vo> getVosWhereUserIsMember(PerunSession sess, User user) throws InternalErrorException, UserNotExistsException, PrivilegeException {
@@ -1176,14 +1140,5 @@ public class UsersManagerEntry implements UsersManager {
 
 	}
 
-	public List<RichUser> getSponsors(PerunSession sess, Member member) throws InternalErrorException, PrivilegeException {
-		Utils.checkPerunSession(sess);
-		Utils.notNull(member, "member");
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.REGISTRAR)) {
-			throw new PrivilegeException(sess, "getSponsors can be caled only by REGISTAR");
-		}
-		return usersManagerBl.convertUsersToRichUsers(sess, usersManagerBl.getSponsors(sess, member));
-	}
 
 }

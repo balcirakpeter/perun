@@ -35,7 +35,7 @@ import cz.metacentrum.perun.core.api.User;
 import cz.metacentrum.perun.core.api.UserExtSource;
 import cz.metacentrum.perun.core.api.Vo;
 import cz.metacentrum.perun.core.api.VosManager;
-import cz.metacentrum.perun.core.api.exceptions.AttributeDefinitionExistsException;
+import cz.metacentrum.perun.core.api.exceptions.AttributeExistsException;
 import cz.metacentrum.perun.core.api.exceptions.AttributeNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.FacilityNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.GroupNotExistsException;
@@ -165,6 +165,12 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 		//Create VO
 		vo1 = perun.getVosManagerBl().createVo(sess, new Vo(0, "vo1Test", "v1T"));
 		vo2 = perun.getVosManagerBl().createVo(sess, new Vo(0, "vo2Test", "v2T"));
+
+		try {
+			perun.getAttributesManager().getAttributeDefinition(sess, perun.getResourcesManager().MEMBER_STATUS);
+		} catch (AttributeNotExistsException ex) {
+			setMemberStatusAttribute();
+		}
 
 		//Create Groups(members groups in vos), Members and Users from Candidates
 		Candidate can1 = new Candidate();
@@ -465,7 +471,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetVosFromResourceAndMember() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetVosFromResourceAndMember");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, vo1, attribute);
 
 		//Prepare richAttribute with holders (attribute is not needed but holders are needed)
@@ -483,7 +489,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetVosFromResourceAndGroup() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetVosFromResourceAndGroup");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, vo1, attribute);
 
 		//Prepare richAttribute with holders (attribute is not needed but holders are needed)
@@ -501,7 +507,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetVosFromUserAndFacility() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetVosFromUserAndFacility");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, vo1, attribute);
 		perun.getAttributesManagerBl().setAttribute(sess, vo2, attribute);
 
@@ -521,7 +527,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetVosFromGroup() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetVosFromGroup");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, vo2, attribute);
 
 		//Prepare richAttribute with holders (attribute is not needed but holders are needed)
@@ -541,7 +547,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetVosFromMember() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetVosFromMember");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, vo1, attribute);
 
 		//Prepare richAttribute with holders (attribute is not needed but holders are needed)
@@ -557,7 +563,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetVosFromResource() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetVosFromResource");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, vo2, attribute);
 
 		//Prepare richAttribute with holders (attribute is not needed but holders are needed)
@@ -577,7 +583,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetVosFromUser() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetVosFromUser");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, vo1, attribute);
 
 		//Prepare richAttribute with holders (attribute is not needed but holders are needed)
@@ -597,7 +603,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetVosFromHost() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetVosFromHost");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, vo2, attribute);
 		perun.getAttributesManagerBl().setAttribute(sess, vo1, attribute);
 
@@ -624,7 +630,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetVosFromFacility() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetVosFromFacility");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, vo2, attribute);
 
 		//Prepare richAttribute with holders (attribute is not needed but holders are needed)
@@ -650,7 +656,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetVosFromVo() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetVosFromVo");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, vo2, attribute);
 
 		//Prepare richAttribute with holders (attribute is not needed but holders are needed)
@@ -671,7 +677,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetVosFromKey() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetVosFromKey");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_VO_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, vo2, attribute);
 
 		//Prepare richAttribute with holders (attribute is not needed but holders are needed)
@@ -696,7 +702,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetGroupFromResourceAndMember() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetGroupFromResourceAndMember");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_GROUP_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_GROUP_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, group1InVo2, attribute);
 		perun.getAttributesManagerBl().setAttribute(sess, group2InVo2, attribute);
 
@@ -714,7 +720,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetGroupFromResourceAndGroup() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetGroupFromResourceAndGroup");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_GROUP_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_GROUP_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, group2InVo2, attribute);
 
 		//Prepare richAttribute with holders (attribute is not needed but holders are needed)
@@ -736,7 +742,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 	public void getRichAttributesWithHoldersForAttributeDefinitionGetGroupFromUserAndFacility() throws Exception {
 		System.out.println(CLASS_NAME + "getRichAttributesWithHoldersForAttributeDefinitionGetGroupFromUserAndFacility");
 		//Prepare attribute, create it and set it with testing value
-		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_GROUP_ATTR_DEF);
+		Attribute attribute = setAttributeInNamespace(AttributesManager.NS_GROUP_ATTR);
 		perun.getAttributesManagerBl().setAttribute(sess, group1InVo2, attribute);
 		perun.getAttributesManagerBl().setAttribute(sess, group2InVo2, attribute);
 
@@ -1108,40 +1114,6 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 		List<Attribute> retAttr = attributesManager.getAttributes(sess, member, group);
 		assertNotNull("unable to get member-group attributes", retAttr);
 		assertTrue("our attribute was not returned", retAttr.contains(attributes.get(0)));
-	}
-
-	@Test
-	public void getGroupResourceAttributesByListOfNames() throws Exception {
-		vo = setUpVo();
-		facility = setUpFacility();
-		group = setUpGroup();
-		resource = setUpResource();
-		perun.getResourcesManagerBl().assignGroupToResource(sess, group, resource);
-
-		List<Attribute> groupResourceAttrs = setUpGroupResourceAttribute();
-		perun.getAttributesManagerBl().setAttributes(sess, resource, group, groupResourceAttrs);
-		List<Attribute> groupAttrs = setUpGroupAttribute();
-		perun.getAttributesManagerBl().setAttributes(sess, group, groupAttrs);
-
-		List<String> attrNames = new ArrayList<>();
-		for(Attribute attribute: groupResourceAttrs) {
-			attrNames.add(attribute.getName());
-		}
-		for(Attribute attribute: groupAttrs) {
-			attrNames.add(attribute.getName());
-		}
-
-		List<Attribute> returnedAttributes = perun.getAttributesManagerBl().getAttributes(sess, resource, group, attrNames, true);
-		List<Attribute> returnedAttributesWithoutGroupAttributes = perun.getAttributesManagerBl().getAttributes(sess, resource, group, attrNames, false);
-
-		for(Attribute attribute: groupResourceAttrs) {
-			assertTrue(returnedAttributes.contains(attribute));
-			assertTrue(returnedAttributesWithoutGroupAttributes.contains(attribute));
-		}
-		for(Attribute attribute: groupAttrs) {
-			assertTrue(returnedAttributes.contains(attribute));
-			assertTrue(!returnedAttributesWithoutGroupAttributes.contains(attribute));
-		}
 	}
 
 	@Test
@@ -5038,7 +5010,7 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 
 	}
 
-	@Test (expected=AttributeDefinitionExistsException.class)
+	@Test (expected=AttributeExistsException.class)
 	public void createAttributeWhenAttributeExists() throws Exception {
 		System.out.println(CLASS_NAME + "createAttributeWhenAttributeExists");
 
@@ -9356,6 +9328,18 @@ public class AttributesManagerEntryIntegrationTest extends AbstractPerunIntegrat
 		Attribute attribute = new Attribute(attrDef);
 		attribute.setValue("Testing value");
 		return attribute;
+	}
+
+	private AttributeDefinition setMemberStatusAttribute() throws Exception {
+
+		AttributeDefinition attr = new AttributeDefinition();
+		attr.setNamespace(AttributesManager.NS_MEMBER_RESOURCE_ATTR_DEF);
+		attr.setFriendlyName("memberStatus");
+		attr.setDisplayName("Member status");
+		attr.setType(String.class.getName());
+		attr.setDescription("Member status to resource");
+
+		return perun.getAttributesManager().createAttribute(sess, attr);
 	}
 
 	private Map<AttributeDefinition, Set<AttributeDefinition>> getAllDependenciesMapForTesting() {
