@@ -232,6 +232,17 @@ public class GroupsManagerImpl implements GroupsManagerImplApi {
 			}
 			dbGroup.setDescription(group.getDescription());
 		}
+
+		//check if group was moved to another parent group
+		if (!dbGroup.getParentGroupId().equals(group.getParentGroupId())) {
+			dbGroup.setParentGroupId(group.getParentGroupId());
+			try {
+				jdbc.update("update groups set parent_group_id=?,modified_by=?, modified_by_uid=?, modified_at=" + Compatibility.getSysdate() + " where id=?", dbGroup.getParentGroupId(),
+						sess.getPerunPrincipal().getActor(), sess.getPerunPrincipal().getUserId(), dbGroup.getId());
+			} catch (RuntimeException e) {
+				throw new InternalErrorException(e);
+			}
+		}
 		return dbGroup;
 	}
 

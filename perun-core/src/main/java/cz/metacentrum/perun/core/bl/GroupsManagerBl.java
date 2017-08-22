@@ -1216,4 +1216,15 @@ public interface GroupsManagerBl {
 	 * @throws InternalErrorException
 	 */
 	List<Group> getGroupUnions(PerunSession sess, Group group, boolean reverseDirection) throws InternalErrorException;
+
+	/**
+	 * Move one group structure under another group in same vo
+	 *
+	 * @param sess perun session
+	 * @param destinationGroup group to which is moving group moved
+	 * @param movingGroup group which is moved to destination group
+	 *
+	 * @throws InternalErrorException
+	 */
+	void moveGroup(PerunSession sess, Group destinationGroup, Group movingGroup) throws InternalErrorException;
 }
