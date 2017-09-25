@@ -43,16 +43,19 @@ import static cz.metacentrum.perun.core.impl.modules.attributes.urn_perun_user_a
 public class urn_perun_user_attribute_def_def_vsupPreferredMail extends UserAttributesModuleAbstract implements UserAttributesModuleImplApi {
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		// standard email pattern !!
+		Matcher emailMatcher = emailPattern.matcher((String)attribute.getValue());
+		if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "School Preferred Mail is not in a correct form.");
+	}
+
+	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
 
 		// we must allow null, since when setting required attributes all at once, value might not be filled yet
 		// if vsupMail or vsupMailAlias is empty, but it's checked by method impl.
 
 		if (attribute.getValue() == null) return; // throw new WrongAttributeValueException(attribute, user, "Preferred mail can't be null.");
-
-		// standard email pattern !!
-		Matcher emailMatcher = emailPattern.matcher((String)attribute.getValue());
-		if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "School Preferred Mail is not in a correct form.");
 
 		// We check uniqueness on all related attributes change, so we don't need to do it here.
 
@@ -194,6 +197,7 @@ public class urn_perun_user_attribute_def_def_vsupPreferredMail extends UserAttr
 
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_DEF);

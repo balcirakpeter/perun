@@ -19,10 +19,10 @@ import cz.metacentrum.perun.core.implApi.modules.attributes.EntitylessAttributes
 public class  urn_perun_entityless_attribute_def_def_namespace_minGID extends EntitylessAttributesModuleAbstract implements EntitylessAttributesModuleImplApi {
 
 
+	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, String key, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		Integer minGID = (Integer) attribute.getValue();
 		if(minGID != null) {
-			if(minGID<1) throw new WrongAttributeValueException(attribute, "Attribute value must be min 1.");
 			try {
 				Attribute maxGIDAttr = perunSession.getPerunBl().getAttributesManagerBl().getAttribute(perunSession, key, AttributesManager.NS_ENTITYLESS_ATTR_DEF + ":namespace-maxGID");
 				Integer maxGID = (Integer) maxGIDAttr.getValue();
@@ -32,6 +32,14 @@ public class  urn_perun_entityless_attribute_def_def_namespace_minGID extends En
 			} catch (AttributeNotExistsException ex) {
 				throw new ConsistencyErrorException("Attribute namespace-maxGID is supposed to exist.",ex);
 			}
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, String key, Attribute attribute) throws WrongAttributeValueException {
+		Integer minGID = (Integer) attribute.getValue();
+		if(minGID != null) {
+			if(minGID < 1) throw new WrongAttributeValueException(attribute, "Attribute value must be min 1.");
 		}
 	}
 

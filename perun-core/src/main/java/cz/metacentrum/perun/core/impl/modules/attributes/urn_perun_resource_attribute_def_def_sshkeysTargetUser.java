@@ -26,18 +26,25 @@ public class urn_perun_resource_attribute_def_def_sshkeysTargetUser extends Reso
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
-		String key = (String) attribute.getValue();
-		if (key == null) {
+		if (attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, "Name of the user can't be empty");
-		}
-
-		Matcher match = pattern.matcher(key);
-
-		if (!match.matches()) {
-			throw new WrongAttributeValueException(attribute, resource, "Bad format of attribute sshkeysTargetUser (only letters, numbers and '.' '_' '-' are allowed. Cannot begin with '-').");
 		}
 	}
 
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			String key = (String) attribute.getValue();
+
+			Matcher match = pattern.matcher(key);
+
+			if (!match.matches()) {
+				throw new WrongAttributeValueException(attribute, resource, "Bad format of attribute sshkeysTargetUser (only letters, numbers and '.' '_' '-' are allowed. Cannot begin with '-').");
+			}
+		}
+	}
+
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_RESOURCE_ATTR_DEF);

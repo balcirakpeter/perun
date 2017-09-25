@@ -22,6 +22,14 @@ public class urn_perun_facility_attribute_def_def_ldapBaseDN extends FacilityAtt
 		if (attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, facility, "attribute is null");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+		if (attribute.getValue() == null) {
+			return;
+		}
 
 		String value = (String) attribute.getValue();
 		if (value.length() < 3) {

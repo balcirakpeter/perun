@@ -30,11 +30,13 @@ import cz.metacentrum.perun.core.implApi.modules.attributes.ResourceAttributesMo
 public class urn_perun_resource_attribute_def_def_accountExpirationTime extends ResourceAttributesModuleAbstract implements ResourceAttributesModuleImplApi {
 
 
+	@Override
 	public Attribute fillAttribute(PerunSessionImpl perunSession, Resource resource, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeAssignmentException {
 		return new Attribute(attribute);
 	}
 
 
+	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		Integer accExpTime = (Integer) attribute.getValue();
 		if(accExpTime == null) {
@@ -56,6 +58,7 @@ public class urn_perun_resource_attribute_def_def_accountExpirationTime extends 
 		}
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_RESOURCE_ATTR_DEF);

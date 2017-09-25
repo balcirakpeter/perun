@@ -4,7 +4,10 @@ import cz.metacentrum.perun.core.api.Attribute;
 import cz.metacentrum.perun.core.api.AttributeDefinition;
 import cz.metacentrum.perun.core.api.AttributesManager;
 import cz.metacentrum.perun.core.api.Resource;
+import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
+import cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentException;
 import cz.metacentrum.perun.core.api.exceptions.WrongAttributeValueException;
+import cz.metacentrum.perun.core.api.exceptions.WrongReferenceAttributeValueException;
 import cz.metacentrum.perun.core.impl.PerunSessionImpl;
 import cz.metacentrum.perun.core.implApi.modules.attributes.ResourceAttributesModuleAbstract;
 import cz.metacentrum.perun.core.implApi.modules.attributes.ResourceAttributesModuleImplApi;
@@ -16,17 +19,22 @@ public class urn_perun_resource_attribute_def_def_replicaDestination extends Res
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws WrongAttributeValueException {
-
 		if(attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, "Destination for FS replica can't be empty.");
 		}
+	}
 
-		if (!perunSession.getPerunBl().getModulesUtilsBl().isFQDNValid(perunSession, (String) attribute.getValue())) {
-			throw new WrongAttributeValueException(attribute, resource, "Bad replicaDestination attribute format " + attribute.getValue() + ". It should be " +
-					"fully qualified domain name.");
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			if (!perunSession.getPerunBl().getModulesUtilsBl().isFQDNValid(perunSession, (String) attribute.getValue())) {
+				throw new WrongAttributeValueException(attribute, resource, "Bad replicaDestination attribute format " + attribute.getValue() + ". It should be " +
+																					"fully qualified domain name.");
+			}
 		}
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_RESOURCE_ATTR_DEF);

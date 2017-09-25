@@ -28,14 +28,20 @@ public class urn_perun_group_resource_attribute_def_def_drupalGroupType extends 
 	
 	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
-		String attributeValue = null;
 
 		if(attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, group, "Type of drupal group can't be null.");
 		}
-		else {
-			attributeValue = (String) attribute.getValue();
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+		if(attribute.getValue() == null) {
+			return;
 		}
+
+		String attributeValue = (String) attribute.getValue();
 
 		if(!(attributeValue.equals("public") || attributeValue.equals("private"))) {
 			throw new WrongAttributeValueException(attribute, resource, group, "Type of drupal group is not in correct form. It can be either 'public' or 'private'.");

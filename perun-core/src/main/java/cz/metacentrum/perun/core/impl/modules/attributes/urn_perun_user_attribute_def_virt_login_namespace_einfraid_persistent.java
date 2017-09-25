@@ -52,6 +52,7 @@ public class urn_perun_user_attribute_def_virt_login_namespace_einfraid_persiste
 		}
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_VIRT);

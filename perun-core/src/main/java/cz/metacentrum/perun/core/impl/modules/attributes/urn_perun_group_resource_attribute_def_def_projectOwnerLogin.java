@@ -32,16 +32,10 @@ import java.util.regex.Pattern;
  */
 public class urn_perun_group_resource_attribute_def_def_projectOwnerLogin extends ResourceGroupAttributesModuleAbstract implements ResourceGroupAttributesModuleImplApi {
 
+	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		String ownerLogin = (String) attribute.getValue();
 		if (ownerLogin == null) return;
-
-		Pattern pattern = Pattern.compile("^[a-zA-Z0-9][-A-z0-9_.@/]*$");
-		Matcher match = pattern.matcher(ownerLogin);
-
-		if (!match.matches()) {
-			throw new WrongAttributeValueException(attribute, group, resource, "Bad format of attribute projectOwnerLogin (expected something like 'alois25').");
-		}
 
 		//Get Facility from resource
 		Facility facility = sess.getPerunBl().getResourcesManagerBl().getFacility(sess, resource);
@@ -64,12 +58,26 @@ public class urn_perun_group_resource_attribute_def_def_projectOwnerLogin extend
 	}
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		String ownerLogin = (String) attribute.getValue();
+		if (ownerLogin == null) return;
+
+		Pattern pattern = Pattern.compile("^[a-zA-Z0-9][-A-z0-9_.@/]*$");
+		Matcher match = pattern.matcher(ownerLogin);
+
+		if (!match.matches()) {
+			throw new WrongAttributeValueException(attribute, group, resource, "Bad format of attribute projectOwnerLogin (expected something like 'alois25').");
+		}
+	}
+
+	@Override
 	public List<String> getStrongDependencies() {
 		List<String> strongDependencies = new ArrayList<String>();
 		strongDependencies.add(AttributesManager.NS_USER_FACILITY_ATTR_VIRT + ":login");
 		return strongDependencies;
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF);

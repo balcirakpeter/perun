@@ -42,6 +42,7 @@ public class urn_perun_resource_attribute_def_def_defaultHomeMountPoint extends 
 	 * @throws WrongReferenceAttributeValueException
 	 * @throws WrongAttributeAssignmentException
 	 */
+	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 
 		if (attribute.getValue() == null) {
@@ -61,14 +62,20 @@ public class urn_perun_resource_attribute_def_def_defaultHomeMountPoint extends 
 		if (!homeMntPoints.contains(attribute.getValue())) {
 			throw new WrongAttributeValueException(attribute, "Attribute value ins't defined in underlying resource. Attribute name=" + A_R_homeMountPoints);
 		}
-		Pattern pattern = Pattern.compile("^/[-a-zA-Z.0-9_/]*$");
-		Matcher match = pattern.matcher((String) attribute.getValue());
-		if (!match.matches()) {
-			throw new WrongAttributeValueException(attribute, "Wrong def. mount point format");
-		}
-
 	}
 
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			Pattern pattern = Pattern.compile("^/[-a-zA-Z.0-9_/]*$");
+			Matcher match = pattern.matcher((String) attribute.getValue());
+			if (!match.matches()) {
+				throw new WrongAttributeValueException(attribute, "Wrong def. mount point format");
+			}
+		}
+	}
+
+	@Override
 	public Attribute fillAttribute(PerunSessionImpl perunSession, Resource resource, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeAssignmentException {
 		Attribute resourceAttribute = null;
 		try {
@@ -92,6 +99,7 @@ public class urn_perun_resource_attribute_def_def_defaultHomeMountPoint extends 
 		return dependecies;
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_RESOURCE_ATTR_DEF);

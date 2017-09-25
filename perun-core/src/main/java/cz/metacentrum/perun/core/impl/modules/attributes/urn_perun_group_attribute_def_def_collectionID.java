@@ -25,7 +25,16 @@ public class urn_perun_group_attribute_def_def_collectionID extends GroupAttribu
 
 		// null attribute
 		if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "Attribute collectionID cannot be null.");
+	}
 
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		String collectionID = null;
+
+		// null attribute
+		if (attribute.getValue() == null) {
+			return;
+		}
 		// wrong type of the attribute
 		if (!(attribute.getValue() instanceof String)) throw new WrongAttributeValueException(attribute, "Wrong type of the attribute. Expected: String");
 

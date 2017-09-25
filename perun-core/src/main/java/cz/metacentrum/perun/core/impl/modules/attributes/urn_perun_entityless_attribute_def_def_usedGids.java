@@ -37,7 +37,8 @@ public class urn_perun_entityless_attribute_def_def_usedGids extends EntitylessA
 	
 	private static Pattern keyPattern = Pattern.compile("^[RGD][1-9][0-9]*$");
 	private static Pattern valuePattern = Pattern.compile("^[1-9][0-9]*$");
-	
+
+	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, String key, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		//If this attribute value is null, it means there is no GIDS depleted or used.
 		if(attribute.getValue() == null) return;
@@ -50,9 +51,7 @@ public class urn_perun_entityless_attribute_def_def_usedGids extends EntitylessA
 		for(String mapKey: mapKeys) {
 			//Test key
 			if(mapKey == null) throw new WrongAttributeValueException(attribute, key, "Key in usedGids can't be null.");
-			Matcher keyMatcher = keyPattern.matcher(mapKey);
-			if(!keyMatcher.matches()) throw new WrongAttributeValueException(attribute, key, "Key in usedGids can be only in format 'Rx', 'Gx', 'Dx' where 'x' is positive integer.");
-			
+
 			//Test value
 			String value = map.get(mapKey);
 			if(value == null) throw new WrongAttributeValueException(attribute, key, "Value in usedGids can't be null.");
@@ -70,6 +69,31 @@ public class urn_perun_entityless_attribute_def_def_usedGids extends EntitylessA
 		}
 	}
 
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, String key, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		//If this attribute value is null, it means there is no GIDS depleted or used.
+		if(attribute.getValue() == null) return;
+
+		Map<String, String> map = (Map<String, String>) attribute.getValue();
+		//If there are no keys in map, it means the same like null value
+		if(map.isEmpty()) return;
+
+		Set<String> mapKeys = map.keySet();
+		for(String mapKey: mapKeys) {
+			//Test key
+			if(mapKey == null) continue;
+			Matcher keyMatcher = keyPattern.matcher(mapKey);
+			if(!keyMatcher.matches()) throw new WrongAttributeValueException(attribute, key, "Key in usedGids can be only in format 'Rx', 'Gx', 'Dx' where 'x' is positive integer.");
+
+			//Test value
+			String value = map.get(key);
+			if(value == null) continue;
+			Matcher valueMatcher = valuePattern.matcher(value);
+			if(!valueMatcher.matches()) throw new WrongAttributeValueException(attribute, key, "Key in usedGids can be only positive integer.");
+		}
+	}
+
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_ENTITYLESS_ATTR_DEF);

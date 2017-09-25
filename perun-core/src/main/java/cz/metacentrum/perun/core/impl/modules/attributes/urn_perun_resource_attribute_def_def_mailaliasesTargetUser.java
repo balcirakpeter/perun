@@ -28,14 +28,20 @@ public class urn_perun_resource_attribute_def_def_mailaliasesTargetUser extends 
 		if (attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, null, "Attribute value can't be null.");
 		}
+	}
 
-		String targetUser = (String) attribute.getValue();
-		Matcher userMatcher = userPattern.matcher(targetUser);
-		if(!userMatcher.matches()) {
-			throw new WrongAttributeValueException(attribute, resource, null, "Matcher must match to ^[-a-zA-Z0-9_]+$ pattern.");
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			String targetUser = (String) attribute.getValue();
+			Matcher userMatcher = userPattern.matcher(targetUser);
+			if(!userMatcher.matches()) {
+				throw new WrongAttributeValueException(attribute, resource, null, "Matcher must match to ^[-a-zA-Z0-9_]+$ pattern.");
+			}
 		}
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_RESOURCE_ATTR_DEF);

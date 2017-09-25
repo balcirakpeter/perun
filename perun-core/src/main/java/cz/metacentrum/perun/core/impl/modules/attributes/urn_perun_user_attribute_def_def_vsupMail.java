@@ -74,13 +74,19 @@ public class urn_perun_user_attribute_def_def_vsupMail extends UserAttributesMod
 
 			//if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, user, "School mail can't be null.");
 
-			Matcher emailMatcher = emailPattern.matcher((String)attribute.getValue());
-			if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "School mail is not in a correct form: \"login@vsup.cz\".");
 
 		}
 
 		// We check uniqueness on all related attributes change, so we don't need to do it here.
 
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			Matcher emailMatcher = emailPattern.matcher((String)attribute.getValue());
+			if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "School mail is not in a correct form: \"login@vsup.cz\".");
+		}
 	}
 
 	@Override
@@ -193,6 +199,7 @@ public class urn_perun_user_attribute_def_def_vsupMail extends UserAttributesMod
 
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_DEF);

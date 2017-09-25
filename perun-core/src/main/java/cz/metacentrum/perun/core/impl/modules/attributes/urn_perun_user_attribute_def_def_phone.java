@@ -27,22 +27,28 @@ public class urn_perun_user_attribute_def_def_phone extends UserAttributesModule
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
-		String phone = null;
-
 		// null attribute
 		if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "User attribute phone cannot be null.");
+	}
 
-		// wrong type of the attribute
-		if (!(attribute.getValue() instanceof String)) throw new WrongAttributeValueException(attribute, "Wrong type of the attribute. Expected: String");
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			String phone = null;
 
-		phone = (String) attribute.getValue();
+			// wrong type of the attribute
+			if (!(attribute.getValue() instanceof String)) throw new WrongAttributeValueException(attribute, "Wrong type of the attribute. Expected: String");
 
-		Matcher matcher = pattern.matcher(phone);
-		if (!matcher.matches()) {
-			throw new WrongAttributeValueException(attribute, "Phone is not in correct format!");
+			phone = (String) attribute.getValue();
+
+			Matcher matcher = pattern.matcher(phone);
+			if (!matcher.matches()) {
+				throw new WrongAttributeValueException(attribute, "Phone is not in correct format!");
+			}
 		}
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_DEF);

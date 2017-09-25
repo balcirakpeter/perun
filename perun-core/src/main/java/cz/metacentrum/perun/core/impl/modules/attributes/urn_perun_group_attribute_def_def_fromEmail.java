@@ -25,10 +25,18 @@ public class urn_perun_group_attribute_def_def_fromEmail  extends GroupAttribute
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		// null attribute
+		if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "Group fromEmail cannot be null.");
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		String fromEmail = null;
 
 		// null attribute
-		if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "Group fromEmail cannot be null.");
+		if (attribute.getValue() == null) {
+			return;
+		}
 
 		// wrong type of the attribute
 		if (!(attribute.getValue() instanceof String)) throw new WrongAttributeValueException(attribute, "Wrong type of the attribute. Expected: String");
@@ -39,9 +47,9 @@ public class urn_perun_group_attribute_def_def_fromEmail  extends GroupAttribute
 
 			Matcher match = pattern.matcher(fromEmail);
 
-    		if (!match.matches()) {
+			if (!match.matches()) {
 				throw new WrongAttributeValueException(attribute, "Group : " + group.getName() + " has fromEmail " + fromEmail + " which is not valid. It has to be in form \"header\" <correct email> or just correct email.");
-			}else{
+			} else {
 
 				String[] emailParts = fromEmail.split("[<>]+");
 

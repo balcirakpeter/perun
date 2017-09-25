@@ -50,9 +50,6 @@ public class urn_perun_user_attribute_def_def_vsupMailAlias extends UserAttribut
 		// can be empty
 		if (attribute.getValue() == null) return;
 
-		// if set, must match generic format
-		Matcher emailMatcher = emailAliasPattern.matcher((String)attribute.getValue());
-		if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "School mail alias is not in a correct form: \"firstName.lastName[counter]@vsup.cz\".");
 
 		// We must check uniqueness since vsupMailAlias is filled by itself and filling function iterates until value is correct.
 
@@ -69,6 +66,15 @@ public class urn_perun_user_attribute_def_def_vsupMailAlias extends UserAttribut
 			throw new ConsistencyErrorException("Attribute doesn't exists.", ex);
 		}
 
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			// if set, must match generic format
+			Matcher emailMatcher = emailAliasPattern.matcher((String)attribute.getValue());
+			if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "School mail alias is not in a correct form: \"firstName.lastName[counter]@vsup.cz\".");
+		}
 	}
 
 	@Override
@@ -230,6 +236,7 @@ public class urn_perun_user_attribute_def_def_vsupMailAlias extends UserAttribut
 
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_DEF);

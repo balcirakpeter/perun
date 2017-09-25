@@ -29,15 +29,10 @@ import java.util.Date;
 public class urn_perun_member_attribute_def_def_membershipExpiration extends MemberAttributesModuleAbstract implements MemberAttributesModuleImplApi {
 
 	@Override
-	/**
-	 * Checks if the corresponding attribute um:membershipExpiration is null or
-	 * matches with regular expression yyyy-MM-dd
-	 */
-	public void checkAttributeValue(PerunSessionImpl perunSession, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
-
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		String membershipExpTime = (String) attribute.getValue();
 
-		if(membershipExpTime == null) return; // NULL is ok
+		if(membershipExpTime == null) return;
 
 		Date testDate = null;
 
@@ -53,15 +48,14 @@ public class urn_perun_member_attribute_def_def_membershipExpiration extends Mem
 
 			throw new WrongAttributeValueException(attribute, "Wrong format yyyy-MM-dd expected.");
 		}
-
 	}
 
-	@Override
 	/**
 	 * Fill membership expiration time.
 	 * If membership starts from Janury to September, time will be the last day of starting year,
 	 * if membership start from October, to December, time will be the last day of next year.
 	 */
+	@Override
 	public Attribute fillAttribute(PerunSessionImpl perunSession, Member member, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeAssignmentException {
 		/*Attribute ret = new Attribute(attribute);
 			Calendar now = Calendar.getInstance();
@@ -90,6 +84,7 @@ public class urn_perun_member_attribute_def_def_membershipExpiration extends Mem
 		}
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_MEMBER_ATTR_DEF);

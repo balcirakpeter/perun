@@ -22,22 +22,27 @@ public class urn_perun_vo_attribute_def_def_contactEmail extends VoAttributesMod
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
-		List<String> contactEmails = null;
-
 		// null attribute
 		if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "Vo contact email list cannot be null.");
+	}
 
-		// wrong type of the attribute
-		if (!(attribute.getValue() instanceof List)) throw new WrongAttributeValueException(attribute, "Wrong type of the attribute. Expected: List");
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			List<String> contactEmails = null;
 
-		contactEmails = (List) attribute.getValue();
+			// wrong type of the attribute
+			if (!(attribute.getValue() instanceof List)) throw new WrongAttributeValueException(attribute, "Wrong type of the attribute. Expected: List");
 
-		// the List is empty
-		if (contactEmails.isEmpty()) throw new WrongAttributeValueException(attribute, "Attribute List of contact emails is empty.");
+			contactEmails = (List) attribute.getValue();
 
-		for (String email : contactEmails) {
-			if (email == null) throw new WrongAttributeValueException(attribute, "Email " + email + " is null.");
-			if (!(sess.getPerunBl().getModulesUtilsBl().isNameOfEmailValid(sess, email))) throw new WrongAttributeValueException(attribute, "Vo : " + vo.getName() +" has contact email " + email +" which is not valid.");
+			// the List is empty
+			if (contactEmails.isEmpty()) throw new WrongAttributeValueException(attribute, "Attribute List of contact emails is empty.");
+
+			for (String email : contactEmails) {
+				if (email == null) throw new WrongAttributeValueException(attribute, "Email " + email + " is null.");
+				if (!(sess.getPerunBl().getModulesUtilsBl().isNameOfEmailValid(sess, email))) throw new WrongAttributeValueException(attribute, "Vo : " + vo.getName() +" has contact email " + email +" which is not valid.");
+			}
 		}
 	}
 

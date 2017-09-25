@@ -26,21 +26,29 @@ public class urn_perun_user_attribute_def_def_userCertDNs extends UserAttributes
 
 	Pattern certPattern = Pattern.compile("^/");
 
-	public void checkAttributeValue(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
-		if(attribute.getValue() == null) throw new WrongAttributeValueException(attribute, user, "This attribute value can't be null");
-		Map<String, String> value = (Map) attribute.getValue();
-		if(value.isEmpty()) throw new WrongAttributeValueException(attribute, "This attribute value can't be empty");
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			Map<String, String> value = (Map) attribute.getValue();
+			if(value.isEmpty()) throw new WrongAttributeValueException(attribute, "This attribute value can't be empty");
 
-		Set<String> valueKeys = value.keySet();
-		for(String k: valueKeys) {
-			Matcher certKeyMatcher = certPattern.matcher(k);
-			if(!certKeyMatcher.find()) throw new WrongAttributeValueException(attribute, "There is wrong value for key " + k + " in hashMap of userCertDNs.");
-			String valueOfKey = value.get(k);
-			Matcher certValueOfKeyMatcher = certPattern.matcher(valueOfKey);
-			if(!certValueOfKeyMatcher.find()) throw new WrongAttributeValueException(attribute, "There is wrong value for key's value " + valueOfKey + " in hashMap of UserCertDns for key " + k);
+			Set<String> valueKeys = value.keySet();
+			for(String k: valueKeys) {
+				Matcher certKeyMatcher = certPattern.matcher(k);
+				if(!certKeyMatcher.find()) throw new WrongAttributeValueException(attribute, "There is wrong value for key " + k + " in hashMap of userCertDNs.");
+				String valueOfKey = value.get(k);
+				Matcher certValueOfKeyMatcher = certPattern.matcher(valueOfKey);
+				if(!certValueOfKeyMatcher.find()) throw new WrongAttributeValueException(attribute, "There is wrong value for key's value " + valueOfKey + " in hashMap of UserCertDns for key " + k);
+			}
 		}
 	}
 
+	@Override
+	public void checkAttributeValue(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+		if(attribute.getValue() == null) throw new WrongAttributeValueException(attribute, user, "This attribute value can't be null");
+	}
+
+	@Override
 	public Attribute fillAttribute(PerunSessionImpl sess, User user, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeAssignmentException {
 		return new Attribute(attribute);
 	}
@@ -101,6 +109,7 @@ public class urn_perun_user_attribute_def_def_userCertDNs extends UserAttributes
 		}
 	}
 
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_DEF);

@@ -22,9 +22,9 @@ import cz.metacentrum.perun.core.implApi.modules.attributes.UserVirtualAttribute
  */
 public class urn_perun_user_attribute_def_virt_login_namespace_bbmri_persistent extends UserVirtualAttributesModuleAbstract {
     
-        public static final String SHADOW = "urn:perun:user:attribute-def:def:login-namespace:bbmri-persistent-shadow";
+	public static final String SHADOW = "urn:perun:user:attribute-def:def:login-namespace:bbmri-persistent-shadow";
 
-        @Override
+	@Override
 	public Attribute getAttributeValue(PerunSessionImpl sess, User user, AttributeDefinition attributeDefinition) throws InternalErrorException {
 		Attribute bbmriPersistent = new Attribute(attributeDefinition);
 
@@ -55,7 +55,8 @@ public class urn_perun_user_attribute_def_virt_login_namespace_bbmri_persistent 
 		}
 	}
 
-        public AttributeDefinition getAttributeDefinition() {
+	@Override
+	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_USER_ATTR_VIRT);
 		attr.setFriendlyName("login-namespace:bbmri-persistent");

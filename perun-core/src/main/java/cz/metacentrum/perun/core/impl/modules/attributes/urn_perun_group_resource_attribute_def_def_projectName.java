@@ -32,16 +32,10 @@ import java.util.regex.Pattern;
  */
 public class urn_perun_group_resource_attribute_def_def_projectName extends ResourceGroupAttributesModuleAbstract implements ResourceGroupAttributesModuleImplApi {
 
+	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		String name = (String) attribute.getValue();
 		if (name == null) return;
-
-		Pattern pattern = Pattern.compile("^[-_a-zA-Z0-9]+$");
-		Matcher match = pattern.matcher(name);
-
-		if (!match.matches()) {
-			throw new WrongAttributeValueException(attribute, group, resource, "Bad format of attribute projectName (expected something like 'project_name-24').");
-		}
 
 		//Prepare this resource projectsBasePath
 		Attribute thisResourceProjectsBasePath = null;
@@ -113,6 +107,19 @@ public class urn_perun_group_resource_attribute_def_def_projectName extends Reso
 	}
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		String name = (String) attribute.getValue();
+		if (name == null) return;
+
+		Pattern pattern = Pattern.compile("^[-_a-zA-Z0-9]+$");
+		Matcher match = pattern.matcher(name);
+
+		if (!match.matches()) {
+			throw new WrongAttributeValueException(attribute, group, resource, "Bad format of attribute projectName (expected something like 'project_name-24').");
+		}
+	}
+
+	@Override
 	public List<String> getDependencies() {
 		List<String> dependencies = new ArrayList<String>();
 		dependencies.add(AttributesManager.NS_RESOURCE_ATTR_DEF + ":projectsBasePath");
@@ -120,7 +127,7 @@ public class urn_perun_group_resource_attribute_def_def_projectName extends Reso
 	}
 
 
-
+	@Override
 	public AttributeDefinition getAttributeDefinition() {
 		AttributeDefinition attr = new AttributeDefinition();
 		attr.setNamespace(AttributesManager.NS_GROUP_RESOURCE_ATTR_DEF);
