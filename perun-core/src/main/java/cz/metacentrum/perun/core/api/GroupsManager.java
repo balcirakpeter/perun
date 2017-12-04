@@ -21,6 +21,8 @@ import cz.metacentrum.perun.core.api.exceptions.rt.InternalErrorRuntimeException
 public interface GroupsManager {
 
 	// Attributes related to the external groups
+	// Contains query need to get the subject groups
+	public static final String GROUPSQUERY_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":groupsQuery";
 	// Contains query need to get the group members
 	public static final String GROUPMEMBERSQUERY_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":groupMembersQuery";
 	// Contains optional filter for members in group

@@ -484,6 +484,20 @@ public class ExtSourceXML extends ExtSource implements ExtSourceApi {
 		if(con != null) con.disconnect();
 	}
 
+	@Override
+	public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		// Get the query for the group subjects
+		String queryForGroup = attributes.get(GroupsManager.GROUPSQUERY_ATTRNAME);
+
+		//If there is no query for group, throw exception
+		if(queryForGroup == null) throw new InternalErrorException("Attribute " + GroupsManager.GROUPSQUERY_ATTRNAME + " can't be null.");
+
+		//Get file or uri of xml
+		prepareEnvironment();
+
+		return xpathParsing(queryForGroup, 0);
+	}
+
 	@JsonIgnore
 	public HttpURLConnection getCon() {
 		return con;

@@ -1267,4 +1267,24 @@ public interface GroupsManagerBl {
 	 * @throws GroupMoveNotAllowedException
 	 */
 	void moveGroup(PerunSession sess, Group destinationGroup, Group movingGroup) throws InternalErrorException, GroupMoveNotAllowedException;
+
+	/**
+	 * Synchronizes groups with the external source groups under base group.
+	 * If some groups from extSource were skipped, return info about them.
+	 * if not, return empty string instead, which means all groups was successfully load from extSource.
+	 *
+	 * @param sess
+	 * @param group base group under which will be synchronized structure of groups
+	 * @return List of strings with skipped users with reasons why were skipped
+	 * @throws InternalErrorException
+	 * @throws AttributeNotExistsException
+	 * @throws WrongAttributeAssignmentException
+	 * @throws ExtSourceNotExistsException
+	 * @throws WrongAttributeValueException
+	 * @throws WrongReferenceAttributeValueException
+	 * @throws GroupOperationsException
+	 * @throws GroupNotExistsException
+	 */
+	List<String> synchronizeGroupStructure(PerunSession sess, Group group) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException, ExtSourceNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupOperationsException, GroupNotExistsException ;
+
 }

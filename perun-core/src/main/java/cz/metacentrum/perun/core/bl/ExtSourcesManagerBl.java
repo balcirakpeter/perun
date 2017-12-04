@@ -6,6 +6,7 @@ package cz.metacentrum.perun.core.bl;
 import java.util.List;
 
 import cz.metacentrum.perun.core.api.Candidate;
+import cz.metacentrum.perun.core.api.CandidateGroup;
 import cz.metacentrum.perun.core.api.ExtSource;
 import cz.metacentrum.perun.core.api.Group;
 import cz.metacentrum.perun.core.api.PerunSession;
@@ -253,4 +254,33 @@ public interface ExtSourcesManagerBl {
 	 * @throws InternalErrorException
 	 */
 	Map<String, String> getAttributes(ExtSource extSource) throws InternalErrorException;
+
+	/**
+	 * Get the candidate group from subjectData.
+	 *
+	 * IMPORTANT: expected, that these subjectData was get from the ExtSource before using.
+	 *
+	 * @param perunSession
+	 * @param groupSubjectData
+	 * @param source
+	 *
+	 * @return a Candidate group object
+	 * @throws InternalErrorException
+	 */
+	CandidateGroup getCandidateGroup(PerunSession perunSession, Map<String,String> groupSubjectData, ExtSource source) throws InternalErrorException;
+
+	/**
+	 * Get the candidate groups from subjectData.
+	 *
+	 * IMPORTANT: expected, that these subjectData was get from the ExtSource before using.
+	 *
+	 * @param perunSession
+	 * @param groupSubjectsData
+	 * @param source
+	 *
+	 * @return a Candidate group objects
+	 * @throws InternalErrorException
+	 */
+	List<CandidateGroup> getCandidateGroups(PerunSession perunSession, List<Map<String,String>> groupSubjectsData, ExtSource source) throws InternalErrorException;
+
 }

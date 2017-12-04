@@ -329,7 +329,103 @@ public class ExtSourceSqlComplex extends ExtSource implements ExtSourceApi {
 		}
 	}
 
+	@Override
+	public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		// Get the sql query for the group subjects
+		String sqlQueryForGroup = attributes.get(GroupsManager.GROUPSQUERY_ATTRNAME);
+
+		return this.groupQuery(sqlQueryForGroup, null, 0);
+	}
+
 	protected Map<String,String> getAttributes() throws InternalErrorException {
 		return perunBl.getExtSourcesManagerBl().getAttributes(this);
 	}
+
+	protected List<Map<String,String>> groupQuery(String query, String searchString, int maxResults) throws InternalErrorException {
+		PreparedStatement st = null;
+		ResultSet rs = null;
+
+		if (getAttributes().get("url") == null) {
+			throw new InternalErrorException("url attribute is required");
+		}
+
+		//log.debug("Searching for '{}' using query {} in external source 'url:{}'", new Object[] {searchString, query, (String) getAttributes().get("url")});
+		log.debug("Searching for '{}' in external source 'url:{}'", new Object[] {searchString, (String) getAttributes().get("url")});
+
+		// Register driver if the attribute has been defined
+		if (getAttributes().get("driver") != null) {
+			try {
+				Class.forName(getAttributes().get("driver"));
+			} catch (ClassNotFoundException e) {
+				throw new InternalErrorException("Driver " + getAttributes().get("driver") + " cannot be registered", e);
+			}
+		}
+
+		try {
+			// Check if we have existing connection. In case of Oracle also checks the connection validity
+			if (this.con == null || (this.isOracle && !this.con.isValid(0))) {
+				this.createConnection();
+			}
+
+			st = this.con.prepareStatement(query);
+
+			// Substitute the ? in the query by the searchString
+			if (searchString != null && !searchString.isEmpty()) {
+				for (int i = st.getParameterMetaData().getParameterCount(); i > 0; i--) {
+					st.setString(i, searchString);
+				}
+			}
+
+			// Limit results
+			if (maxResults > 0) {
+				st.setMaxRows(maxResults);
+
+			}
+			rs = st.executeQuery();
+
+			List<Map<String, String>> subjects = new ArrayList<Map<String, String>>();
+
+			log.trace("Query {}", query);
+
+			while (rs.next()) {
+				Map<String, String> map = new HashMap<String, String>();
+
+				try {
+					map.put("groupName", rs.getString("groupName"));
+				} catch (SQLException e) {
+					// If the column doesn't exists, ignore it
+					map.put("groupName", null);
+				}
+				try {
+					map.put("parentGroupName", rs.getString("parentGroupName"));
+				} catch (SQLException e) {
+					// If the column doesn't exists, ignore it
+					map.put("parentGroupName", null);
+				}
+				try {
+					map.put("groupDescription", rs.getString("groupDescription"));
+				} catch (SQLException e) {
+					// If the column doesn't exists, ignore it
+					map.put("groupDescription", null);
+				}
+
+				subjects.add(map);
+			}
+			log.debug("Returning {} subjects from external source {} for searchString {}", new Object[] {subjects.size(), this, searchString});
+			return subjects;
+
+		} catch (SQLException e) {
+			log.error("SQL exception during searching for subject '{}'", query);
+			throw new InternalErrorRuntimeException(e);
+		} finally {
+			try {
+				if (rs != null) rs.close();
+				if (st != null) st.close();
+			} catch (SQLException e) {
+				log.error("SQL exception during closing the resultSet or statement, while searching for subject '{}'", query);
+				throw new InternalErrorRuntimeException(e);
+			}
+		}
+	}
+
 }

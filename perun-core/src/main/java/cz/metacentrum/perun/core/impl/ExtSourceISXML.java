@@ -63,6 +63,32 @@ public class ExtSourceISXML extends ExtSourceXML {
 	}
 
 	@Override
+	public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		// Get the query for the group
+		String queryForGroup = attributes.get(GroupsManager.GROUPSQUERY_ATTRNAME);
+		//If there is no query for group, throw exception
+		if(queryForGroup == null || queryForGroup.isEmpty()) throw new InternalErrorException("Attribute " + GroupsManager.GROUPSQUERY_ATTRNAME + " can't be null.");
+		//Expected value like "workplaceId:groupName" with ':' as separator
+		if(!queryForGroup.contains(":")) throw new InternalErrorException("Attribute " + GroupsManager.GROUPSQUERY_ATTRNAME + " has to contain separator ':' between workplaceId and groupName.");
+
+		//Parse workplace and groupName from queryForGroup
+		String parsedQuery[] = queryForGroup.split(":");
+		if(parsedQuery.length != 2) throw new InternalErrorException("Expected 2 values workplace and groupName but get " + parsedQuery.length);
+		workplace = parsedQuery[0];
+		groupName = parsedQuery[1];
+
+		// Get the generic query for group subjects
+		String query = getAttributes().get("query");
+		//If there is no generic query for group subjects, throw exception
+		if(query == null) throw new InternalErrorException("General query for ExtSourceISXML can't be null.");
+
+		//Get file or uri of xml
+		prepareEnvironment();
+
+		return xpathParsing(query, 0);
+	}
+
+	@Override
 	protected InputStream createTwoWaySSLConnection(String uri) throws IOException, InternalErrorException {
 		//prepare sslFactory
 		SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();

@@ -8,6 +8,8 @@ import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.admin.directory.Directory;
 import com.google.api.services.admin.directory.DirectoryScopes;
+import com.google.api.services.admin.directory.model.Group;
+import com.google.api.services.admin.directory.model.Groups;
 import com.google.api.services.admin.directory.model.Member;
 import com.google.api.services.admin.directory.model.Members;
 import cz.metacentrum.perun.core.api.ExtSource;
@@ -221,6 +223,35 @@ public class ExtSourceGoogle extends ExtSource implements ExtSourceApi {
 	@Override
 	public void close() throws InternalErrorException, ExtSourceUnsupportedOperationException {
 		throw new ExtSourceUnsupportedOperationException("For Google Groups, using this method is not optimized, use findSubjects instead.");
+	}
+
+	@Override
+	public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		try {
+			// Get the query for the group subjects
+			String queryForGroup = attributes.get(GroupsManager.GROUPSQUERY_ATTRNAME);
+			domainName = getAttributes().get("domain");
+
+			if (domainName == null || domainName.isEmpty()) {
+				throw new InternalErrorException("domainName attribute is required");
+			}
+
+			//If there is no query for group, throw exception
+			if (queryForGroup == null) {
+				throw new InternalErrorException("Attribute " + GroupsManager.GROUPSQUERY_ATTRNAME + " can't be null.");
+			}
+
+			//Get connection to Google Groups
+			prepareEnvironment();
+
+			return groupQuerySource(queryForGroup, 0);
+
+		} catch (IOException ex) {
+			log.error("IOException in getSubjectGroups() method while parsing data from Google Groups", ex);
+		} catch (GeneralSecurityException ex) {
+			log.error("GeneralSecurityException while trying to connect to Google Apps account", ex);
+		}
+		return null;
 	}
 
 	/**
@@ -611,5 +642,59 @@ public class ExtSourceGoogle extends ExtSource implements ExtSourceApi {
 	public static PerunBlImpl setPerunBlImpl(PerunBlImpl perun) {
 		perunBl = perun;
 		return perun;
+	}
+
+	private List<Map<String, String>> groupQuerySource(String query, int maxResults) throws InternalErrorException, FileNotFoundException, IOException {
+		List<Map<String, String>> subjects = new ArrayList<>();
+
+		// symbol '=' indicates getSubjectByLogin() or getGroupSubjects method
+		int index = query.indexOf("=");
+
+
+		String queryType = query.substring(0, index);
+		String value = query.substring(index + 1);
+
+		if(queryType.equals("groupName")) {
+			subjects = executeQuerySubjectGroups(value, maxResults);
+		} else {
+			throw new IllegalArgumentException("Word before '=' symbol can be 'groupName', nothing else.");
+		}
+
+		return subjects;
+	}
+
+	private List<Map<String, String>> executeQuerySubjectGroups(String value, int maxResults) throws InternalErrorException {
+		List<Map<String, String>> subjects = new ArrayList<>();
+
+		if (value.contains("@" + this.domainName)) {
+			try {
+				Groups result = service.groups().list().execute();
+				List<Group> groups = result.getGroups();
+
+				for (Group group : groups) {
+					if(group.getName().contains(value)) {
+						Map<String, String> map = new HashMap<>();
+
+						map.put("groupName", group.getName());
+						map.put("description", group.getDescription());
+						map.put("parentGroupName", null); // ako vytiahnem parentGroupName??
+
+						subjects.add(map);
+					}
+
+					if (maxResults > 0) {
+						if (subjects.size() >= maxResults) {
+							break;
+						}
+					}
+				}
+			} catch (IOException ex) {
+				log.error("Problem with I/O operation while accesing Google Group API in ExtSourceGoogle class.", ex);
+			}
+		} else {
+			throw new IllegalArgumentException("You are trying to get groups from nonexisting group, please check name if your group name is something like 'groupname@domainname.com'.");
+		}
+
+		return subjects;
 	}
 }

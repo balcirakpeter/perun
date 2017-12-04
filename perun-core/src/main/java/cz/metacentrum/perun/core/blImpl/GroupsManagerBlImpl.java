@@ -1320,6 +1320,47 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		return skippedMembers;
 	}
 
+	public List<String> synchronizeGroupStructure(PerunSession sess, Group baseGroup) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException, ExtSourceNotExistsException {
+		//needed variables for whole method
+		List<String> skippedGroups = new ArrayList<>();
+		ExtSource source = null;
+
+		log.info("Group structure synchronization {}: started.", baseGroup);
+
+		//Initialization of group extSource
+		source = getGroupExtSourceForSynchronization(sess, baseGroup);
+
+		//Prepare containers for work with groups
+		List<CandidateGroup> candidateGroupsToAdd = new ArrayList<>();
+		Map<CandidateGroup, Group> groupsToUpdate = new HashMap<>();
+		List<Group> groupsToRemove = new ArrayList<>();
+
+		//get all actual groups
+		List<Group> actualGroups = getAllSubGroups(sess, baseGroup);
+
+		//Get subjects from extSource
+		List<Map<String, String>> subjectGroups = getSubjectGroupsFromExtSource(sess, source, baseGroup);
+		//Convert subjects to candidate groups
+		List<CandidateGroup> candidateGroups = getPerunBl().getExtSourcesManagerBl().getCandidateGroups(sess, subjectGroups, source);
+
+		categorizeGroupsForSynchronization(sess, actualGroups, candidateGroups, candidateGroupsToAdd, groupsToUpdate, groupsToRemove);
+
+		//These next 3 operations have to be precisely in this order.
+
+		//Add not presented candidate groups under base group
+		addMissingGroupsWhileSynchronization(sess, baseGroup, candidateGroupsToAdd, skippedGroups);
+
+		//Update groups already presented under base group
+		updateExistingGroupsWhileSynchronization(sess, baseGroup, groupsToUpdate, skippedGroups);
+
+		//Remove presented groups under base group who are not presented in synchronized ExtSource
+		removeFormerGroupsWhileSynchronization(sess, baseGroup, groupsToRemove, skippedGroups);
+
+		log.info("Group structure synchronization {}: ended.", baseGroup);
+
+		return skippedGroups;
+	}
+
 	/**
 	 * Force group synchronization.
 	 *
@@ -2033,6 +2074,42 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	}
 
 	/**
+	 * This method fill 3 group structures which get as parameters:
+	 * 1. groupsToUpdate - Candidates with equivalent Groups from Perun for purpose of updating attributes and statuses
+	 * 2. candidateGroupsToAdd - New groups
+	 * 3. groupsToRemove - Former groups which are not in synchronized ExtSource now
+	 *
+	 * @param sess
+	 * @param currentGroups current groups
+	 * @param candidateGroups to be synchronized from extSource
+	 * @param groupsToUpdate 1. container (more above)
+	 * @param candidateGroupsToAdd 2. container (more above)
+	 * @param groupsToRemove 3. container (more above)
+	 *
+	 * @throws InternalErrorException
+	 */
+	private void categorizeGroupsForSynchronization(PerunSession sess, List<Group> currentGroups, List<CandidateGroup> candidateGroups, List<CandidateGroup> candidateGroupsToAdd, Map<CandidateGroup, Group> groupsToUpdate, List<Group> groupsToRemove) throws InternalErrorException {
+		candidateGroupsToAdd.addAll(candidateGroups);
+		groupsToRemove.addAll(currentGroups);
+		//mapping structure for more efficient searching
+		Map<String, Group> mappingStructure = new HashMap<>();
+		for(Group group: currentGroups) {
+			mappingStructure.put(group.getShortName(), group);
+		}
+
+		//try to find already existing candidateGroups between groups
+		for(CandidateGroup candidateGroup: candidateGroups) {
+			String candidateShortName = candidateGroup.getShortName();
+			if(mappingStructure.containsKey(candidateShortName)) {
+				//candidateGroup exists, will be updated
+				groupsToUpdate.put(candidateGroup, mappingStructure.get(candidateShortName));
+				candidateGroupsToAdd.remove(candidateGroup);
+				groupsToRemove.remove(mappingStructure.get(candidateShortName));
+			}
+		}
+	}
+
+	/**
 	 * Get ExtSource by name from attribute group:groupMembersExtSource.
 	 * Attribute can be null so if is not set, use default source.
 	 *
@@ -2191,6 +2268,38 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			log.debug("Group synchronization {}: external group contains {} members.", group, subjects.size());
 		} catch (ExtSourceUnsupportedOperationException e2) {
 			throw new InternalErrorException("ExtSource " + source.getName() + " doesn't support getGroupSubjects", e2);
+		}
+		return subjects;
+	}
+
+	/**
+	 * Return List of subjects, where subject is map of attribute names and attribute values.
+	 * Every subject is structure for creating CandidateGroup from ExtSource.
+	 *
+	 * @param sess
+	 * @param source to get subjects from
+	 * @param group under which we will be synchronizing groups
+	 *
+	 * @return list of subjects
+	 *
+	 * @throws InternalErrorException if internal error occurs
+	 */
+	public List<Map<String, String>> getSubjectGroupsFromExtSource(PerunSession sess, ExtSource source, Group group) throws InternalErrorException {
+		//Get all group attributes and store tham to map (info like query, time interval etc.)
+		List<Attribute> groupAttributes = getPerunBl().getAttributesManagerBl().getAttributes(sess, group);
+		Map<String, String> groupAttributesMap = new HashMap<String, String>();
+		for (Attribute attr: groupAttributes) {
+			String value = BeansUtils.attributeValueToString(attr);
+			String name = attr.getName();
+			groupAttributesMap.put(name, value);
+		}
+		//-- Get Subjects in form of map where left string is name of attribute and right string is value of attribute, every subject is one map
+		List<Map<String, String>> subjects;
+		try {
+			subjects = ((ExtSourceSimpleApi) source).getSubjectGroups(groupAttributesMap);
+			log.debug("Group synchronization {}: external source contains {} group.", group, subjects.size());
+		} catch (ExtSourceUnsupportedOperationException e2) {
+			throw new InternalErrorException("ExtSource " + source.getName() + " doesn't support getSubjectGroups", e2);
 		}
 		return subjects;
 	}
@@ -2709,6 +2818,177 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			} catch (MemberAlreadyRemovedException ex) {
 				//Member was probably removed before starting of synchronization removing process, log it and skip this member
 				log.debug("Member {} was removed from group {} before removing process. Skip this member.", member, group);
+				continue;
+			}
+		}
+	}
+
+	/**
+	 * Get Map groupsToUpdate and update their attributes.
+	 *
+	 * @param sess
+	 * @param baseGroup under which will be group structure synchronized
+	 * @param groupsToUpdate list of groups for updating in Perun by information from extSource
+	 *
+	 * @throws InternalErrorException if some internal error occurs
+	 */
+	private void updateExistingGroupsWhileSynchronization(PerunSession sess, Group baseGroup, Map<CandidateGroup, Group> groupsToUpdate, List<String> skippedGroups) throws InternalErrorException {
+		//update every pair in map
+		// we don't have to update short name, because if short name is changed,
+		// group will be removed and created with new name.
+		// We don't have to update subGroups, because if some of the subGroups has changed parent,
+		// we update it separately in this method.
+		for(CandidateGroup candidateGroup: groupsToUpdate.keySet()) {
+			Group groupToUpdate = groupsToUpdate.get(candidateGroup);
+
+			//if parentGroupName has changed, update it
+			String actualParentName;
+			try {
+				actualParentName = getGroupById(sess, groupToUpdate.getParentGroupId()).getShortName();
+			} catch (GroupNotExistsException e) {
+				//that should never happened, every group has to has at least base group as a parent
+				throw new InternalErrorException(e);
+			}
+
+			Group newParentGroup = null;
+
+			//if parent name of candidate group is null and actual group is not under base group,
+			// set baseGroup to newParentGroup
+			if((candidateGroup.getParentGroupName() == null)){
+				if(!actualParentName.equals(baseGroup.getShortName())){
+					newParentGroup = baseGroup;
+				}
+			}
+
+			//if parent names are not equal, check if under base group exists group with short name
+			//which equals parent name of candidate group.
+			//If there is such a group, set this group to newParentGroup
+			else if(!actualParentName.equals(candidateGroup.getParentGroupName())){
+				List<Group> subGroups = getAllSubGroups(sess, baseGroup);
+				for (Group subGroup : subGroups) {
+					if (subGroup.getShortName().equals(candidateGroup.getParentGroupName())) {
+						newParentGroup = subGroup;
+						break;
+					}
+				}
+			}
+
+			//If parent group changed (newParentGroup is not null), move groupToUpdate under newParentGroup
+			if(newParentGroup != null) {
+				try {
+					moveGroup(sess, newParentGroup, groupToUpdate);
+					log.trace("Group structure synchronization {}: value of the parentGroupId for groupId {} changed. Original value {}, new value {}.",
+							new Object[] {baseGroup, groupToUpdate.getId(), groupToUpdate.getParentGroupId(), newParentGroup.getId()});
+				} catch (GroupMoveNotAllowedException e) {
+					log.warn("Can't update group {} due to group move not allowed exception {}.", groupToUpdate, e);
+					skippedGroups.add("GroupEntry:[" + groupToUpdate + "] was skipped because group move is not allowed: Exception: " + e.getName() + " => " + e.getMessage() + "]");
+					continue;
+				}
+			}
+
+			//if description has changed, update it
+			if(!groupToUpdate.getDescription().equals(candidateGroup.getDescription())){
+				groupToUpdate.setDescription(candidateGroup.getDescription());
+				log.trace("Group structure synchronization {}: value of the group description for groupId {} changed. Original value {}, new value {}.",
+						new Object[] {baseGroup, groupToUpdate.getId(), groupToUpdate.getDescription(), candidateGroup.getDescription()});
+			}
+		}
+	}
+
+	/**
+	 * Get list of new candidateGroups and add them under the baseGroup.
+	 *
+	 * @param sess
+	 * @param baseGroup under which we will be synchronizing groups
+	 * @param candidateGroupsToAdd list of new groups (candidateGroups)
+	 *
+	 * @throws InternalErrorException if some internal error occurs
+	 */
+	private void addMissingGroupsWhileSynchronization(PerunSession sess, Group baseGroup, List<CandidateGroup> candidateGroupsToAdd, List<String> skippedGroups) throws InternalErrorException {
+		// Now add missing groups
+		for (CandidateGroup candidateGroup: candidateGroupsToAdd) {
+			Group destinationGroup = baseGroup;
+
+			String parent = candidateGroup.getParentGroupName();
+			//If parent is not null, we have to check if that parent exists under destinationGroup
+			if (parent != null) {
+				List<Group> subGroups = getAllSubGroups(sess, destinationGroup);
+				for (Group subGroup : subGroups) {
+					if (subGroup.getShortName().equals(parent)) {
+						destinationGroup = subGroup;
+					}
+				}
+			}
+			//We can finally create group
+			Group createdGroup = null;
+			try {
+				createdGroup = createGroup(sess, destinationGroup, candidateGroup);
+				log.info("Group structure synchronization under base group {}: New Group id {} created during synchronization.", baseGroup, createdGroup.getId());
+			} catch (GroupExistsException e) {
+				//This part is ok, it means someone add group before synchronization ends, log it and skip this group
+				log.debug("Group {} was added to group structure {} before adding process. Skip this group.", candidateGroup, baseGroup);
+				continue;
+			} catch (GroupRelationNotAllowed e) {
+				log.warn("Can't create group from candidate group {} due to group relation not allowed exception {}.", candidateGroup, e);
+				skippedGroups.add("GroupEntry:[" + candidateGroup + "] was skipped because group relation was not allowed: Exception: " + e.getName() + " => " + e.getMessage() + "]");
+				continue;
+			} catch (GroupRelationAlreadyExists e) {
+				//TODO should I keep this message or skipp this group and continue? I think there cannot raise GroupRelationAlreadyExists without GroupExists...
+				throw new ConsistencyErrorException("There is already relation between these two groups.", e);
+			}
+		}
+	}
+
+	/**
+	 * Remove former groups (if they are not listed in ExtSource yet).
+	 *
+	 * @param sess
+	 * @param baseGroup from which we will be removing groups
+	 * @param groupsToRemove list of groups to be removed from Group
+	 *
+	 * @throws InternalErrorException if some internal error occurs
+	 */
+	private void removeFormerGroupsWhileSynchronization(PerunSession sess, Group baseGroup, List<Group> groupsToRemove, List<String> skippedGroups) throws InternalErrorException {
+
+		for (Group groupToRemove: groupsToRemove) {
+			List<Group> subGroups = getSubGroups(sess, groupToRemove);
+			if(!subGroups.isEmpty()){
+				//we have to move subGroups under base group
+				for (Group subGroup: subGroups) {
+					try {
+						moveGroup(sess, baseGroup, subGroup);
+					} catch (GroupMoveNotAllowedException e) {
+						log.warn("Can't remove group {} from baseGroup {} due to group move not allowed exception {}.", groupToRemove, e);
+						skippedGroups.add("GroupEntry:[" + groupToRemove + "] was skipped because group move is not allowed: Exception: " + e.getName() + " => " + e.getMessage() + "]");
+						continue;
+					}
+				}
+			}
+			//Now we can delete group
+			try {
+				//this is so groupToRemove will be updated if it was moved under another parent...
+				groupToRemove = getGroupById(sess, groupToRemove.getId());
+				deleteGroup(sess, groupToRemove, true);
+				log.info("Group structure synchronization {}: Group id {} removed.", baseGroup, groupToRemove.getId());
+			} catch (RelationExistsException e) {
+				log.warn("Can't remove group {} from baseGroup {} due to group relation exists exception {}.", groupToRemove, e);
+				skippedGroups.add("GroupEntry:[" + groupToRemove + "] was skipped because group relation exists: Exception: " + e.getName() + " => " + e.getMessage() + "]");
+				continue;
+			} catch (GroupAlreadyRemovedException | GroupAlreadyRemovedFromResourceException e) {
+				//Group was probably removed before starting of synchronization removing process, log it and skip this group
+				log.debug("Group {} was removed from group {} before removing process. Skip this group.", groupToRemove, baseGroup);
+				continue;
+			} catch (GroupNotExistsException e) {
+				log.warn("Can't remove group {} from baseGroup {} due to group not exists exception {}.", groupToRemove, e);
+				skippedGroups.add("GroupEntry:[" + groupToRemove + "] was skipped because group does not exists: Exception: " + e.getName() + " => " + e.getMessage() + "]");
+				continue;
+			} catch (GroupRelationDoesNotExist e) {
+				log.warn("Can't remove group {} from baseGroup {} due to group relation does not exists exception {}.", groupToRemove, e);
+				skippedGroups.add("GroupEntry:[" + groupToRemove + "] was skipped because group relation does not exists: Exception: " + e.getName() + " => " + e.getMessage() + "]");
+				continue;
+			} catch (GroupRelationCannotBeRemoved e) {
+				log.warn("Can't remove group {} from baseGroup {} due to group relation cannot be removed exception {}.", groupToRemove, e);
+				skippedGroups.add("GroupEntry:[" + groupToRemove + "] was skipped because group relation cannot be removed: Exception: " + e.getName() + " => " + e.getMessage() + "]");
 				continue;
 			}
 		}

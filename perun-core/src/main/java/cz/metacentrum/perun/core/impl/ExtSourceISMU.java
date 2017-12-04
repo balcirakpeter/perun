@@ -159,8 +159,112 @@ public class ExtSourceISMU extends ExtSource implements ExtSourceSimpleApi {
 		}
 	}
 
+	protected List<Map<String,String>> groupQuery(String query, String searchString, int maxResults) throws InternalErrorException {
+
+		// Get the URL, if query was provided it has precedence over url attribute defined in extSource
+		String url = null;
+		if (query != null && !query.isEmpty()) {
+			url = query;
+		} else if (getAttributes().get("url") != null) {
+			url = getAttributes().get("url");
+		} else {
+			throw new InternalErrorException("url attribute or query is required");
+		}
+
+		log.debug("Searching in external source url:'{}'", url);
+
+		// If there is a search string, replace all occurences of the * with the searchstring
+		if (searchString != null && searchString != "") {
+			url.replaceAll("\\*", searchString);
+		};
+
+		try {
+			URL u = new URL(url);
+
+			// Check supported protocols
+			HttpURLConnection http = null;
+			if (u.getProtocol().equals("https")) {
+				http = (HttpsURLConnection)u.openConnection();
+			} else if (u.getProtocol().equals("http")) {
+				http = (HttpURLConnection)u.openConnection();
+			} else {
+				throw new InternalErrorException("Protocol " + u.getProtocol() + " is not supported by this extSource.");
+			}
+
+			// Prepare the basic auth, if the username and password was specified
+			if (getAttributes().get("user") != null && getAttributes().get("password") != null) {
+				String val = (new StringBuffer(getAttributes().get("user")).append(":").append(getAttributes().get("password"))).toString();
+
+				Base64 encoder = new Base64();
+				String base64Encoded = new String(encoder.encode(val.getBytes()));
+				// Java bug : http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6459815
+				base64Encoded = base64Encoded.trim();
+				String authorizationString = "Basic " + base64Encoded;
+				http.setRequestProperty("Authorization", authorizationString);
+			}
+
+			http.setAllowUserInteraction(false);
+			http.setRequestMethod("GET");
+			http.connect();
+
+			InputStream is = http.getInputStream();
+			BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+			String line = null;
+
+			List<Map<String, String>> subjects = new ArrayList<Map<String, String>>();
+
+			while ((line = reader.readLine()) != null) {
+				Map<String, String> map = new HashMap<String, String>();
+
+				//TODO ako vyzera riadok skupiny???
+				// Parse the line
+				String[] entries = line.split(";");
+				// Get the UCO
+				if (entries[0].equals("")) {
+					// skip this subject, because it doesn't have groupName defined
+					continue;
+				}
+				String groupName = entries[0];
+				// Remove "" from name
+				groupName.replaceAll("^\"|\"$", "");
+				if (groupName.isEmpty()) groupName = null;
+				map.put("groupName", groupName);
+
+				String parentGroupName = entries[0];
+				// Remove "" from name
+				parentGroupName.replaceAll("^\"|\"$", "");
+				if (parentGroupName.isEmpty()) parentGroupName = null;
+				map.put("parentGroupName", parentGroupName);
+
+				String groupDescription = entries[0];
+				// Remove "" from name
+				groupDescription.replaceAll("^\"|\"$", "");
+				if (groupDescription.isEmpty()) groupDescription = null;
+				map.put("groupDescription", groupDescription);
+
+				subjects.add(map);
+			}
+
+			return subjects;
+		}
+		catch (IOException e) {
+			throw new InternalErrorException(e);
+		}
+		catch (Exception e) {
+			throw new InternalErrorException(e);
+		}
+	}
+
 	public void close() throws InternalErrorException, ExtSourceUnsupportedOperationException {
 		throw new ExtSourceUnsupportedOperationException();
+	}
+
+	@Override
+	public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		// Get the url query for the group subjects
+		String queryForGroup = attributes.get(GroupsManager.GROUPSQUERY_ATTRNAME);
+
+		return this.groupQuery(queryForGroup, null, 0);
 	}
 
 	protected Map<String,String> getAttributes() throws InternalErrorException {

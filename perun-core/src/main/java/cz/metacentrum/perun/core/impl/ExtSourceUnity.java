@@ -133,6 +133,11 @@ public class ExtSourceUnity extends ExtSource implements ExtSourceApi {
         throw new UnsupportedOperationException("For Unity using this method is not optimized.");
     }
 
+    @Override
+    public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+        return null;
+    }
+
     protected Map<String, String> getAttributes() throws InternalErrorException {
         return perunBl.getExtSourcesManagerBl().getAttributes(this);
     }

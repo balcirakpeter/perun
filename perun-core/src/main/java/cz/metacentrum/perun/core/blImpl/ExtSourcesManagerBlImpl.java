@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import cz.metacentrum.perun.core.api.CandidateGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -434,6 +435,40 @@ public class ExtSourcesManagerBlImpl implements ExtSourcesManagerBl {
 		candidate.setAttributes(attributes);
 
 		return candidate;
+	}
+
+	public CandidateGroup getCandidateGroup(PerunSession perunSession, Map<String,String> groupSubjectData, ExtSource source) throws InternalErrorException {
+		if(groupSubjectData == null || groupSubjectData.isEmpty()) throw new InternalErrorException(" Group subject data can't be null or empty, at least group name there must exists.");
+
+		// New Candidate
+		CandidateGroup candidateGroup = new CandidateGroup();
+
+		// Set the extSource
+		candidateGroup.setExtSource(source);
+
+		//If first name of candidate is not in format of name, set null instead
+		candidateGroup.setName(groupSubjectData.get("groupName"));
+		if(candidateGroup.getName() != null) {
+			Matcher name = namePattern.matcher(candidateGroup.getName());
+			if(!name.matches()) throw new InternalErrorException("Group subject data has to contains valid group name!");
+		}else{
+			throw new InternalErrorException("group name cannot be null in Group subject data!");
+		}
+
+		candidateGroup.setParentGroupName(groupSubjectData.get("parentGroupName"));
+		candidateGroup.setDescription(groupSubjectData.get("groupDescription"));
+
+		return candidateGroup;
+	}
+
+	public List<CandidateGroup> getCandidateGroups(PerunSession perunSession, List<Map<String,String>> subjectsData, ExtSource source) throws InternalErrorException {
+		List<CandidateGroup> candidateGroups= new ArrayList<>();
+
+		for (Map<String, String> subjectData : subjectsData) {
+			candidateGroups.add(getCandidateGroup(perunSession, subjectData, source));
+		}
+
+		return candidateGroups;
 	}
 
 	@Override

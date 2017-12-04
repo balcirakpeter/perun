@@ -8,6 +8,7 @@ import java.net.URLEncoder;
 import java.util.List;
 
 import cz.metacentrum.perun.core.api.ExtSource;
+import cz.metacentrum.perun.core.api.Group;
 import cz.metacentrum.perun.core.api.GroupsManager;
 import cz.metacentrum.perun.core.api.exceptions.ExtSourceUnsupportedOperationException;
 import cz.metacentrum.perun.core.api.exceptions.SubjectNotExistsException;
@@ -356,7 +357,51 @@ public class ExtSourcePerun extends ExtSource implements ExtSourceApi {
 		//not needed there
 	}
 
+	@Override
+	public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+		setEnviroment();
+		// Get the query for the group subjects
+		String queryForGroup = attributes.get(GroupsManager.GROUPSQUERY_ATTRNAME);
+
+		//If there is no query for group, throw exception
+		if(queryForGroup == null) throw new InternalErrorException("Attribute " + GroupsManager.GROUPSQUERY_ATTRNAME + " can't be null.");
+
+		List<Map<String,String>> groupSubjects = getGroups(queryForGroup);
+
+		return groupSubjects;
+	}
+
 	protected Map<String,String> getAttributes() throws InternalErrorException {
 		return perunBl.getExtSourcesManagerBl().getAttributes(this);
+	}
+
+	private List<Map<String,String>> getGroups(String query) throws InternalErrorException {
+
+		List<Map<String,String>> subjects = new ArrayList<>();
+
+		List<Group> groups;
+		try {
+			groups = this.call("groupsManager", "getGroupByName", query).readList(Group.class);
+		} catch (PerunException ex) {
+			throw new InternalErrorException(ex);
+		}
+
+		for(Group group: groups) {
+
+			Map<String, String> groupInMap = new HashMap<String, String>();
+            try {
+                Group parentGroup = this.call("groupsManager", "getParentGroup", String.valueOf(group.getId())).read(Group.class);
+                groupInMap.put("parentGroupName", parentGroup != null ? parentGroup.getName() : null);
+            } catch (PerunException ex) {
+                throw new InternalErrorException(ex);
+            }
+
+			groupInMap.put("groupName", group.getName());
+			groupInMap.put("groupDescription", group.getDescription());
+
+			subjects.add(groupInMap);
+		}
+		return subjects;
+
 	}
 }

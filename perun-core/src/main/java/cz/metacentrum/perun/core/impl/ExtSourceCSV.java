@@ -145,6 +145,28 @@ public class ExtSourceCSV extends ExtSource implements ExtSourceApi {
         throw new ExtSourceUnsupportedOperationException("For CSV, using this method is not optimized, use findSubjects instead.");
     }
 
+    @Override
+    public List<Map<String, String>> getSubjectGroups(Map<String, String> attributes) throws InternalErrorException, ExtSourceUnsupportedOperationException {
+        try {
+            // Get the query for the subject Groups
+            String queryForGroup = attributes.get(GroupsManager.GROUPSQUERY_ATTRNAME);
+
+            //If there is no query for group, throw exception
+            if (queryForGroup == null) {
+                throw new InternalErrorException("Attribute " + GroupsManager.GROUPSQUERY_ATTRNAME + " can't be null.");
+            }
+
+            //Get csv file
+            prepareEnvironment();
+
+            return csvParsing(queryForGroup, 0);
+
+        } catch (IOException ex) {
+            log.error("IOException in getGroupSubjects() method while parsing csv file", ex);
+        }
+        return null;
+    }
+
     private void prepareEnvironment() throws InternalErrorException {
         //Get csv files
         file = (String) getAttributes().get("file");
