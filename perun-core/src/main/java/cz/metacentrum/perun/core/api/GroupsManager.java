@@ -33,8 +33,12 @@ public interface GroupsManager {
 	public static final String GROUPMEMBERSEXTSOURCE_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":groupMembersExtSource";
 	// If the synchronization is enabled/disabled, value is true/false
 	public static final String GROUPSYNCHROENABLED_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":synchronizationEnabled";
+	// If the group structure synchronization is enabled/disabled, value is true/false
+	public static final String GROUPSSTRUCTURESYNCHROENABLED_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":structureSynchronizationEnabled";
 	// Defines the interval, when the group has to be synchronized. It is fold of 5 minutes
 	public static final String GROUPSYNCHROINTERVAL_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":synchronizationInterval";
+	// Defines the interval, when the group structure has to be synchronized. It is fold of 5 minutes
+	public static final String GROUPSTRUCTURESYNCHROINTERVAL_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":structureSynchronizationInterval";
 	// Defines if we want to skip updating already existing members in group from extSource (updating attributes etc.)
 	public static final String GROUPLIGHTWEIGHTSYNCHRONIZATION_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":lightweightSynchronization";
 
@@ -758,6 +762,18 @@ public interface GroupsManager {
 	 */
 	void forceGroupSynchronization(PerunSession sess, Group group) throws InternalErrorException, GroupNotExistsException, PrivilegeException, GroupSynchronizationAlreadyRunningException;
 
+    /**
+     * Synchronizes the group structure with the external groups.
+     *
+     * @param sess
+     * @param group
+     * @throws InternalErrorException
+     * @throws GroupNotExistsException
+     * @throws PrivilegeException
+     * @throws GroupStructureSynchronizationAlreadyRunningException
+     */
+    void forceGroupStructureSynchronization(PerunSession sess, Group group) throws InternalErrorException, GroupNotExistsException, PrivilegeException, GroupStructureSynchronizationAlreadyRunningException;
+
 	/**
 	 * Synchronize all groups which have enabled synchronization. This method is run by the scheduler every 5 minutes.
 	 *
@@ -765,6 +781,14 @@ public interface GroupsManager {
 	 * @throws PrivilegeException
 	 */
 	void synchronizeGroups(PerunSession sess) throws InternalErrorException, PrivilegeException;
+
+	/**
+	 * Synchronize all groups structures which have enabled group structure synchronization. This method is run by the scheduler every 5 minutes.
+	 *
+	 * @throws InternalErrorException
+	 * @throws PrivilegeException
+	 */
+	void synchronizeGroupsStructures(PerunSession sess) throws InternalErrorException, PrivilegeException;
 
 	/**
 	 * Returns all member's groups. Except members groups.

@@ -842,6 +842,19 @@ public class GroupsManagerEntry implements GroupsManager {
 		getGroupsManagerBl().forceGroupSynchronization(sess, group);
 	}
 
+    public void forceGroupStructureSynchronization(PerunSession sess, Group group) throws InternalErrorException, GroupNotExistsException, PrivilegeException, GroupStructureSynchronizationAlreadyRunningException {
+        Utils.checkPerunSession(sess);
+        getGroupsManagerBl().checkGroupExists(sess, group);
+
+        // Authorization
+        if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, group)
+                && !AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, group))  {
+            throw new PrivilegeException(sess, "synchronizeGroupStructure");
+        }
+
+        getGroupsManagerBl().forceGroupStructureSynchronization(sess, group);
+    }
+
 	public void synchronizeGroups(PerunSession sess) throws InternalErrorException, PrivilegeException {
 		Utils.checkPerunSession(sess);
 
@@ -851,6 +864,17 @@ public class GroupsManagerEntry implements GroupsManager {
 		}
 
 		getGroupsManagerBl().synchronizeGroups(sess);
+	}
+
+	public void synchronizeGroupsStructures(PerunSession sess) throws InternalErrorException, PrivilegeException {
+		Utils.checkPerunSession(sess);
+
+		// Authorization
+		if (!AuthzResolver.isAuthorized(sess, Role.PERUNADMIN))  {
+			throw new PrivilegeException(sess, "synchronizeGroupsStructures");
+		}
+
+		getGroupsManagerBl().synchronizeGroupsStructures(sess);
 	}
 
 	public List<Group> getMemberGroups(PerunSession sess, Member member) throws InternalErrorException, PrivilegeException, MemberNotExistsException {

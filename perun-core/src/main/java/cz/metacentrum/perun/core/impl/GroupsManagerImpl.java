@@ -666,6 +666,26 @@ public class GroupsManagerImpl implements GroupsManagerImplApi {
 		}
 	}
 
+	/**
+	 * Gets all groups which have enabled group structure synchronization.
+	 *
+	 * @param sess
+	 * @return list of groups to synchronize
+	 * @throws InternalErrorException
+	 */
+	public List<Group> getGroupsStructuresToSynchronize(PerunSession sess) throws InternalErrorException {
+		try {
+			// Get all groups which have defined
+			return jdbc.query("select " + groupMappingSelectQuery + " from groups, attr_names, group_attr_values " +
+					"where attr_names.attr_name=? and attr_names.id=group_attr_values.attr_id and group_attr_values.attr_value='true' and " +
+					"group_attr_values.group_id=groups.id", GROUP_MAPPER, GroupsManager.GROUPSSTRUCTURESYNCHROENABLED_ATTRNAME);
+		} catch (EmptyResultDataAccessException e) {
+			return new ArrayList<Group>();
+		} catch (RuntimeException e) {
+			throw new InternalErrorException(e);
+		}
+	}
+
 	@Override
 	public List<Integer> getGroupApplicationIds(PerunSession sess, Group group) throws InternalErrorException {
 		// get app ids for all applications
