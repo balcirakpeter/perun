@@ -29,6 +29,9 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * GroupsManager business logic
@@ -2897,5 +2900,60 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				throw new ConsistencyErrorException("Some group does not exists while creating group union.", e);
 			}
 		}
+	}
+
+	/**
+	 * Escape invalid characters according to GROUP_SHORT_NAME_REGEXP
+	 *
+	 * @param extGroupName group name to be escaped
+	 * @return escaped group name
+	 */
+	private String escapeExternalGroupShortName(String extGroupName) {
+		if (extGroupName == null) {
+			return null;
+		}
+
+		String escaped = extGroupName.replaceAll("_", "_underscore");
+		escaped = escaped.codePoints()
+				.mapToObj(Character::toChars)
+				.map(String::valueOf)
+				.map(s -> {
+					if (!s.matches(GroupsManager.GROUP_SHORT_NAME_REGEXP)) {
+						return "_" + Integer.toString(s.charAt(0)) + "U";
+					}
+					return s;
+				})
+				.collect(Collectors.joining());
+		return escaped;
+	}
+
+	/**
+	 * Un-escape escaped group name back to original
+	 *
+	 * @param escapedExtGroupName group name which has been escaped
+	 * @return original group name
+	 */
+	private String unEscapeExternalGroupShortName(String escapedExtGroupName) {
+		if (escapedExtGroupName == null) {
+			return null;
+		}
+
+		Pattern escapedCharPattern = Pattern.compile("(_([1-9]+[0-9]*)U)");
+		Matcher m = escapedCharPattern.matcher(escapedExtGroupName);
+		StringBuffer sb = new StringBuffer();
+		while(m.find()) {
+			String characterVal = m.group(2);
+			char replacementCharacter = (char) Integer.parseInt(characterVal);
+
+			// replacement string must be regex escaped
+			String replacementString = Matcher.quoteReplacement(Matcher.quoteReplacement(Character.toString(replacementCharacter)));
+
+			String escapeSequence = Pattern.quote(m.group(1));
+			m.appendReplacement(sb, m.group(0).replaceFirst(escapeSequence, replacementString));
+		}
+		m.appendTail(sb);
+		String unescaped = sb.toString();
+		unescaped = unescaped.replaceAll("_underscore", "_");
+		return unescaped;
 	}
 }
