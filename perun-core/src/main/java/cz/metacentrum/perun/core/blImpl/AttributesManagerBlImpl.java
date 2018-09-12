@@ -163,6 +163,8 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 
 	private final Object dependenciesMonitor = new Object();
 
+	private final static String RESOURCE_MEMBER_STATUS_ATTRIBUTE = AttributesManager.NS_MEMBER_RESOURCE_ATTR_DEF + ":memberStatus";
+
 	/**
 	 * Constructor.
 	 */
@@ -727,6 +729,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, facility, attributesToSet);
 		checkAttributesDependencies(sess, facility, null, attributesToSet);
+
+		//check if changed attributes have effect to members status on Resources assigned to this facility
+		List<Resource> assignedResources = getPerunBl().getFacilitiesManagerBl().getAssignedResources(sess, facility);
+		for (Resource assignedResource: assignedResources) {
+			List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+			for (Member assignedMember: assignedMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+			}
+		}
 	}
 
 	@Override
@@ -759,6 +770,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, vo, attributesToSet);
 		this.checkAttributesDependencies(sess, vo, null, attributesToSet);
+
+		//check if changed attributes has affect to members status on Resources inside this vo
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getResources(sess, vo);
+		for (Resource assignedResource: assignedResources) {
+			List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+			for (Member assignedMember: assignedMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+			}
+		}
 	}
 
 	@Override
@@ -787,6 +807,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, group, attributesToSet);
 		this.checkAttributesDependencies(sess, group, null, attributesToSet);
+
+		//check if changed attributes have effect to group members status on group Resources
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, group);
+		List<Member> assignedMembers = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+		for (Resource assignedResource: assignedResources) {
+			for (Member assignedMember: assignedMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+			}
+		}
 	}
 
 	@Override
@@ -815,6 +844,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, resource, attributesToSet);
 		this.checkAttributesDependencies(sess, resource, null, attributesToSet);
+
+		//check if changed attributes have effect to members status on Resource
+		List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, resource);
+		for (Member assignedMember: assignedMembers) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, assignedMember);
+		}
 	}
 
 	@Override
@@ -866,6 +901,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		// if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, member, group, attributesToSet, workWithUserAttributes);
 		this.checkAttributesDependencies(sess, member, group, attributesToSet, workWithUserAttributes);
+
+		//check if changed attributes have effect to member status on group resources
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+		for (Resource assignedResource: assignedResources) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+		}
 	}
 
 	@Override
@@ -911,6 +952,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, member, attributesToSet, workWithUserAttributes);
 		this.checkAttributesDependencies(sess, member, attributesToSet, workWithUserAttributes);
+
+		//check if changed attributes have effect to member status on Resources
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+		for (Resource assignedResource: assignedResources) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+		}
 	}
 
 
@@ -964,6 +1011,9 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, member, resource, attributesToSet, workWithUserAttributes);
 		this.checkAttributesDependencies(sess, resource, member, attributesToSet, workWithUserAttributes);
+
+		//check if changed attributes has affect to member status on Resource
+		getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
 	}
 
 	@Override
@@ -1004,6 +1054,26 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, facility, resource, user, member, attributesToSet);
 		this.checkAttributesDependencies(sess, resource, member, user, facility, attributesToSet);
+
+		//FIXME asi to nie je korektne kontrolovane...
+		//check if changed attributes have effect to members status on Resources assigned to this facility
+		List<Resource> assignedResources = getPerunBl().getFacilitiesManagerBl().getAssignedResources(sess, facility);
+		List<Member> members = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+
+		if (!members.contains(member)){
+			members.add(member);
+		}
+
+		for (Resource assignedResource: assignedResources) {
+			List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+
+			for (Member memberToRevise: members) {
+
+				if(assignedMembers.contains(memberToRevise)){
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, memberToRevise);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -1046,6 +1116,8 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, facility, resource, group, user, member, attributesToSet);
 		this.checkAttributesDependencies(sess, resource, group, member, user, facility, attributesToSet);
+
+		//TODO member revision?
 	}
 
 	@Override
@@ -1079,6 +1151,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, member, attributesToSet);
 		this.checkAttributesDependencies(sess, member, null, attributesToSet);
+
+		//check if changed attributes have affect to member status on Resources
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+		for (Resource assignedResource: assignedResources) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+		}
 	}
 
 	@Override
@@ -1108,6 +1186,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, facility, user, attributesToSet);
 		this.checkAttributesDependencies(sess, facility, user, attributesToSet);
+
+		//check user members if changed attributes have affect to their status on facility Resources
+		List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+		for (Member member: userMembers) {
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource : assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
+		}
 	}
 
 	@Override
@@ -1141,6 +1228,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, user, attributesToSet);
 		this.checkAttributesDependencies(sess, user, null, attributesToSet);
+
+		//check user members if changed attributes have effect to their status on Resources
+		List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+		for (Member member: userMembers){
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource: assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
+		}
 	}
 
 	@Override
@@ -1200,6 +1296,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, resource, group, attributesToSet);
 		this.checkAttributesDependencies(sess, resource, group, attributesToSet);
+
+		//check if changed resource-group attributes have affected some group member statuses
+		List<Member> members = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+		for (Member member: members) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+		}
 	}
 
 	@Override
@@ -1238,6 +1340,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 			//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 			checkAttributesSemantics(sess, resource, group, attributesToSet, true);
 			this.checkAttributesDependencies(sess, resource, group, attributesToSet, true);
+
+			//check if changed resource-group attributes have affected some group member statuses
+			List<Member> members = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+			for (Member member: members) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+			}
 		}
 	}
 
@@ -1272,6 +1380,23 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//if checkAttributesSemantics fails it causes rollback so no attribute will be stored
 		checkAttributesSemantics(sess, ues, attributesToSet);
 		this.checkAttributesDependencies(sess, ues, null, attributesToSet);
+
+		User user = null;
+		try{
+			user = getPerunBl().getUsersManagerBl().getUserByUserExtSource(sess, ues);
+		} catch(UserNotExistsException ex){
+			//We can ignore that
+		}
+		if (user != null){
+			//check user members if changed attribute has affect to their status on Resources
+			List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+			for (Member member: userMembers){
+				List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+				for (Resource assignedResource: assignedResources) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+				}
+			}
+		}
 	}
 
 	private void setCoreAttributeWithoutCheck(PerunSession sess, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
@@ -1799,6 +1924,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, facility, attribute)) {
 			checkAttributeSemantics(sess, facility, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(facility, null, attribute));
+
+			//check if changed attribute has effect to members status on Resources assigned to this facility
+			List<Resource> assignedResources = getPerunBl().getFacilitiesManagerBl().getAssignedResources(sess, facility);
+			for (Resource assignedResource: assignedResources) {
+				List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+				for (Member assignedMember: assignedMembers) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+				}
+			}
 		}
 	}
 
@@ -1832,6 +1966,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, vo, attribute)) {
 			checkAttributeSemantics(sess, vo, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(vo, null, attribute));
+
+			//check if changed attribute has affect to members status on Resources inside this vo
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getResources(sess, vo);
+			for (Resource assignedResource: assignedResources) {
+				List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+				for (Member assignedMember: assignedMembers) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+				}
+			}
 		}
 	}
 
@@ -1865,6 +2008,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, group, attribute)) {
 			checkAttributeSemantics(sess, group, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(group, null, attribute));
+
+			//check if changed attribute has affect to group members status on group Resources
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, group);
+			List<Member> assignedMembers = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+			for (Resource assignedResource: assignedResources) {
+				for (Member assignedMember: assignedMembers) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+				}
+			}
 		}
 	}
 
@@ -1884,6 +2036,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, resource, attribute)) {
 			checkAttributeSemantics(sess, resource, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(resource, null, attribute));
+
+			//check if changed attribute has affect to members status on Resource
+			List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, resource);
+			for (Member assignedMember: assignedMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, assignedMember);
+			}
 		}
 	}
 
@@ -1943,6 +2101,13 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, member, resource, attribute, false)) {
 			checkAttributeSemantics(sess, member, resource, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(resource, member, attribute));
+
+			//Firstly we have to check if changed attribute is not memberStatus attribute,
+			//it would cause StackOwerflow exception due to calling memberRevision recursivly
+			if(!attribute.getName().equals(RESOURCE_MEMBER_STATUS_ATTRIBUTE)){
+				//check if changed attribute has affect to member status on Resource
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+			}
 		}
 	}
 
@@ -1957,6 +2122,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, member, group, attribute, false)) {
 			checkAttributeSemantics(sess, member, group, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(member, group, attribute));
+
+			//check if changed attribute has affect to member status on group resources
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource: assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
 		}
 	}
 
@@ -2093,6 +2264,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, member, attribute)) {
 			checkAttributeSemantics(sess, member, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(member, null, attribute));
+
+			//check if changed attribute has affect to member status on Resources
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource: assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
 		}
 	}
 
@@ -2139,6 +2316,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, facility, user, attribute)) {
 			checkAttributeSemantics(sess, facility, user, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(facility, user, attribute));
+
+			//check user members if changed attribute has affect to their status on facility Resources
+			List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+			for (Member member: userMembers) {
+				List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+				for (Resource assignedResource : assignedResources) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+				}
+			}
 		}
 	}
 
@@ -2153,6 +2339,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, user, attribute)) {
 			checkAttributeSemantics(sess, user, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(user, null, attribute));
+
+			//check user members if changed attribute has affect to their status on Resources
+			List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+			for (Member member: userMembers){
+				List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+				for (Resource assignedResource: assignedResources) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+				}
+			}
 		}
 	}
 
@@ -2227,6 +2422,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, resource, group, attribute)) {
 			checkAttributeSemantics(sess, resource, group, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(resource, group, attribute));
+
+			//check if changed resource-group attribute has affected some resource member statuses
+			List<Member> members = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+			for (Member member: members) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+			}
 		}
 	}
 
@@ -2321,6 +2522,18 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, key, attribute)) {
 			checkAttributeSemantics(sess, key, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(key, null, attribute));
+
+			//check if changed entitiless atribute has affected some resource member status under all facilities
+			List<Facility> facilities = getPerunBl().getFacilitiesManagerBl().getFacilities(sess);
+			for (Facility facility: facilities) {
+				List<Resource> resources = getPerunBl().getFacilitiesManagerBl().getAssignedResources(sess, facility);
+				for (Resource resource: resources) {
+					List<Member> members = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, resource);
+					for (Member member: members) {
+						getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+					}
+				}
+			}
 		}
 	}
 
@@ -2335,6 +2548,23 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (setAttributeWithoutCheck(sess, ues, attribute)) {
 			checkAttributeSemantics(sess, ues, attribute);
 			this.checkAttributeDependencies(sess, new RichAttribute<>(ues, null, attribute));
+
+			User user = null;
+			try{
+				user = getPerunBl().getUsersManagerBl().getUserByUserExtSource(sess, ues);
+			} catch(UserNotExistsException ex){
+				//We can ignore that
+			}
+			if (user != null){
+				//check user members if changed attribute has affect to their status on Resources
+				List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+				for (Member member: userMembers){
+					List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+					for (Resource assignedResource: assignedResources) {
+						getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+					}
+				}
+			}
 		}
 	}
 
@@ -4178,6 +4408,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 	public void removeAllMemberResourceAttributes(PerunSession sess, Resource resource) throws InternalErrorException {
 		this.attributesManagerImpl.removeAllMemberResourceAttributes(sess, resource);
 		this.getPerunBl().getAuditer().log(sess, new AllMemberResourceAttributesRemovedForMembers(resource));
+
+		//check if removed attributes have affect to members status on Resource
+		List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, resource);
+		for (Member assignedMember: assignedMembers) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, assignedMember);
+		}
 	}
 
 	@Override
@@ -4188,6 +4424,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		this.attributesManagerImpl.removeAllGroupResourceAttributes(sess, resource);
 		this.getPerunBl().getAuditer().log(sess, new AllGroupResourceAttributesRemovedForGroups(resource));
+
+		//check if removed attributes have affect to members status on Resource
+		List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, resource);
+		for (Member assignedMember: assignedMembers) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, assignedMember);
+		}
 	}
 
 	@Override
@@ -4195,6 +4437,18 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (removeAttributeWithoutCheck(sess, key, attribute)) {
 			this.checkAttributeSemantics(sess, key, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(key, null, new Attribute(attribute)));
+
+			//check if removed entitiless atribute has affected some resource member status under all facilities
+			List<Facility> facilities = getPerunBl().getFacilitiesManagerBl().getFacilities(sess);
+			for (Facility facility: facilities) {
+				List<Resource> resources = getPerunBl().getFacilitiesManagerBl().getAssignedResources(sess, facility);
+				for (Resource resource: resources) {
+					List<Member> members = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, resource);
+					for (Member member: members) {
+						getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+					}
+				}
+			}
 		}
 	}
 
@@ -4217,6 +4471,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (removeAttributeWithoutCheck(sess, facility, attribute)) {
 			this.checkAttributeSemantics(sess, facility, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(facility, null, new Attribute(attribute)));
+
+			//check if removed attribute has effect to member status on Resources assigned to this facility
+			List<Resource> assignedResources = getPerunBl().getFacilitiesManagerBl().getAssignedResources(sess, facility);
+			for (Resource assignedResource: assignedResources) {
+				List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+				for (Member assignedMember: assignedMembers) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+				}
+			}
 		}
 	}
 
@@ -4251,6 +4514,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 			this.checkAttributesSemantics(sess, member, attributesFromDefinitions(attributesToCheck), true);
 			//noinspection ConstantConditions
 			this.checkAttributesDependencies(sess, member, attributesFromDefinitions(attributesToCheck), workWithUserAttributes);
+
+			//check if removed attributes have effect to member status on resources
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource: assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
 		}
 	}
 
@@ -4266,6 +4535,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		this.checkAttributesSemantics(sess, facility, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, facility, null, attributesFromDefinitions(attributesToCheck));
+
+		//check if removed attributes have effect to members status on Resources assigned to this facility
+		List<Resource> assignedResources = getPerunBl().getFacilitiesManagerBl().getAssignedResources(sess, facility);
+		for (Resource assignedResource: assignedResources) {
+			List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+			for (Member assignedMember: assignedMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+			}
+		}
 	}
 
 	@Override
@@ -4292,6 +4570,25 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		this.checkAttributesSemantics(sess, facility, resource, user, member, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, resource, member, user, facility, attributesFromDefinitions(attributesToCheck));
+
+		//check if removed attributes have effect to members status on Resources assigned to this facility
+		List<Resource> assignedResources = getPerunBl().getFacilitiesManagerBl().getAssignedResources(sess, facility);
+		List<Member> members = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+
+		if (!members.contains(member)){
+			members.add(member);
+		}
+
+		for (Resource assignedResource: assignedResources) {
+			List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+
+			for (Member memberToRevise: members) {
+
+				if(assignedMembers.contains(memberToRevise)){
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, memberToRevise);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -4321,6 +4618,8 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		this.checkAttributesSemantics(sess, facility, resource, group, user, member, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, resource, group, member, user, facility, attributesFromDefinitions(attributesToCheck));
+
+		//TODO member revision?
 	}
 
 	@Override
@@ -4338,9 +4637,19 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		} catch (WrongAttributeAssignmentException ex) {
 			throw new ConsistencyErrorException(ex);
 		}
+
 		for (Attribute attribute : attributes) {
 			getAttributesManagerImpl().changedAttributeHook(sess, facility, new Attribute(attribute));
 		}
+
+			//check if removed attributes have effect to members status on Resources assigned to this facility
+			List<Resource> assignedResources = getPerunBl().getFacilitiesManagerBl().getAssignedResources(sess, facility);
+			for (Resource assignedResource: assignedResources) {
+				List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+				for (Member assignedMember: assignedMembers) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+				}
+			}
 	}
 
 	@Override
@@ -4360,7 +4669,6 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 				getPerunBl().getAuditer().log(sess, new AllUserFacilityAttributesRemoved(facility));
 			}
 			log.info("{} removed all attributes from any user on facility {}.",sess.getLogId(), facility.getId());
-
 			for (Attribute attribute : userFacilityAttributes) attribute.setValue(null);
 			List<User> facilityUsers = perunBl.getFacilitiesManagerBl().getAllowedUsers(sess, facility);
 			for (User user : facilityUsers) {
@@ -4373,6 +4681,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 				for (Attribute attribute : userFacilityAttributes) {
 					getAttributesManagerImpl().changedAttributeHook(sess, facility, user, new Attribute(attribute));
 				}
+			}
+		}
+
+		//check if removed attributes have effect to members status on Resources assigned to this facility
+		List<Resource> assignedResources = getPerunBl().getFacilitiesManagerBl().getAssignedResources(sess, facility);
+		for (Resource assignedResource: assignedResources) {
+			List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+			for (Member assignedMember: assignedMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
 			}
 		}
 	}
@@ -4450,6 +4767,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (removeAttributeWithoutCheck(sess, vo, attribute)) {
 			checkAttributeSemantics(sess, vo, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(vo, null, new Attribute(attribute)));
+
+			//check if removed attribute has affect to members status on Resources inside this vo
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getResources(sess, vo);
+			for (Resource assignedResource: assignedResources) {
+				List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+				for (Member assignedMember: assignedMembers) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+				}
+			}
 		}
 	}
 
@@ -4480,6 +4806,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		checkAttributesSemantics(sess, vo, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, vo, null, attributesFromDefinitions(attributesToCheck));
+
+		//check if removed attributes have effect to members status on Resources inside this vo
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getResources(sess, vo);
+		for (Resource assignedResource: assignedResources) {
+			List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+			for (Member assignedMember: assignedMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+			}
+		}
 	}
 
 	@Override
@@ -4501,6 +4836,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		for (Attribute attribute : attributes) {
 			getAttributesManagerImpl().changedAttributeHook(sess, vo, new Attribute(attribute));
 		}
+
+		//check if removed attributes have effect to members status on Resources inside this vo
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getResources(sess, vo);
+		for (Resource assignedResource: assignedResources) {
+			List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, assignedResource);
+			for (Member assignedMember: assignedMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+			}
+		}
 	}
 
 	@Override
@@ -4508,6 +4852,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (removeAttributeWithoutCheck(sess, group, attribute)) {
 			checkAttributeSemantics(sess, group, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(group, null, new Attribute(attribute)));
+
+			//check if removed attribute has affect to group members status on group Resources
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, group);
+			List<Member> assignedMembers = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+			for (Resource assignedResource: assignedResources) {
+				for (Member assignedMember: assignedMembers) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+				}
+			}
 		}
 	}
 
@@ -4542,6 +4895,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		checkAttributesSemantics(sess, group, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, group, null, attributesFromDefinitions(attributesToCheck));
+
+		//check if removed attributes have effect to group members status on group Resources
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, group);
+		List<Member> assignedMembers = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+		for (Resource assignedResource: assignedResources) {
+			for (Member assignedMember: assignedMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+			}
+		}
 	}
 
 	@Override
@@ -4567,6 +4929,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 				throw new InternalErrorException(ex);
 			}
 		}
+
+		//check if removed attributes have effect to group members status on group Resources
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, group);
+		List<Member> assignedMembers = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+		for (Resource assignedResource: assignedResources) {
+			for (Member assignedMember: assignedMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, assignedMember);
+			}
+		}
 	}
 
 	@Override
@@ -4575,6 +4946,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (changed) {
 			checkAttributeSemantics(sess, resource, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(resource, null, new Attribute(attribute)));
+
+			//check if removed attribute has affect to members status on Resource
+			List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, resource);
+			for (Member assignedMember: assignedMembers) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, assignedMember);
+			}
 		}
 		return changed;
 	}
@@ -4615,6 +4992,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		checkAttributesSemantics(sess, resource, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, resource, null, attributesFromDefinitions(attributesToCheck));
+
+		//check if removed attributes have effect to members status on Resource
+		List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, resource);
+		for (Member assignedMember: assignedMembers) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, assignedMember);
+		}
 	}
 
 	@Override
@@ -4644,6 +5027,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 				throw new InternalErrorException(ex);
 			}
 		}
+
+		//check if removed attributes have effect to members status on Resource
+		List<Member> assignedMembers = getPerunBl().getResourcesManagerBl().getAssignedMembers(sess, resource);
+		for (Member assignedMember: assignedMembers) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, assignedMember);
+		}
 	}
 
 	@Override
@@ -4651,6 +5040,9 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (removeAttributeWithoutCheck(sess, member, resource, attribute)) {
 			checkAttributeSemantics(sess, member, resource, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(resource, member, new Attribute(attribute)));
+
+			//check if removed attribute has affect to member status on Resource
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
 		}
 	}
 
@@ -4682,6 +5074,9 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		checkAttributesSemantics(sess, member, resource, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, resource, member, attributesFromDefinitions(attributesToCheck));
+
+		//check if changed attribute has affect to member status on Resource
+		getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
 	}
 
 	private void removeAttributes(PerunSession sess, Resource resource, Member member, List<? extends AttributeDefinition> attributes, boolean workWithUserAttributes) throws InternalErrorException, WrongAttributeAssignmentException, WrongAttributeValueException, WrongReferenceAttributeValueException, MemberResourceMismatchException {
@@ -4710,6 +5105,9 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 			}
 			checkAttributesSemantics(sess, member, resource, attributesFromDefinitions(attributesToCheck), true);
 			this.checkAttributesDependencies(sess, resource, member, attributesFromDefinitions(attributesToCheck), true);
+
+			//check if changed attribute has affect to member status on Resource
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
 		}
 	}
 
@@ -4729,6 +5127,9 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 			throw new ConsistencyErrorException(ex);
 		}
 
+		//check if changed attribute has affect to member status on Resource
+		getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+
 		for (Attribute attribute : attributes) {
 			getAttributesManagerImpl().changedAttributeHook(sess, member, resource, new Attribute(attribute));
 		}
@@ -4739,6 +5140,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (removeAttributeWithoutCheck(sess, member, group, attribute)) {
 			checkAttributeSemantics(sess, member, group, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(member, group, new Attribute(attribute)));
+
+			//check if removed attribute has affect to member status on group resources
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource: assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
 		}
 	}
 
@@ -4775,7 +5182,6 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 				}
 			}
 			checkAttributesSemantics(sess, member, group, attributesFromDefinitions(attributesToCheck));
-			this.checkAttributesDependencies(sess, member, group, attributesFromDefinitions(attributesToCheck));
 		} else {
 			List<AttributeDefinition> attributesToCheck = new ArrayList<>();
 			for (AttributeDefinition attribute : attributes) {
@@ -4796,6 +5202,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 			checkAttributesSemantics(sess, member, group, attributesFromDefinitions(attributesToCheck), true);
 			this.checkAttributesDependencies(sess, member, group, attributesFromDefinitions(attributesToCheck), true);
 		}
+
+		//check if removed attributes has effect to member status on group resources
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+		for (Resource assignedResource: assignedResources) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+		}
 	}
 
 	@Override
@@ -4813,6 +5225,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 			throw new ConsistencyErrorException(ex);
 		}
 
+		//check if removed attributes has effect to member status on group resources
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+		for (Resource assignedResource: assignedResources) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+		}
+
 		for (Attribute attribute : attributes) {
 			getAttributesManagerImpl().changedAttributeHook(sess, member, group, new Attribute(attribute));
 		}
@@ -4823,6 +5241,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (removeAttributeWithoutCheck(sess, member, attribute)) {
 			checkAttributeSemantics(sess, member, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(member, null, new Attribute(attribute)));
+
+			//check if removed attribute has effect to member status on resources
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource: assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
 		}
 	}
 
@@ -4860,6 +5284,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		checkAttributesSemantics(sess, member, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, member, null, attributesFromDefinitions(attributesToCheck));
+
+		//check if removed attributes have effect to member status on Resources
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+		for (Resource assignedResource: assignedResources) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+		}
 	}
 
 	@Override
@@ -4885,6 +5315,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 				throw new InternalErrorException(ex);
 			}
 		}
+
+		//check if removed attributes have effect to member status on Resources
+		List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+		for (Resource assignedResource: assignedResources) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+		}
 	}
 
 	@Override
@@ -4892,6 +5328,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (removeAttributeWithoutCheck(sess, facility, user, attribute)) {
 			checkAttributeSemantics(sess, facility, user, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(facility, user, new Attribute(attribute)));
+
+			//check user members if removedged attribute has affect to their status on facility Resources
+			List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+			for (Member member: userMembers) {
+				List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+				for (Resource assignedResource : assignedResources) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+				}
+			}
 		}
 	}
 
@@ -4933,6 +5378,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		checkAttributesSemantics(sess, facility, user, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, facility, user, attributesFromDefinitions(attributesToCheck));
+
+		//check user members if removed attributes have effect to their status on facility Resources
+		List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+		for (Member member: userMembers) {
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource : assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
+		}
 	}
 
 	@Override
@@ -4963,6 +5417,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		for (Attribute attribute : attributes) {
 			getAttributesManagerImpl().changedAttributeHook(sess, facility, user, new Attribute(attribute));
 		}
+
+		//check user members if removed attributes have effect to their status on facility Resources
+		List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+		for (Member member: userMembers) {
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource : assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
+		}
 	}
 
 	@Override
@@ -4984,8 +5447,18 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 				throw new ConsistencyErrorException(ex);
 			}
 		}
+
 		for (RichAttribute<User, Facility> attribute : userFacilitiesAttributes) {
 			getAttributesManagerImpl().changedAttributeHook(sess, attribute.getSecondaryHolder(), attribute.getPrimaryHolder(), new Attribute(attribute.getAttribute()));
+		}
+
+		//check user members if removed attributes have effect to their status on facility Resources
+		List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+		for (Member member: userMembers) {
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource : assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
 		}
 	}
 
@@ -4994,6 +5467,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (removeAttributeWithoutCheck(sess, user, attribute)) {
 			checkAttributeSemantics(sess, user, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(user, null, new Attribute(attribute)));
+
+			//check user members if removed attribute has affect to their status on Resources
+			List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+			for (Member member: userMembers){
+				List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+				for (Resource assignedResource: assignedResources) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+				}
+			}
 		}
 	}
 
@@ -5028,6 +5510,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		checkAttributesSemantics(sess, user, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, user, null, attributesFromDefinitions(attributesToCheck));
+
+		//check user members if changed attributes have effect to their status on Resources
+		List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+		for (Member member: userMembers){
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource: assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
+		}
 	}
 
 	@Override
@@ -5053,6 +5544,15 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 				throw new InternalErrorException(ex);
 			}
 		}
+
+		//check user members if changed attributes have effect to their status on Resources
+		List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+		for (Member member: userMembers){
+			List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+			for (Resource assignedResource: assignedResources) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+			}
+		}
 	}
 
 	@Override
@@ -5060,6 +5560,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (removeAttributeWithoutCheck(sess, resource, group, attribute)) {
 			checkAttributeSemantics(sess, resource, group, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(resource, group, new Attribute(attribute)));
+
+			//check if removed resource-group attribute has affected some resource member statuses
+			List<Member> members = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+			for (Member member: members) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+			}
 		}
 	}
 
@@ -5091,6 +5597,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		checkAttributesSemantics(sess, resource, group, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, resource, group, attributesFromDefinitions(attributesToCheck));
+
+		//check if changed resource-group attributes have affected some resource member statuses
+		List<Member> members = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+		for (Member member: members) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+		}
 	}
 
 	@Override
@@ -5117,6 +5629,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 			}
 			checkAttributesSemantics(sess, resource, group, attributesFromDefinitions(attributesToCheck), true);
 			this.checkAttributesDependencies(sess, resource, group, attributesFromDefinitions(attributesToCheck), true);
+
+			//check if changed resource-group attributes have affected some group member statuses
+			List<Member> members = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+			for (Member member: members) {
+				getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+			}
 		}
 	}
 
@@ -5145,6 +5663,12 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		for (Attribute attribute : attributes) {
 			getAttributesManagerImpl().changedAttributeHook(sess, resource, group, new Attribute(attribute));
 		}
+
+		//check if changed resource-group attributes have affected some group member statuses
+		List<Member> members = getPerunBl().getGroupsManagerBl().getGroupMembers(sess, group);
+		for (Member member: members) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+		}
 	}
 
 	@Override
@@ -5152,6 +5676,23 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		if (removeAttributeWithoutCheck(sess, ues, attribute)) {
 			checkAttributeSemantics(sess, ues, new Attribute(attribute));
 			this.checkAttributeDependencies(sess, new RichAttribute<>(ues, null, new Attribute(attribute)));
+
+			User user = null;
+			try{
+				user = getPerunBl().getUsersManagerBl().getUserByUserExtSource(sess, ues);
+			} catch(UserNotExistsException ex){
+				//We can ignore that
+			}
+			if (user != null){
+				//check user members if changed attribute has affect to their status on Resources
+				List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+				for (Member member: userMembers){
+					List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+					for (Resource assignedResource: assignedResources) {
+						getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+					}
+				}
+			}
 		}
 	}
 
@@ -5181,6 +5722,23 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		}
 		checkAttributesSemantics(sess, ues, attributesFromDefinitions(attributesToCheck));
 		this.checkAttributesDependencies(sess, ues, null, attributesFromDefinitions(attributesToCheck));
+
+		User user = null;
+		try{
+			user = getPerunBl().getUsersManagerBl().getUserByUserExtSource(sess, ues);
+		} catch(UserNotExistsException ex){
+			//We can ignore that
+		}
+		if (user != null){
+			//check user members if changed attribute has affect to their status on Resources
+			List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+			for (Member member: userMembers){
+				List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+				for (Resource assignedResource: assignedResources) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+				}
+			}
+		}
 	}
 
 	@Override
@@ -5201,6 +5759,23 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 
 		for (Attribute attribute : attributes) {
 			getAttributesManagerImpl().changedAttributeHook(sess, ues, new Attribute(attribute));
+		}
+
+		User user = null;
+		try{
+			user = getPerunBl().getUsersManagerBl().getUserByUserExtSource(sess, ues);
+		} catch(UserNotExistsException ex){
+			//We can ignore that
+		}
+		if (user != null){
+			//check user members if changed attribute has affect to their status on Resources
+			List<Member> userMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
+			for (Member member: userMembers){
+				List<Resource> assignedResources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, member);
+				for (Resource assignedResource: assignedResources) {
+					getPerunBl().getResourcesManagerBl().memberRevision(sess, assignedResource, member);
+				}
+			}
 		}
 	}
 

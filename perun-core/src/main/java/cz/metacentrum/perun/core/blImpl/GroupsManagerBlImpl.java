@@ -914,6 +914,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			// recalculate member group state
 			recalculateMemberGroupStatusRecursively(sess, member, group);
 		}
+		reviseMemberToGroupResources(sess, member, group);
 	}
 
 	/**
@@ -944,7 +945,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		membersToAdd.removeAll(oldMembers);
 
 		for (Member member : membersToAdd) {
-			setRequiredAttributes(sess, member, group);
+			reviseMemberToGroupResources(sess, member, group);
 			getPerunBl().getAuditer().log(sess, new IndirectMemberAddedToGroup(member, group));
 		}
 
@@ -4933,9 +4934,26 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		if (allowedStatus == null) throw new InternalErrorException("Allowed status can't be null.");
 		List<Member> filteredMembers = new ArrayList<>();
 		if (membersToFilter == null || membersToFilter.isEmpty()) return filteredMembers;
-		for(Member member: membersToFilter) {
+		for (Member member : membersToFilter) {
 			if (allowedStatus.equals(member.getGroupStatus())) filteredMembers.add(member);
 		}
 		return filteredMembers;
+	}
+
+	/**
+	 * Get all group resources and revise member on them.
+	 * If member has set all required attributes correctly (on resource), he will be approved (on that resource).
+	 * Otherwise will be disapproved (on that resource).
+	 *
+	 * @param sess perun session
+	 * @param member member who will be revised
+	 * @param group group from which we obtain resources
+	 * @throws InternalErrorException
+	 */
+	private void reviseMemberToGroupResources(PerunSession sess, Member member, Group group) throws InternalErrorException {
+		List<Resource> resources = getPerunBl().getResourcesManagerBl().getAssignedResources(sess, group);
+		for (Resource resource : resources) {
+			getPerunBl().getResourcesManagerBl().memberRevision(sess, resource, member);
+		}
 	}
 }

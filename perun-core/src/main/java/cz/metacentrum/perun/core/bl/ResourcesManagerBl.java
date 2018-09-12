@@ -1081,4 +1081,13 @@ public interface ResourcesManagerBl {
 	 * @throws InternalErrorException internal error
 	 */
 	void removeResourceSelfServiceGroup(PerunSession sess, Resource resource, Group group) throws GroupNotAdminException, InternalErrorException;
+	/**
+	 * Revise member. He is set as Disapproved by default and if he has filled all required attributes correctly, we set him as Approved
+	 *
+	 * @param perunSession
+	 * @param resource
+	 * @param member
+	 * @throws InternalErrorException
+	 */
+	void memberRevision(PerunSession perunSession, Resource resource, Member member) throws InternalErrorException;
 }

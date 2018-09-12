@@ -38,6 +38,10 @@ import java.util.List;
  */
 public interface ResourcesManager {
 
+	String APPROVED = "Approved";
+	String DISAPPROVED = "Disapproved";
+	String MEMBER_STATUS = AttributesManager.NS_MEMBER_RESOURCE_ATTR_DEF + ":memberStatus";
+
 	/**
 	 * Searches for the Resource with specified id.
 	 *

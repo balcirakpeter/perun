@@ -138,6 +138,7 @@ public class ResourcesManagerImpl implements ResourcesManagerImplApi {
 	};
 
 	protected static final RichResourceExtractor RICH_RESOURCE_WITH_TAGS_EXTRACTOR = new RichResourceExtractor();
+	protected static final String APPROVED = "Approved";
 
 	private static class RichResourceExtractor implements ResultSetExtractor<List<RichResource>> {
 
@@ -369,7 +370,7 @@ public class ResourcesManagerImpl implements ResourcesManagerImplApi {
 			return jdbc.query("select distinct " + MembersManagerImpl.memberMappingSelectQuery + " from groups_resources join groups on groups_resources.group_id=groups.id" +
 					" join groups_members on groups.id=groups_members.group_id join members on groups_members.member_id=members.id " +
 					" where groups_resources.resource_id=? and members.status!=? and members.status!=?", MembersManagerImpl.MEMBERS_WITH_GROUP_STATUSES_SET_EXTRACTOR, resource.getId(),
-					String.valueOf(Status.INVALID.getCode()), String.valueOf(Status.DISABLED.getCode()));
+					APPROVED, String.valueOf(Status.DISABLED.getCode()));
 		} catch (EmptyResultDataAccessException e) {
 			return new ArrayList<>();
 		} catch (RuntimeException e) {
