@@ -57,4 +57,20 @@ public interface ResourceAttributesModuleImplApi extends AttributesModuleImplApi
 	 * @param attribute the attribute
 	 */
 	void changedAttributeHook(PerunSessionImpl session, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
+	/**
+	 * Checks if syntax of this resource attribute is valid.
+	 *
+	 * @param perunSession perun session
+	 * @param resource     resource for which you want to check syntax of attribute
+	 * @param attribute    attribute to check
+	 * @throws InternalErrorException                if an exception is raised in particular
+	 *                                               implementation, the exception is wrapped in InternalErrorException
+	 * @throws WrongAttributeValueException          if the attribute syntax is wrong / illegal
+	 * @throws WrongReferenceAttributeValueException if an referenced attribute against
+	 *                                               the parameter one is to be compared is not available
+	 * @throws WrongAttributeAssignmentException
+	 */
+	void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
 }

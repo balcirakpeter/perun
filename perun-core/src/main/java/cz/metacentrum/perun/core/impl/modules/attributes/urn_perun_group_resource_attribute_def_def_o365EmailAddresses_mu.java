@@ -62,18 +62,8 @@ public class urn_perun_group_resource_attribute_def_def_o365EmailAddresses_mu ex
 		Object value = attribute.getValue();
 		if (value == null) {
 			emails = new ArrayList<>();
-		} else if (value instanceof List) {
-			//noinspection unchecked
-			emails = (ArrayList<String>) value;
 		} else {
-			throw new WrongAttributeValueException(attribute, resource, group, "is of type " + value.getClass() + ", but should be ArrayList");
-		}
-
-		//check syntax of all values
-		for (String email : emails) {
-			Matcher emailMatcher = emailPattern.matcher(email);
-			if (!emailMatcher.matches())
-				throw new WrongAttributeValueException(attribute, resource, group, "Email " + email + " is not in correct form.");
+			emails = (ArrayList<String>) value;
 		}
 
 		//at least one value if adName is set
@@ -108,9 +98,26 @@ public class urn_perun_group_resource_attribute_def_def_o365EmailAddresses_mu ex
 		}
 	}
 
-	/**
-	 * Prefills value created by joining value of urn:perun:group_resource:attribute-def:def:adName with "@group.muni.cz"
-	 */
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+		Object value = attribute.getValue();
+		if (value == null) {
+			return;
+		} else if (!(value instanceof List)) {
+			throw new WrongAttributeValueException(attribute, resource, group, "is of type " + value.getClass() + ", but should be ArrayList");
+		} else {
+			for (String email : (ArrayList<String>) value) {
+				Matcher emailMatcher = emailPattern.matcher(email);
+				if (!emailMatcher.matches())
+					throw new WrongAttributeValueException(attribute, resource, group, "Email " + email + " is not in correct form.");
+			}
+		}
+	}
+
+		/**
+         * Prefills value created by joining value of urn:perun:group_resource:attribute-def:def:adName with "@group.muni.cz"
+         */
 	@Override
 	public Attribute fillAttribute(PerunSessionImpl sess, Resource resource, Group group, AttributeDefinition attrDef) throws InternalErrorException, WrongAttributeAssignmentException {
 		if (!NAMESPACE.equals(attrDef.getNamespace())) throw new WrongAttributeAssignmentException(attrDef);

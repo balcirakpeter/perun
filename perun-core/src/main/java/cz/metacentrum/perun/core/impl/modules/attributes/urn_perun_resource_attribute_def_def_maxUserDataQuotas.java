@@ -31,9 +31,14 @@ public class urn_perun_resource_attribute_def_def_maxUserDataQuotas extends Reso
 			return;
 		}
 
-		//Check if every part of this map has the right pattern
 		//And also check if every quota part has right settings (softQuota<=hardQuota)
-		perunSession.getPerunBl().getModulesUtilsBl().checkAndTransferQuotas(attribute, resource, null, true);
+		perunSession.getPerunBl().getModulesUtilsBl().transferQuotas(attribute, resource, null, true);
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if(attribute.getValue() == null) return;
+		perunSession.getPerunBl().getModulesUtilsBl().checkQuotas(attribute, true);
 	}
 
 	@Override

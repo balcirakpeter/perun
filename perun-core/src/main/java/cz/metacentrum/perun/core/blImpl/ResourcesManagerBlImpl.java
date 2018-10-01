@@ -436,6 +436,7 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 				List<Attribute> brokenUserFacilityAttributes = new ArrayList<Attribute>();
 				for(Attribute attribute : userFacilityAttributes) {
 					try {
+						getPerunBl().getAttributesManagerBl().checkAttributeSyntax(sess, facility, user, attribute);
 						getPerunBl().getAttributesManagerBl().checkAttributeValue(sess, facility, user, attribute);
 					} catch(WrongAttributeAssignmentException ex) {
 						throw new ConsistencyErrorException(ex);
@@ -523,6 +524,8 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 
 			// call check of facility's resource's member's user's attributes
 			Facility facility = getFacility(sess, resource);
+			attributesManagerBl.checkAttributesSyntax(sess, facility, attributesManagerBl.getRequiredAttributes(sess, facility));
+			attributesManagerBl.checkAttributesSyntax(sess, resource, attributesManagerBl.getRequiredAttributes(sess, resource));
 			attributesManagerBl.checkAttributesValue(sess, facility, attributesManagerBl.getRequiredAttributes(sess, facility));
 			attributesManagerBl.checkAttributesValue(sess, resource, attributesManagerBl.getRequiredAttributes(sess, resource));
 			List<Member> members = getAllowedMembers(sess, resource);

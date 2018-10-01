@@ -46,6 +46,7 @@ public class urn_perun_facility_attribute_def_def_homeMountPointsTest {
 		homeMountPts.add("/mnt/mymountpoint2");
 		attribute.setValue(homeMountPts);
 
+		classInstance.checkAttributeSyntax(session, new Facility(), attribute);
 		classInstance.checkAttributeValue(session, new Facility(), attribute);
 
 	}
@@ -54,6 +55,7 @@ public class urn_perun_facility_attribute_def_def_homeMountPointsTest {
 	public void testCheckAttributeValueEmptyAttribute() throws Exception {
 		System.out.println("testCheckAttributeValueEmptyAttribute()");
 
+		classInstance.checkAttributeSyntax(session, new Facility(), attribute);
 		classInstance.checkAttributeValue(session, new Facility(), attribute);
 	}
 
@@ -65,6 +67,7 @@ public class urn_perun_facility_attribute_def_def_homeMountPointsTest {
 		homeMountPts.add("/mnt/mymountpoin@@t2\n");
 		attribute.setValue(homeMountPts);
 
+		classInstance.checkAttributeSyntax(session, new Facility(), attribute);
 		classInstance.checkAttributeValue(session, new Facility(), attribute);
 	}
 
@@ -73,6 +76,7 @@ public class urn_perun_facility_attribute_def_def_homeMountPointsTest {
 		System.out.println("testCheckAttributeValueNoHomeMountPointsSet()");
 
 		attribute.setValue(new ArrayList<String>());
+		classInstance.checkAttributeSyntax(session, new Facility(), attribute);
 		classInstance.checkAttributeValue(session, new Facility(), attribute);
 	}
 }

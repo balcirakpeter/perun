@@ -75,7 +75,8 @@ public class urn_perun_user_facility_attribute_def_virt_fileQuotas extends Facil
 			if(memberResourceFinalFileQuotasAttribute == null || memberResourceFinalFileQuotasAttribute.getValue() == null) memberResourceFinalFileQuotas = new HashMap<>();
 			else {
 				try {
-					memberResourceFinalFileQuotas = sess.getPerunBl().getModulesUtilsBl().checkAndTransferQuotas(memberResourceFinalFileQuotasAttribute, resource, memberOnResource, false);
+					sess.getPerunBl().getModulesUtilsBl().checkQuotas(memberResourceFinalFileQuotasAttribute, false);
+					memberResourceFinalFileQuotas = sess.getPerunBl().getModulesUtilsBl().transferQuotas(memberResourceFinalFileQuotasAttribute, resource, memberOnResource, false);
 				} catch (WrongAttributeValueException ex) {
 					throw new ConsistencyErrorException("Final counted quotas on " + resource + " for member " + memberOnResource + " are in bad format.", ex);
 				}

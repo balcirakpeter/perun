@@ -55,4 +55,20 @@ public interface VoAttributesModuleImplApi extends AttributesModuleImplApi {
 	 * @param attribute the attribute
 	 */
 	void changedAttributeHook(PerunSessionImpl session, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
+	/**
+	 * Method for checking syntax of Vo attributes.
+	 *
+	 * @param perunSession Perun session
+	 * @param vo           Virtual Organization
+	 * @param attribute    attribute to be checked
+	 * @throws InternalErrorException                if an exception is raised in particular
+	 *                                               implementation, the exception is wrapped in InternalErrorException
+	 * @throws WrongAttributeValueException          if the attribute syntax is wrong/illegal
+	 * @throws WrongReferenceAttributeValueException if an referenced attribute against
+	 *                                               the parameter is to be compared is not available.
+	 * @throws WrongAttributeAssignmentException
+	 */
+	void checkAttributeSyntax(PerunSessionImpl perunSession, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
 }

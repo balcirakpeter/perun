@@ -87,6 +87,7 @@ public class urn_perun_group_resource_attribute_def_def_o365EmailAddresses_muTes
 	public void testCheckType() throws Exception {
 		System.out.println("testCheckType()");
 		attributeToCheck.setValue("AAA");
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, group, attributeToCheck);
 	}
 
@@ -94,6 +95,7 @@ public class urn_perun_group_resource_attribute_def_def_o365EmailAddresses_muTes
 	public void testCheckEmailSyntax() throws Exception {
 		System.out.println("testCheckEmailSyntax()");
 		attributeToCheck.setValue(Lists.newArrayList("my@example.com", "a/-+"));
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, group, attributeToCheck);
 	}
 
@@ -101,6 +103,7 @@ public class urn_perun_group_resource_attribute_def_def_o365EmailAddresses_muTes
 	public void testCheckDuplicates() throws Exception {
 		System.out.println("testCheckDuplicates()");
 		attributeToCheck.setValue(Lists.newArrayList("my@example.com", "aaa@bbb.com", "my@example.com"));
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, group, attributeToCheck);
 	}
 
@@ -108,6 +111,7 @@ public class urn_perun_group_resource_attribute_def_def_o365EmailAddresses_muTes
 	public void testCheckValueExistIfAdNameSetWithNull() throws Exception {
 		System.out.println("testCheckValueExistIfAdNameSetWithNull()");
 		attributeToCheck.setValue(null);
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, group, attributeToCheck);
 	}
 
@@ -117,6 +121,7 @@ public class urn_perun_group_resource_attribute_def_def_o365EmailAddresses_muTes
 		attributeToCheck.setValue(null);
 		when(adNameAttr.getValue()).thenReturn(null);
 		when(am.getPerunBeanIdsForUniqueAttributeValue(eq(session),any(Attribute.class))).thenReturn(Sets.newHashSet());
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, group, attributeToCheck);
 	}
 
@@ -125,6 +130,7 @@ public class urn_perun_group_resource_attribute_def_def_o365EmailAddresses_muTes
 	public void testCheckValueExistIfAdNameSet() throws Exception {
 		System.out.println("testCheckValueExistIfAdNameSet()");
 		attributeToCheck.setValue(Lists.newArrayList());
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, group, attributeToCheck);
 	}
 
@@ -134,8 +140,10 @@ public class urn_perun_group_resource_attribute_def_def_o365EmailAddresses_muTes
 		when(adNameAttr.getValue()).thenReturn(null);
 		when(am.getPerunBeanIdsForUniqueAttributeValue(eq(session),any(Attribute.class))).thenReturn(Sets.newHashSet());
 		attributeToCheck.setValue(Lists.newArrayList());
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, group, attributeToCheck);
 		attributeToCheck.setValue(Lists.newArrayList("my@example.com"));
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, group, attributeToCheck);
 	}
 
@@ -143,10 +151,13 @@ public class urn_perun_group_resource_attribute_def_def_o365EmailAddresses_muTes
 	public void testUniqItself() throws Exception {
 		System.out.println("testUniqItself");
 		attributeToCheck.setValue(new ArrayList<>(Arrays.asList("my@example.com", "my2@google.com")));
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		when(am.getPerunBeanIdsForUniqueAttributeValue(eq(session), argThat(new BeanAttributeMatcher("group_resource"))))
 				.thenReturn(Sets.newHashSet(new Pair<>(group.getId(),resource.getId())));
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		when(am.getPerunBeanIdsForUniqueAttributeValue(eq(session), argThat(new BeanAttributeMatcher("member"))))
 				.thenReturn(Sets.newHashSet());
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, group, attributeToCheck);
 	}
 
@@ -158,6 +169,7 @@ public class urn_perun_group_resource_attribute_def_def_o365EmailAddresses_muTes
 				.thenReturn(Sets.newHashSet(new Pair<>(1000,2000)));
 		when(am.getPerunBeanIdsForUniqueAttributeValue(eq(session), argThat(new BeanAttributeMatcher("member"))))
 				.thenReturn(Sets.newHashSet());
+		classInstance.checkAttributeSyntax(session, resource, group, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, group, attributeToCheck);
 	}
 }

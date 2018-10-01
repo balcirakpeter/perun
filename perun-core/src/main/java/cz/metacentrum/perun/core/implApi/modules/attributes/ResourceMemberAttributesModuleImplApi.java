@@ -61,4 +61,20 @@ public interface ResourceMemberAttributesModuleImplApi extends AttributesModuleI
 	 * @param attribute the attribute
 	 */
 	void changedAttributeHook(PerunSessionImpl session, Member member, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
+	/**
+	 * This method checks Member's attributes syntax at a specified resource.
+	 *
+	 * @param perunSession Perun session
+	 * @param member       Member
+	 * @param resource     Resource
+	 * @param attribute    Attribute to be checked.
+	 * @throws InternalErrorException                if an exception is raised in particular
+	 *                                               implementation, the exception is wrapped in InternalErrorException
+	 * @throws WrongAttributeValueException          if the attribute syntax is wrong/illegal
+	 * @throws WrongReferenceAttributeValueException if an referenced attribute against
+	 *                                               the parameter is to be compared is not available
+	 * @throws WrongAttributeAssignmentException
+	 */
+	void checkAttributeSyntax(PerunSessionImpl perunSession, Member member, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
 }

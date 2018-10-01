@@ -77,17 +77,24 @@ public class urn_perun_resource_attribute_def_def_homeMountPoints extends Resour
 			throw new InternalErrorException(ex);
 		}
 
-		if(facilityAttr.getValue() == null) throw new WrongReferenceAttributeValueException(attribute, facilityAttr, "Reference attribute have null value.");
+		if (facilityAttr.getValue() == null)
+			throw new WrongReferenceAttributeValueException(attribute, facilityAttr, "Reference attribute have null value.");
 
 		if (!((List<String>) facilityAttr.getValue()).containsAll((List<String>) attribute.getValue())) {
 			throw new WrongAttributeValueException(attribute);
 		}
-		List<String> homeMountPoints = (List<String>) attribute.getValue();
-		if (!homeMountPoints.isEmpty()) {
-			for (String st : homeMountPoints) {
-				Matcher match = pattern.matcher(st);
-				if (!match.matches()) {
-					throw new WrongAttributeValueException(attribute, "Bad homeMountPoints attribute format " + st);
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			List<String> homeMountPoints = (List<String>) attribute.getValue();
+			if (!homeMountPoints.isEmpty()) {
+				for (String st : homeMountPoints) {
+					Matcher match = pattern.matcher(st);
+					if (!match.matches()) {
+						throw new WrongAttributeValueException(attribute, "Bad homeMountPoints attribute format " + st);
+					}
 				}
 			}
 		}

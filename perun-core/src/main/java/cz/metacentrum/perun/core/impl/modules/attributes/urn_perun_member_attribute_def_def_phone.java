@@ -31,12 +31,18 @@ public class urn_perun_member_attribute_def_def_phone extends MemberAttributesMo
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		// null attribute
+		if (attribute.getValue() == null) {
+			throw new WrongAttributeValueException(attribute, "User attribute phone cannot be null.");
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		String phone = null;
 
-		// null attribute
-		if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "User attribute phone cannot be null.");
+		if (attribute.getValue() == null) return;
 
-		// wrong type of the attribute
 		if (!(attribute.getValue() instanceof String)) throw new WrongAttributeValueException(attribute, "Wrong type of the attribute. Expected: String");
 
 		phone = (String) attribute.getValue();

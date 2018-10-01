@@ -53,4 +53,18 @@ public interface GroupAttributesModuleImplApi extends AttributesModuleImplApi{
 	 * @param attribute the attribute
 	 */
 	void changedAttributeHook(PerunSessionImpl session, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
+	/**
+	 * Checks if syntax of this attribute is valid.
+	 *
+	 * @param perunSession perun session
+	 * @param group        group
+	 * @param attribute    attribute to check
+	 * @throws InternalErrorException            if an exception is raised in particular
+	 *                                           implementation, the exception is wrapped in InternalErrorException
+	 * @throws WrongAttributeValueException      if the attribute syntax is wrong/illegal
+	 * @throws WrongAttributeAssignmentException
+	 */
+	void checkAttributeSyntax(PerunSessionImpl perunSession, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException;
+
 }

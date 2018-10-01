@@ -48,9 +48,6 @@ public class urn_perun_resource_attribute_def_def_unixGroupName_namespace extend
 			throw new WrongAttributeValueException(attribute, "Attribute groupName-namespace for resourece can't be null.");
 		}
 
-		//Check attribute regex
-		sess.getPerunBl().getModulesUtilsBl().checkAttributeRegex(attribute, "^[-_.a-zA-Z0-9]+$");
-
 		//Check reserved unix group names
 		sess.getPerunBl().getModulesUtilsBl().checkReservedUnixGroupNames(attribute);
 
@@ -115,6 +112,14 @@ public class urn_perun_resource_attribute_def_def_unixGroupName_namespace extend
 	}
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() == null) return;
+
+		//Check attribute regex
+		sess.getPerunBl().getModulesUtilsBl().checkAttributeRegex(attribute, "^[-_.a-zA-Z0-9]+$");
+	}
+
+		@Override
 	public void changedAttributeHook(PerunSessionImpl session, Resource resource, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
 		//Need to know if this is remove or set, if value is null, its remove, otherway it is set
 		String groupNameNamespace = attribute.getFriendlyNameParameter();

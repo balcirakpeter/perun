@@ -33,13 +33,13 @@ public class urn_perun_member_attribute_def_def_membershipExpiration extends Mem
 	 * matches with regular expression yyyy-MM-dd
 	 */
 	@Override
-	public void checkAttributeValue(PerunSessionImpl perunSession, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
 
 		String membershipExpTime = (String) attribute.getValue();
 
-		if(membershipExpTime == null) return; // NULL is ok
+		if(membershipExpTime == null) return;
 
-		Date testDate = null;
+		Date testDate;
 
 		try {
 			testDate = BeansUtils.getDateFormatterWithoutTime().parse(membershipExpTime);

@@ -60,4 +60,20 @@ public interface UserExtSourceAttributesModuleImplApi extends AttributesModuleIm
 	 * @throws cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentException
 	 */
 	void changedAttributeHook(PerunSessionImpl session, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
+	/**
+	 * This method checks syntax of UserExtSource attributes.
+	 *
+	 * @param perunSession Perun session
+	 * @param ues
+	 * @param attribute    Attribute to be checked.
+	 * @throws InternalErrorException                if an exception is raised in particular
+	 *                                               implementation, the exception is wrapped in InternalErrorException
+	 * @throws WrongAttributeValueException          if the attribute syntax is wrong/illegal
+	 * @throws WrongReferenceAttributeValueException if an referenced attribute against
+	 *                                               the parameter is to be compared is not available
+	 * @throws WrongAttributeAssignmentException
+	 */
+	void checkAttributeSyntax(PerunSessionImpl perunSession, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
 }

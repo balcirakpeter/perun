@@ -21,6 +21,11 @@ public class urn_perun_resource_attribute_def_def_mailingListManagerEmail extend
 		if (attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, "Attribute value is null.");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException{
+		if (attribute.getValue() == null) return;
 
 		perunSession.getPerunBl().getModulesUtilsBl().isNameOfEmailValid(perunSession, (String)attribute.getValue());
 

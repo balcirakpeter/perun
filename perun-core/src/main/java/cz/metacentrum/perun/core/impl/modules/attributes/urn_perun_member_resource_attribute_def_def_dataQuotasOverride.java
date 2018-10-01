@@ -29,10 +29,16 @@ public class urn_perun_member_resource_attribute_def_def_dataQuotasOverride exte
 		if(attribute.getValue() == null) {
 			return;
 		}
+		//And also check if every quota part has right settings (softQuota<=hardQuota)
+		perunSession.getPerunBl().getModulesUtilsBl().transferQuotas(attribute, resource, member, true);
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Member member, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if(attribute.getValue() == null) return;
 
 		//Check if every part of this map has the right pattern
-		//And also check if every quota part has right settings (softQuota<=hardQuota)
-		perunSession.getPerunBl().getModulesUtilsBl().checkAndTransferQuotas(attribute, resource, member, true);
+		perunSession.getPerunBl().getModulesUtilsBl().checkQuotas(attribute, true);
 	}
 
 	@Override

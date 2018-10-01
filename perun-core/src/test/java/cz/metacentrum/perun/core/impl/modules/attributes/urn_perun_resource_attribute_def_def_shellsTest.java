@@ -71,6 +71,7 @@ public class urn_perun_resource_attribute_def_def_shellsTest {
 
 		when(session.getPerunBl().getAttributesManagerBl().getAttribute(any(PerunSession.class), any(Facility.class), anyString())).thenReturn(listOfShells);
 
+		classInstance.checkAttributeSyntax(session, new Resource(), attributeToCheck);
 		classInstance.checkAttributeValue(session, new Resource(), attributeToCheck);
 	}
 
@@ -87,6 +88,7 @@ public class urn_perun_resource_attribute_def_def_shellsTest {
 
 		when(session.getPerunBl().getAttributesManagerBl().getAttribute(any(PerunSession.class), any(Facility.class), anyString())).thenReturn(listOfShells);
 
+		classInstance.checkAttributeSyntax(session, new Resource(), attributeToCheck);
 		classInstance.checkAttributeValue(session, new Resource(), attributeToCheck);
 		fail("Shell attribute with inappropriate format was approved.");
 	}
@@ -100,6 +102,7 @@ public class urn_perun_resource_attribute_def_def_shellsTest {
 
 		when(session.getPerunBl().getAttributesManagerBl().getAttribute(any(PerunSession.class), any(Facility.class), anyString())).thenReturn(listOfShells);
 
+		classInstance.checkAttributeSyntax(session, new Resource(), attributeToCheck);
 		classInstance.checkAttributeValue(session, new Resource(), attributeToCheck);
 		fail("Shell attribute with inappropriate format was approved.");
 	}
@@ -115,6 +118,7 @@ public class urn_perun_resource_attribute_def_def_shellsTest {
 
 		Attribute attributeToCheck = new Attribute();
 		//when(session.getPerunBl().getAttributesManagerBl().getAttribute(any(PerunSession.class), any(Facility.class), anyString())).thenReturn(listOfShells);
+		classInstance.checkAttributeSyntax(session, new Resource(), attributeToCheck);
 		classInstance.checkAttributeValue(session, new Resource(), attributeToCheck);
 		fail("Attribute without value has not thrown WrongAttributeValueException.");
 	}
@@ -132,6 +136,7 @@ public class urn_perun_resource_attribute_def_def_shellsTest {
 
 		when(session.getPerunBl().getAttributesManagerBl().getAttribute(any(PerunSession.class), any(Facility.class), anyString())).thenReturn(listOfShells);
 
+		classInstance.checkAttributeSyntax(session, new Resource(), attributeToCheck);
 		classInstance.checkAttributeValue(session, new Resource(), attributeToCheck);
 
 		fail("Unknown shell at facility was approved");

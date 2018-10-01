@@ -24,7 +24,7 @@ public class urn_perun_facility_attribute_def_def_homeMountPoints extends Facili
 	private static final Pattern pattern = Pattern.compile("^/[-a-zA-Z.0-9_/]*$");
 
 	/**
-	 * Checks attribute facility_homeMountPoints, this attribute must not be null and must be valid *nix path
+	 * Checks attribute facility_homeMountPoints, this attribute must not be null and must not be empty
 	 * @param perunSession current session
 	 * @param facility facility to which this attribute belongs
 	 * @param attribute checked attribute
@@ -37,13 +37,31 @@ public class urn_perun_facility_attribute_def_def_homeMountPoints extends Facili
 			throw new WrongAttributeValueException(attribute);
 		}
 		List<String> homeMountPoints = (List<String>) attribute.getValue();
+		if (homeMountPoints.isEmpty()) {
+			throw new WrongAttributeValueException(attribute,"Attribute can't be empty");
+		}
+	}
+
+	/**
+	 * attribute must be valid *nix path
+	 *
+	 * @param perunSession perun session
+	 * @param facility     facility for which you want to check validity of attribute
+	 * @param attribute    attribute to check
+	 * @throws WrongAttributeValueException
+	 */
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws WrongAttributeValueException {
+
+		if(attribute.getValue() == null) {
+			return;
+		}
+		List<String> homeMountPoints = (List<String>) attribute.getValue();
 		if (!homeMountPoints.isEmpty()) {
 			for (String st : homeMountPoints) {
 				Matcher match = pattern.matcher(st);
 				if (!match.matches()) throw new WrongAttributeValueException(attribute, "Bad homeMountPoints attribute format " + st);
 			}
-		} else {
-			throw new WrongAttributeValueException(attribute,"Attribute can't be empty");
 		}
 	}
 

@@ -51,14 +51,10 @@ public class urn_perun_entityless_attribute_def_def_usedGids extends EntitylessA
 		for(String mapKey: mapKeys) {
 			//Test key
 			if(mapKey == null) throw new WrongAttributeValueException(attribute, key, "Key in usedGids can't be null.");
-			Matcher keyMatcher = keyPattern.matcher(mapKey);
-			if(!keyMatcher.matches()) throw new WrongAttributeValueException(attribute, key, "Key in usedGids can be only in format 'Rx', 'Gx', 'Dx' where 'x' is positive integer.");
-			
+
 			//Test value
 			String value = map.get(mapKey);
 			if(value == null) throw new WrongAttributeValueException(attribute, key, "Value in usedGids can't be null.");
-			Matcher valueMatcher = valuePattern.matcher(value);
-			if(!valueMatcher.matches()) throw new WrongAttributeValueException(attribute, key, "Key in usedGids can be only positive integer.");
 		}
 		
 		//If group or resource has some gid, this gid can't be depleted at the same time!
@@ -68,6 +64,27 @@ public class urn_perun_entityless_attribute_def_def_usedGids extends EntitylessA
 			if(mapKey.startsWith("D")) continue;
 			String value = map.get(mapKey);
 			if(map.containsKey("D" + value)) throw new WrongAttributeValueException(attribute, key, "This gid can't be depleted and used at the same time!");
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, String key, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		//If this attribute value is null, it means there is no GIDS depleted or used.
+		if(attribute.getValue() == null) return;
+		Map<String, String> map = (Map<String, String>) attribute.getValue();
+		//If there are no keys in map, it means the same like null value
+		if(map.isEmpty()) return;
+		Set<String> mapKeys = map.keySet();
+		for(String mapKey: mapKeys) {
+			//Test key
+			if(mapKey == null) continue;
+			Matcher keyMatcher = keyPattern.matcher(mapKey);
+			if(!keyMatcher.matches()) throw new WrongAttributeValueException(attribute, key, "Key in usedGids can be only in format 'Rx', 'Gx', 'Dx' where 'x' is positive integer.");
+			//Test value
+			String value = map.get(key);
+			if(value == null) continue;
+			Matcher valueMatcher = valuePattern.matcher(value);
+			if(!valueMatcher.matches()) throw new WrongAttributeValueException(attribute, key, "Key in usedGids can be only positive integer.");
 		}
 	}
 

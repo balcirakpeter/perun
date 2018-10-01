@@ -51,6 +51,7 @@ public class urn_perun_user_facility_attribute_def_def_accountExpirationTimeTest
 				setValue(1500);
 			}
 		});
+		classInstance.checkAttributeSyntax(session, new Facility(), new User(), attributeToCheck);
 		classInstance.checkAttributeValue(session, new Facility(), new User(), attributeToCheck);
 	}
 
@@ -64,6 +65,7 @@ public class urn_perun_user_facility_attribute_def_def_accountExpirationTimeTest
 					setValue(999);
 				}
 			});
+			classInstance.checkAttributeSyntax(session, new Facility(), new User(), attributeToCheck);
 			classInstance.checkAttributeValue(session, new Facility(), new User(), attributeToCheck);
 			fail("Assigning lower accountExpirationTime than the time set at facility should throw exception.");
 

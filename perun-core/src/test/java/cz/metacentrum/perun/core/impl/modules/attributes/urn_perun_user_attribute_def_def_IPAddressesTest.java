@@ -44,6 +44,7 @@ public class urn_perun_user_attribute_def_def_IPAddressesTest {
 		ipAddresses.add("2001:db8::2:1");
 
 		attributeToCheck.setValue(ipAddresses);
+		classInstance.checkAttributeSyntax(session, user, attributeToCheck);
 		classInstance.checkAttributeValue(session, user, attributeToCheck);
 	}
 
@@ -56,6 +57,7 @@ public class urn_perun_user_attribute_def_def_IPAddressesTest {
 		ipAddresses.add("123");
 		attributeToCheck.setValue(ipAddresses);
 
+		classInstance.checkAttributeSyntax(session, user, attributeToCheck);
 		classInstance.checkAttributeValue(session, user, attributeToCheck);
 	}
 }

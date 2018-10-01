@@ -51,11 +51,7 @@ public class urn_perun_resource_attribute_def_def_defaultDataLimit extends Resou
 		String defaultDataLimitNumber = null;
 		String defaultDataLimitLetter = null;
 
-		//Check if attribute value has the right exp pattern (can be null)
-		if(attribute.getValue() != null) {
-			Matcher testMatcher = testingPattern.matcher((String) attribute.getValue());
-			if(!testMatcher.find()) throw new WrongAttributeValueException(attribute, resource, "Format of quota must be something like ex.: 1.30M or 2500K, but it is " + attribute.getValue());
-		} else return;
+		if(attribute.getValue() == null) return;
 
 		//Get DefaultDataQuota attribute
 		try {
@@ -139,6 +135,15 @@ public class urn_perun_resource_attribute_def_def_defaultDataLimit extends Resou
 			if (limitNumber.compareTo(quotaNumber) < 0) {
 				throw new WrongReferenceAttributeValueException(attribute, attrDefaultDataQuota, resource, null, resource, null, attribute + " must be more than or equals to " + attrDefaultDataQuota);
 			}
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		//Check if attribute value has the right exp pattern (can be null)
+		if(attribute.getValue() != null) {
+			Matcher testMatcher = testingPattern.matcher((String) attribute.getValue());
+			if(!testMatcher.find()) throw new WrongAttributeValueException(attribute, resource, "Format of quota must be something like ex.: 1.30M or 2500K, but it is " + attribute.getValue());
 		}
 	}
 

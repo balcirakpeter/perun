@@ -52,10 +52,6 @@ public class urn_perun_user_attribute_def_def_vsupMailAlias extends UserAttribut
 		// can be empty
 		if (attribute.getValue() == null) return;
 
-		// if set, must match generic format
-		Matcher emailMatcher = emailAliasPattern.matcher((String)attribute.getValue());
-		if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "School mail alias is not in a correct form: \"firstName.lastName[counter]@vsup.cz\".");
-
 		// We must check uniqueness since vsupMailAlias is filled by itself and filling function iterates until value is correct.
 
 		try {
@@ -74,6 +70,15 @@ public class urn_perun_user_attribute_def_def_vsupMailAlias extends UserAttribut
 	}
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() == null) return;
+
+		Matcher emailMatcher = emailAliasPattern.matcher((String) attribute.getValue());
+		if (!emailMatcher.find())
+			throw new WrongAttributeValueException(attribute, user, "School mail alias is not in a correct form: \"firstName.lastName[counter]@vsup.cz\".");
+	}
+
+		@Override
 	public List<String> getDependencies() {
 		return Collections.singletonList(usedMailsUrn);
 	}

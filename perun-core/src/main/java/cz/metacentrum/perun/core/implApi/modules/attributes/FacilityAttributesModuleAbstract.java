@@ -34,4 +34,9 @@ public abstract class FacilityAttributesModuleAbstract extends AttributesModuleA
 	public void changedAttributeHook(PerunSessionImpl session, Facility facility, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
 
 	}
+
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+	}
+
 }

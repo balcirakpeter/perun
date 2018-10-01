@@ -24,14 +24,14 @@ public class urn_perun_facility_attribute_def_def_scratchLocalDirPermissions ext
 	private static final Pattern pattern = Pattern.compile("^[01234567]?[01234567]{3}$");
 
 	@Override
-	public void checkAttributeValue(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		//Null is ok, it means use default permissions in script (probably 0700)
-		if(attribute.getValue() == null) return;
 		String attrValue = (String) attribute.getValue();
-		
-		Matcher match = pattern.matcher(attrValue);
+		if(attrValue != null) {
+			Matcher match = pattern.matcher(attrValue);
 
-		if(!match.matches()) throw new WrongAttributeValueException(attribute, facility, "Bad format of attribute, (expected something like '750' or '0700').");
+			if(!match.matches()) throw new WrongAttributeValueException(attribute, facility, "Bad format of attribute, (expected something like '750' or '0700').");
+		}
 	}
 
 	@Override

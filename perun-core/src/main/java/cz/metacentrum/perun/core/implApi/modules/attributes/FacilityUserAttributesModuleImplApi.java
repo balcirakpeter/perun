@@ -59,4 +59,22 @@ public interface FacilityUserAttributesModuleImplApi extends AttributesModuleImp
 	 * @param attribute the attribute
 	 */
 	void changedAttributeHook(PerunSessionImpl session, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
+	/**
+	 * Checks if assigned attribute in relationship between those two
+	 * entities has a correct syntax.
+	 *
+	 * @param session   Perun session
+	 * @param facility  Facility to be used by a user.
+	 * @param user      User of the facility.
+	 * @param attribute Attribute in relationship between facility and user.
+	 * @throws InternalErrorException                if an exception is raised in particular
+	 *                                               implementation, the exception is wrapped in InternalErrorException
+	 * @throws WrongAttributeValueException          if the attribute syntax is wrong/illegal
+	 * @throws WrongReferenceAttributeValueException if an referenced attribute against
+	 *                                               the parameter is to be compared is not available
+	 * @throws WrongAttributeAssignmentException
+	 */
+	void checkAttributeSyntax(PerunSessionImpl session, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
 }

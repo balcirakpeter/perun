@@ -41,12 +41,6 @@ public class urn_perun_resource_attribute_def_def_fairshareGroupName extends Res
 
 		String gName = (String) attribute.getValue();
 
-		//Test if gName matchers regex
-		Matcher matcher = pattern.matcher(gName);
-		if (!matcher.matches()) {
-			throw new WrongAttributeValueException(attribute, resource, "Wrong format of group fairshare name. Max length is 12, only letters are allowed.");
-		}
-
 		//On facility must be fairshare group name unique (between all resources of this facility)
 		Facility facility = perunSession.getPerunBl().getResourcesManagerBl().getFacility(perunSession, resource);
 		List<Resource> facilityResources = perunSession.getPerunBl().getFacilitiesManagerBl().getAssignedResources(perunSession, facility);
@@ -63,6 +57,18 @@ public class urn_perun_resource_attribute_def_def_fairshareGroupName extends Res
 		}
 
 		if(resourcesFairshareGroupNames.contains(gName)) throw new WrongAttributeValueException(attribute, resource, "This name is already taken (not unique). Choose another one.");
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() != null) {
+			String gName = (String) attribute.getValue();
+
+			Matcher matcher = pattern.matcher(gName);
+			if (!matcher.matches()) {
+				throw new WrongAttributeValueException(attribute, resource, "Wrong format of group fairshare name. Max length is 12, only letters are allowed.");
+			}
+		}
 	}
 
 	@Override

@@ -891,6 +891,7 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 			User user = new User();
 
 			// Check attribute value, if the login is already occupied, then WrongAttributeValueException exception is thrown
+			getPerunBl().getAttributesManagerBl().checkAttributeSyntax(sess, user, attribute);
 			getPerunBl().getAttributesManagerBl().checkAttributeValue(sess, user, attribute);
 
 			return true;

@@ -25,6 +25,12 @@ public class urn_perun_resource_attribute_def_def_replicaDestinationPath extends
 		if(attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, "Destination path for FS replica can't be empty");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws WrongAttributeValueException {
+
+		if(attribute.getValue() == null) return;
 
 		Matcher match = pattern.matcher((String) attribute.getValue());
 		if (!match.matches()) {

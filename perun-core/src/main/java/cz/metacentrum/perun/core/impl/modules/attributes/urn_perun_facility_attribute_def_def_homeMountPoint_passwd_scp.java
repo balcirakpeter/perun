@@ -30,8 +30,15 @@ public class urn_perun_facility_attribute_def_def_homeMountPoint_passwd_scp exte
 		String value = (String) attribute.getValue();
 
 		if(value == null) throw new WrongAttributeValueException(attribute, "Value can't be null");
-		Matcher matcher = pattern.matcher(value);
-		if (!matcher.matches()) throw new WrongAttributeValueException(attribute, "Wrong format. ^(/[-_.A-z0-9]+)+$ expected.");
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+		String value = (String) attribute.getValue();
+		if (value != null) {
+            Matcher matcher = pattern.matcher(value);
+            if (!matcher.matches()) throw new WrongAttributeValueException(attribute, "Wrong format. ^(/[-_.A-z0-9]+)+$ expected.");
+		}
 	}
 
 	@Override

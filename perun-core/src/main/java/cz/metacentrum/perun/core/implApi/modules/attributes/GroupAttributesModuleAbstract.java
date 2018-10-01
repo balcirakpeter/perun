@@ -34,4 +34,9 @@ public abstract class GroupAttributesModuleAbstract extends AttributesModuleAbst
 	public void changedAttributeHook(PerunSessionImpl session, Group group, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
 
 	}
+
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+	}
+
 }

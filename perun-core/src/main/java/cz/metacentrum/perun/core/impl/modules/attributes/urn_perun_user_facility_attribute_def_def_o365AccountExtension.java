@@ -19,7 +19,7 @@ import java.util.Date;
 public class urn_perun_user_facility_attribute_def_def_o365AccountExtension extends FacilityUserAttributesModuleAbstract implements FacilityUserAttributesModuleImplApi {
 
 	@Override
-	public void checkAttributeValue(PerunSessionImpl perunSession, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		String o365AccExtTime = (String) attribute.getValue();
 
 		if(o365AccExtTime == null) return; //null is allowed value

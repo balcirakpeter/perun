@@ -23,6 +23,13 @@ public class urn_perun_resource_attribute_def_def_k4GroupCode extends ResourceAt
 	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 
 		if (attribute.getValue() == null) throw new WrongAttributeValueException("Code of Group in K4 can't be empty.");
+
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+		if (attribute.getValue() == null) return;
 		if (((String)attribute.getValue()).length() > 20) throw new WrongAttributeValueException("Code of Group in K4 musn`t exceed 20 characters.");
 
 	}

@@ -365,11 +365,10 @@ public interface ModulesUtilsBl {
 	void checkIfQuotasIsInLimit(Map<String, Pair<BigDecimal, BigDecimal>> quotaToCheck, Map<String, Pair<BigDecimal, BigDecimal>> limitQuota) throws QuotaNotInAllowedLimitException, InternalErrorException;
 
 	/**
-	 * Check if value in quotas attribute are in the right format.
-	 * Also transfer and return data in suitable container.
+	 * Transfer and return data in suitable container.
 	 *
-	 * Example of correct quotas with metrics: key=/path/to/volume , value=50T:0
-	 * Example of correct quotas without metrics: key=/path/to/volume , value=1000:2000
+	 * Example of quotas with metrics: key=/path/to/volume , value=50T:0
+	 * Example of quotas without metrics: key=/path/to/volume , value=1000:2000
 	 *
 	 * Example of suitable format: key=/path/to/volume, softQuota=50000000000000, hradQuota=0
 	 *
@@ -386,7 +385,25 @@ public interface ModulesUtilsBl {
 	 * @throws InternalErrorException if first mandatory placeholder is null
 	 * @throws WrongAttributeValueException if something is wrong in format of attribute
 	 */
-	Map<String, Pair<BigDecimal, BigDecimal>> checkAndTransferQuotas(Attribute quotasAttribute, PerunBean firstPlaceholder, PerunBean secondPlaceholder, boolean withMetrics) throws InternalErrorException, WrongAttributeValueException;
+	Map<String, Pair<BigDecimal, BigDecimal>> transferQuotas(Attribute quotasAttribute, PerunBean firstPlaceholder, PerunBean secondPlaceholder, boolean withMetrics) throws InternalErrorException, WrongAttributeValueException;
+
+	/**
+	 * Check if value in quotas attribute are in the right format.
+	 *
+	 * Example of correct quotas with metrics: key=/path/to/volume , value=50T:0
+	 * Example of correct quotas without metrics: key=/path/to/volume , value=1000:2000
+	 *
+	 * Left part of value is softQuota, right part after delimeter ':' is hardQuota.
+	 * SoftQuota must be less or equals to hardQuota. '0' means unlimited.
+	 *
+	 * @param quotasAttribute attribute with paths and quotas (Map<String, String>) (data or files quotas)
+	 * @param withMetrics true if metrics are used, false if not
+	 *
+	 * @throws InternalErrorException if first mandatory placeholder is null
+	 * @throws WrongAttributeValueException if something is wrong in format of attribute
+	 */
+	void checkQuotas(Attribute quotasAttribute, boolean withMetrics) throws WrongAttributeValueException;
+
 
 	/**
 	 * Reverse method for checkAndTransferQuotas method.

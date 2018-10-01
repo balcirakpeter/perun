@@ -43,12 +43,6 @@ public class urn_perun_group_resource_attribute_def_def_freeipaGroupName extends
 			throw new WrongAttributeValueException(attribute, group, "Attribute cannot be null.");
 		}
 
-		Matcher match = pattern.matcher(groupName);
-
-		if (!match.matches()) {
-			throw new WrongAttributeValueException(attribute, group, "Bad format of attribute freeipaGroupName. It has to match pattern ^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$");
-		}
-
 		//Get facility for the resource
 		Facility facility = sess.getPerunBl().getResourcesManagerBl().getFacility(sess, resource);
 
@@ -85,6 +79,18 @@ public class urn_perun_group_resource_attribute_def_def_freeipaGroupName extends
 				}
 			}
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		String groupName = (String) attribute.getValue();
+		if (groupName != null) {
+			Matcher match = pattern.matcher(groupName);
+			if (!match.matches()) {
+				throw new WrongAttributeValueException(attribute, group, "Bad format of attribute freeipaGroupName. It has to match pattern ^[a-zA-Z0-9_.][a-zA-Z0-9_.-]{0,252}[a-zA-Z0-9_.$-]?$");
+			}
+		}
+
 	}
 
 	@Override

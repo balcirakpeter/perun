@@ -31,4 +31,9 @@ public abstract class UserExtSourceAttributesModuleAbstract extends AttributesMo
 	public void changedAttributeHook(PerunSessionImpl session, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
 
 	}
+
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+	}
+
 }

@@ -51,8 +51,13 @@ public class urn_perun_user_attribute_def_def_login_namespace_ceitec extends urn
 
 		// check uniqueness
 		super.checkAttributeValue(sess, user, attribute);
+	}
 
-		// plus check, that login is max 20 chars.
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException {
+
+		super.checkAttributeSyntax(sess, user, attribute);
+
 		if (attribute.getValue() != null) {
 			if (((String)attribute.getValue()).length() > 20) throw new WrongAttributeValueException(attribute, user, "Login '" + attribute.getValue() + "' exceeds 20 chars limit.");
 		}

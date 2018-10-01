@@ -35,4 +35,9 @@ public abstract class ResourceGroupAttributesModuleAbstract extends AttributesMo
 	public void changedAttributeHook(PerunSessionImpl session, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
 
 	}
+
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+	}
+
 }

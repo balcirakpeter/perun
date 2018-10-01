@@ -23,7 +23,12 @@ public class urn_perun_user_attribute_def_def_sshPublicAdminKey extends UserAttr
 	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
 		if(attribute.getValue() == null) throw new WrongAttributeValueException(attribute, user,"Cant be null.");
-		
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+		if(attribute.getValue() == null) return;
+
 		//Testing if some ssh key contains new line character
 		List<String> sshKeys = (ArrayList<String>) attribute.getValue();
 		for(String sshKey: sshKeys) {

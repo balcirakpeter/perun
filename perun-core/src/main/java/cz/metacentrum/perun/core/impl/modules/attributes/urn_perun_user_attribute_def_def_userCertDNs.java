@@ -29,6 +29,11 @@ public class urn_perun_user_attribute_def_def_userCertDNs extends UserAttributes
 	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
 		if(attribute.getValue() == null) throw new WrongAttributeValueException(attribute, user, "This attribute value can't be null");
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+		if(attribute.getValue() == null) return;
 		Map<String, String> value = (Map) attribute.getValue();
 		if(value.isEmpty()) throw new WrongAttributeValueException(attribute, "This attribute value can't be empty");
 

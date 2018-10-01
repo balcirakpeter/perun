@@ -53,4 +53,20 @@ public interface EntitylessAttributesModuleImplApi extends AttributesModuleImplA
 	 * @param attribute the attribute
 	 */
 	void changedAttributeHook(PerunSessionImpl session, String key, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
+	/**
+	 * Checks if syntax of this attribute is valid.
+	 *
+	 * @param perunSession perun session
+	 * @param key          string for which you want to check validity of attribute
+	 * @param attribute    attribute to check
+	 * @throws InternalErrorException                if an exception is raised in particular
+	 *                                               implementation, the exception is wrapped in InternalErrorException
+	 * @throws WrongAttributeValueException          if the attribute syntax is wrong/illegal
+	 * @throws WrongReferenceAttributeValueException if an referenced attribute against
+	 *                                               the parameter is to be compared is not available
+	 * @throws WrongAttributeAssignmentException
+	 */
+	void checkAttributeSyntax(PerunSessionImpl perunSession, String key, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
 }

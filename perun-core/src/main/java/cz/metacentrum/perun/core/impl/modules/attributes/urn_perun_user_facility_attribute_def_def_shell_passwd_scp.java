@@ -31,8 +31,15 @@ public class urn_perun_user_facility_attribute_def_def_shell_passwd_scp extends 
 		String shell = (String) attribute.getValue();
 
 		if(shell == null) throw new WrongAttributeValueException(attribute, "Value can't be null");
-		Matcher matcher = pattern.matcher(shell);
-		if(!matcher.matches()) throw new WrongAttributeValueException(attribute, "Wrong format. ^(/[-_.A-z0-9]+)+$ expected");
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+		String shell = (String) attribute.getValue();
+
+		if(shell == null) return;
+        Matcher matcher = pattern.matcher(shell);
+        if(!matcher.matches()) throw new WrongAttributeValueException(attribute, "Wrong format. ^(/[-_.A-z0-9]+)+$ expected");
 	}
 
 	@Override

@@ -26,10 +26,15 @@ public class urn_perun_resource_attribute_def_def_sshkeysTargetUser extends Reso
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
-		String key = (String) attribute.getValue();
-		if (key == null) {
+		if (attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, "Name of the user can't be empty");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		String key = (String) attribute.getValue();
+		if (key == null) return;
 
 		Matcher match = pattern.matcher(key);
 

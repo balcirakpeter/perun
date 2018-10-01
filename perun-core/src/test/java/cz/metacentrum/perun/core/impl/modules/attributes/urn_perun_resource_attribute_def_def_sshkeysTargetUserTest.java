@@ -30,12 +30,15 @@ public class urn_perun_resource_attribute_def_def_sshkeysTargetUserTest {
 		Attribute attributeToCheck = new Attribute();
 
 		attributeToCheck.setValue("Jan_Nepomucky");
+		classInstance.checkAttributeSyntax(session, resource, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, attributeToCheck);
 
 		attributeToCheck.setValue(".John_Dale.");
+		classInstance.checkAttributeSyntax(session, resource, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, attributeToCheck);
 
 		attributeToCheck.setValue("_Adele-Frank");
+		classInstance.checkAttributeSyntax(session, resource, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, attributeToCheck);
 	}
 
@@ -46,6 +49,7 @@ public class urn_perun_resource_attribute_def_def_sshkeysTargetUserTest {
 		Attribute attributeToCheck = new Attribute();
 
 		attributeToCheck.setValue("-Adam");
+		classInstance.checkAttributeSyntax(session, resource, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, attributeToCheck);
 	}
 
@@ -56,6 +60,7 @@ public class urn_perun_resource_attribute_def_def_sshkeysTargetUserTest {
 		Attribute attributeToCheck = new Attribute();
 
 		attributeToCheck.setValue("Elena Fuente");
+		classInstance.checkAttributeSyntax(session, resource, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, attributeToCheck);
 	}
 
@@ -66,6 +71,7 @@ public class urn_perun_resource_attribute_def_def_sshkeysTargetUserTest {
 		Attribute attributeToCheck = new Attribute();
 
 		attributeToCheck.setValue("Jan_Veselý");
+		classInstance.checkAttributeSyntax(session, resource, attributeToCheck);
 		classInstance.checkAttributeValue(session, resource, attributeToCheck);
 	}
 }

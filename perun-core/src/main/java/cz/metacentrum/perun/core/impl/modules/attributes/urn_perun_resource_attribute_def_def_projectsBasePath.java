@@ -26,10 +26,15 @@ public class urn_perun_resource_attribute_def_def_projectsBasePath extends Resou
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
-		String path = (String) attribute.getValue();
-		if (path == null) {
+		if (attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, "Attribute can't be empty.");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		String path = (String) attribute.getValue();
+		if (path == null) return;
 
 		Matcher match = pattern.matcher(path);
 

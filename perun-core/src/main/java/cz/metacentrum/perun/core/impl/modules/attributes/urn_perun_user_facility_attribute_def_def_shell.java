@@ -38,8 +38,6 @@ public class urn_perun_user_facility_attribute_def_def_shell extends FacilityUse
 
 		if (shell == null) return;
 
-		session.getPerunBl().getModulesUtilsBl().checkFormatOfShell(shell, attribute);
-
 		List<String> allowedShells = allShellsAtSpecifiedFacility(session, facility, user);
 
 		if (allowedShells.isEmpty()) {
@@ -49,6 +47,15 @@ public class urn_perun_user_facility_attribute_def_def_shell extends FacilityUse
 		if (!allowedShells.contains(shell)) {
 			throw new WrongAttributeValueException(attribute, user, facility, "Such shell is not allowed at specified facility for the user.");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl session, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, WrongAttributeAssignmentException {
+		String shell = (String) attribute.getValue();
+
+		if (shell == null) return;
+
+		session.getPerunBl().getModulesUtilsBl().checkFormatOfShell(shell, attribute);
 	}
 
 	/**

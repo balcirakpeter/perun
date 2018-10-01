@@ -35,15 +35,19 @@ public class urn_perun_facility_attribute_def_def_homeDirUmaskTest {
 		Attribute attributeToCheck = new Attribute();
 
 		attributeToCheck.setValue(null);
+		classInstance.checkAttributeSyntax(session, facility, attributeToCheck);
 		classInstance.checkAttributeValue(session, facility, attributeToCheck);
 
 		attributeToCheck.setValue("0542");
+		classInstance.checkAttributeSyntax(session, facility, attributeToCheck);
 		classInstance.checkAttributeValue(session, facility, attributeToCheck);
 
 		attributeToCheck.setValue("215");
+		classInstance.checkAttributeSyntax(session, facility, attributeToCheck);
 		classInstance.checkAttributeValue(session, facility, attributeToCheck);
 
 		attributeToCheck.setValue("0521");
+		classInstance.checkAttributeSyntax(session, facility, attributeToCheck);
 		classInstance.checkAttributeValue(session, facility, attributeToCheck);
 	}
 
@@ -54,6 +58,7 @@ public class urn_perun_facility_attribute_def_def_homeDirUmaskTest {
 		Attribute attributeToCheck = new Attribute();
 
 		attributeToCheck.setValue("5891");
+		classInstance.checkAttributeSyntax(session, facility, attributeToCheck);
 		classInstance.checkAttributeValue(session, facility, attributeToCheck);
 	}
 
@@ -64,6 +69,7 @@ public class urn_perun_facility_attribute_def_def_homeDirUmaskTest {
 		Attribute attributeToCheck = new Attribute();
 
 		attributeToCheck.setValue("12");
+		classInstance.checkAttributeSyntax(session, facility, attributeToCheck);
 		classInstance.checkAttributeValue(session, facility, attributeToCheck);
 	}
 }

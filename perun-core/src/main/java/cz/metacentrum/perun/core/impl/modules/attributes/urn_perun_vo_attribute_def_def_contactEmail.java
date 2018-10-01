@@ -27,6 +27,20 @@ public class urn_perun_vo_attribute_def_def_contactEmail extends VoAttributesMod
 		// null attribute
 		if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "Vo contact email list cannot be null.");
 
+		contactEmails = (List) attribute.getValue();
+
+		for (String email : contactEmails) {
+			if (email == null) throw new WrongAttributeValueException(attribute, "Email " + email + " is null.");
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+		List<String> contactEmails = null;
+
+		// null attribute
+		if (attribute.getValue() == null) return;
+
 		// wrong type of the attribute
 		if (!(attribute.getValue() instanceof List)) throw new WrongAttributeValueException(attribute, "Wrong type of the attribute. Expected: List");
 
@@ -36,7 +50,7 @@ public class urn_perun_vo_attribute_def_def_contactEmail extends VoAttributesMod
 		if (contactEmails.isEmpty()) throw new WrongAttributeValueException(attribute, "Attribute List of contact emails is empty.");
 
 		for (String email : contactEmails) {
-			if (email == null) throw new WrongAttributeValueException(attribute, "Email " + email + " is null.");
+			if (email == null) continue;
 			if (!(sess.getPerunBl().getModulesUtilsBl().isNameOfEmailValid(sess, email))) throw new WrongAttributeValueException(attribute, "Vo : " + vo.getName() +" has contact email " + email +" which is not valid.");
 		}
 	}

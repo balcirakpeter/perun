@@ -34,4 +34,9 @@ public abstract class FacilityUserAttributesModuleAbstract extends AttributesMod
 	public void changedAttributeHook(PerunSessionImpl session, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
 
 	}
+
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+	}
+
 }

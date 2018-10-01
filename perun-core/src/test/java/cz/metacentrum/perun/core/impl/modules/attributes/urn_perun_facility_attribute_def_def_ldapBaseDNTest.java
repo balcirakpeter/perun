@@ -20,6 +20,7 @@ public class urn_perun_facility_attribute_def_def_ldapBaseDNTest {
 		Attribute attribute = new Attribute(module.getAttributeDefinition());
 		attribute.setValue("dc=example,dc=domain");
 
+		module.checkAttributeSyntax(null, null, attribute);
 		module.checkAttributeValue(null, null, attribute);
 
 		attribute.setValue("ou=example,dc=domain");
@@ -32,6 +33,7 @@ public class urn_perun_facility_attribute_def_def_ldapBaseDNTest {
 		Attribute attribute = new Attribute(module.getAttributeDefinition());
 		attribute.setValue("");
 
+		module.checkAttributeSyntax(null, null, attribute);
 		module.checkAttributeValue(null, new Facility(), attribute);
 	}
 
@@ -40,6 +42,7 @@ public class urn_perun_facility_attribute_def_def_ldapBaseDNTest {
 		Attribute attribute = new Attribute(module.getAttributeDefinition());
 		attribute.setValue("ou");
 
+		module.checkAttributeSyntax(null, null, attribute);
 		module.checkAttributeValue(null, new Facility(), attribute);
 	}
 
@@ -48,6 +51,7 @@ public class urn_perun_facility_attribute_def_def_ldapBaseDNTest {
 		Attribute attribute = new Attribute(module.getAttributeDefinition());
 		attribute.setValue("cn=example,dc=domain");
 
+		module.checkAttributeSyntax(null, null, attribute);
 		module.checkAttributeValue(null, new Facility(), attribute);
 	}
 }

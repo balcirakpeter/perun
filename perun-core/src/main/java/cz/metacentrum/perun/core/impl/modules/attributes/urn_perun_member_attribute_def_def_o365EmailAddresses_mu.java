@@ -62,17 +62,9 @@ public class urn_perun_member_attribute_def_def_o365EmailAddresses_mu extends Me
 		Object value = attribute.getValue();
 		if (value == null) {
 			throw new WrongAttributeValueException(attribute, member, "can't be null.");
-		} else if (!(value instanceof ArrayList)) {
-			throw new WrongAttributeValueException(attribute, member, "is of type " + value.getClass() + ", but should be ArrayList");
 		} else {
 			//noinspection unchecked
 			emails = (ArrayList<String>) value;
-		}
-		//check syntax of all values
-		for (String email : emails) {
-			Matcher emailMatcher = emailPattern.matcher(email);
-			if (!emailMatcher.matches())
-				throw new WrongAttributeValueException(attribute, member, "Email " + email + " is not in correct form.");
 		}
 
 		//check for duplicities
@@ -112,6 +104,24 @@ public class urn_perun_member_attribute_def_def_o365EmailAddresses_mu extends Me
 	}
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		ArrayList<String> emails;
+
+		Object value = attribute.getValue();
+		if (value == null) {
+			return;
+		} else if (!(value instanceof ArrayList)) {
+			throw new WrongAttributeValueException(attribute, member, "is of type " + value.getClass() + ", but should be ArrayList");
+		} else {
+			emails = (ArrayList<String>) value;
+		}
+		for (String email : emails) {
+			Matcher emailMatcher = emailPattern.matcher(email);
+			if (!emailMatcher.matches())
+				throw new WrongAttributeValueException(attribute, member, "Email " + email + " is not in correct form.");
+		}
+	}
+		@Override
 	public List<String> getDependencies() {
 		return Collections.singletonList(UCO_ATTRIBUTE);
 	}

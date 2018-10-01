@@ -41,12 +41,6 @@ public class urn_perun_group_resource_attribute_def_def_projectOwnerLogin extend
 		String ownerLogin = (String) attribute.getValue();
 		if (ownerLogin == null) return;
 
-		Matcher match = pattern.matcher(ownerLogin);
-
-		if (!match.matches()) {
-			throw new WrongAttributeValueException(attribute, group, resource, "Bad format of attribute projectOwnerLogin (expected something like 'alois25').");
-		}
-
 		//Get Facility from resource
 		Facility facility = sess.getPerunBl().getResourcesManagerBl().getFacility(sess, resource);
 
@@ -65,6 +59,18 @@ public class urn_perun_group_resource_attribute_def_def_projectOwnerLogin extend
 		}
 
 		throw new WrongAttributeValueException(attribute, group, resource, "There is no user with this login:'" + ownerLogin);
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		String ownerLogin = (String) attribute.getValue();
+		if (ownerLogin == null) return;
+
+		Matcher match = pattern.matcher(ownerLogin);
+
+		if (!match.matches()) {
+			throw new WrongAttributeValueException(attribute, group, resource, "Bad format of attribute projectOwnerLogin (expected something like 'alois25').");
+		}
 	}
 
 	@Override

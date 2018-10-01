@@ -53,7 +53,8 @@ public class urn_perun_member_resource_attribute_def_virt_dataQuotas extends Res
 		if(resourceQuotas == null || resourceQuotas.getValue() == null) resourceTransferedQuotas = new HashMap<>();
 		else {
 			try {
-				resourceTransferedQuotas = sess.getPerunBl().getModulesUtilsBl().checkAndTransferQuotas(resourceQuotas, resource, null, true);
+				sess.getPerunBl().getModulesUtilsBl().checkQuotas(resourceQuotas, true);
+				resourceTransferedQuotas = sess.getPerunBl().getModulesUtilsBl().transferQuotas(resourceQuotas, resource, null, true);
 			} catch (WrongAttributeValueException ex) {
 				throw new ConsistencyErrorException("Quotas on resource " + resource + " are in bad format.", ex);
 			}
@@ -75,7 +76,8 @@ public class urn_perun_member_resource_attribute_def_virt_dataQuotas extends Res
 		if(memberQuotas == null || memberQuotas.getValue() == null) memberTransferedQuotas = new HashMap<>();
 		else {
 			try {
-				memberTransferedQuotas = sess.getPerunBl().getModulesUtilsBl().checkAndTransferQuotas(memberQuotas, resource, member, true);
+				sess.getPerunBl().getModulesUtilsBl().checkQuotas(memberQuotas, true);
+				memberTransferedQuotas = sess.getPerunBl().getModulesUtilsBl().transferQuotas(memberQuotas, resource, member, true);
 			} catch (WrongAttributeValueException ex) {
 				throw new ConsistencyErrorException("Quotas on resource " + resource + " for member " + member + " are in bad format.", ex);
 			}
@@ -97,7 +99,8 @@ public class urn_perun_member_resource_attribute_def_virt_dataQuotas extends Res
 		if(memberQuotasOverride == null || memberQuotasOverride.getValue() == null) memberTransferedQuotasOverride = new HashMap<>();
 		else {
 			try {
-				memberTransferedQuotasOverride = sess.getPerunBl().getModulesUtilsBl().checkAndTransferQuotas(memberQuotasOverride, resource, member, true);
+				sess.getPerunBl().getModulesUtilsBl().checkQuotas(memberQuotasOverride, true);
+				memberTransferedQuotasOverride = sess.getPerunBl().getModulesUtilsBl().transferQuotas(memberQuotasOverride, resource, member, true);
 			} catch (WrongAttributeValueException ex) {
 				throw new ConsistencyErrorException("Override quotas on resource " + resource + " for member " + member + " are in bad format.", ex);
 			}

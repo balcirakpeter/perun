@@ -34,12 +34,15 @@ public class urn_perun_user_attribute_def_def_timezoneTest {
 		Attribute attributeToCheck = new Attribute();
 
 		attributeToCheck.setValue("Europe/Prague");
+		classInstance.checkAttributeSyntax(session, user, attributeToCheck);
 		classInstance.checkAttributeValue(session, user, attributeToCheck);
 
 		attributeToCheck.setValue("Africa/Johannesburg");
+		classInstance.checkAttributeSyntax(session, user, attributeToCheck);
 		classInstance.checkAttributeValue(session, user, attributeToCheck);
 
 		attributeToCheck.setValue("Jamaica");
+		classInstance.checkAttributeSyntax(session, user, attributeToCheck);
 		classInstance.checkAttributeValue(session, user, attributeToCheck);
 	}
 
@@ -50,6 +53,7 @@ public class urn_perun_user_attribute_def_def_timezoneTest {
 			Attribute attributeToCheck = new Attribute();
 			attributeToCheck.setValue("123");
 
+			classInstance.checkAttributeSyntax(session, user, attributeToCheck);
 			classInstance.checkAttributeValue(session, user, attributeToCheck);
 		}
 }

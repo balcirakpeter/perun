@@ -31,4 +31,9 @@ public abstract class VoAttributesModuleAbstract extends AttributesModuleAbstrac
 	public void changedAttributeHook(PerunSessionImpl session, Vo vo, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
 
 	}
+
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Vo vo, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+	}
+
 }

@@ -43,9 +43,6 @@ public class urn_perun_group_attribute_def_def_unixGroupName_namespace extends G
 			return;
 		}
 
-		//Check attribute regex
-		sess.getPerunBl().getModulesUtilsBl().checkAttributeRegex(attribute, "^[-._a-zA-Z0-9]+$");
-
 		//Check reserved unix group names
 		sess.getPerunBl().getModulesUtilsBl().checkReservedUnixGroupNames(attribute);
 
@@ -107,6 +104,14 @@ public class urn_perun_group_attribute_def_def_unixGroupName_namespace extends G
 		} catch(AttributeNotExistsException ex) {
 			throw new ConsistencyErrorException(ex);
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute == null || attribute.getValue() == null) return;
+
+		//Check attribute regex
+		sess.getPerunBl().getModulesUtilsBl().checkAttributeRegex(attribute, "^[-._a-zA-Z0-9]+$");
 	}
 
 	@Override

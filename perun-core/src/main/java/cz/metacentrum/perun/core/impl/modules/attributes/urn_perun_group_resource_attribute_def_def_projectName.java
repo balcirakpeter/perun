@@ -41,12 +41,6 @@ public class urn_perun_group_resource_attribute_def_def_projectName extends Reso
 		String name = (String) attribute.getValue();
 		if (name == null) return;
 
-		Matcher match = pattern.matcher(name);
-
-		if (!match.matches()) {
-			throw new WrongAttributeValueException(attribute, group, resource, "Bad format of attribute projectName (expected something like 'project_name-24').");
-		}
-
 		//Prepare this resource projectsBasePath
 		Attribute thisResourceProjectsBasePath = null;
 		try {
@@ -113,6 +107,19 @@ public class urn_perun_group_resource_attribute_def_def_projectName extends Reso
 					throw new WrongReferenceAttributeValueException(attribute, groupProjectName, group, resource, g, r, "Group " + group + " and " + g + " have the same projectName in the same projectsBasePath.");
 				}
 			}
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+		String name = (String) attribute.getValue();
+		if (name == null) return;
+
+		Matcher match = pattern.matcher(name);
+
+		if (!match.matches()) {
+			throw new WrongAttributeValueException(attribute, group, resource, "Bad format of attribute projectName (expected something like 'project_name-24').");
 		}
 	}
 

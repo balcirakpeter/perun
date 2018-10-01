@@ -58,6 +58,12 @@ public class urn_perun_user_facility_attribute_def_def_homeMountPoint extends Fa
 		if (!homeMntPointsOnAllResources.contains((String) attribute.getValue())) {
 			throw new WrongAttributeValueException(attribute, user, facility, "User's home mount point is invalid. Valid mount points: " + homeMntPointsOnAllResources);
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl session, Facility facility, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+		if (attribute.getValue() == null) return;
 
 		Matcher match = pattern.matcher((String) attribute.getValue());
 		if (!match.matches()) {

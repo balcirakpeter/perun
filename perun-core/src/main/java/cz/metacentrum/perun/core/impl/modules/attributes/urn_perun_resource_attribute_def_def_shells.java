@@ -61,12 +61,6 @@ public class urn_perun_resource_attribute_def_def_shells extends ResourceAttribu
 			throw new WrongAttributeValueException(attribute, "Attribute was not filled, therefore there is nothing to be checked.");
 		}
 
-		if (!shells.isEmpty()) {
-			for (String st : shells) {
-				perunSession.getPerunBl().getModulesUtilsBl().checkFormatOfShell(st, attribute);
-			}
-		}
-
 		Facility facility = perunSession.getPerunBl().getResourcesManagerBl().getFacility(perunSession, resource);
 		Attribute allShellsPerFacility;
 		try {
@@ -82,6 +76,17 @@ public class urn_perun_resource_attribute_def_def_shells extends ResourceAttribu
 			if (!((List<String>) allShellsPerFacility.getValue()).containsAll(shells)) {
 				throw new WrongAttributeValueException(attribute, "Some shells from specified resource are not at home facility " + facility.getId());
 			}
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		List<String> shells = (List<String>) attribute.getValue();
+
+		if (shells == null) return;
+
+		for (String st : shells) {
+			perunSession.getPerunBl().getModulesUtilsBl().checkFormatOfShell(st, attribute);
 		}
 	}
 

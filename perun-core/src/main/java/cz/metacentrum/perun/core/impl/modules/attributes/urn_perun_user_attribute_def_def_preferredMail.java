@@ -28,9 +28,6 @@ public class urn_perun_user_attribute_def_def_preferredMail extends UserAttribut
 		if(attribute.getValue() == null) throw new WrongAttributeValueException(attribute, user, "User preferred mail can't be set to null.");
 		else attributeValue = (String) attribute.getValue();
 
-		Matcher emailMatcher = Utils.emailPattern.matcher(attributeValue);
-		if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "Email is not in correct form.");
-
 		/* User preferredMail now can be anything
 		//user prefferedMail can be only one of memberMails if any
 		List<Member> membersOfUser = sess.getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
@@ -53,6 +50,18 @@ public class urn_perun_user_attribute_def_def_preferredMail extends UserAttribut
 		}
 		throw new WrongAttributeValueException("Attribute user preffered mail can be null (if no members mail exists) or one of the existing member's mails [" + possiblePrefferedMailValues.toString() + "]. " + attribute);
 		*/
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+		String attributeValue = null;
+
+		if(attribute.getValue() == null) return;
+		else attributeValue = (String) attribute.getValue();
+
+		Matcher emailMatcher = Utils.emailPattern.matcher(attributeValue);
+		if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "Email is not in correct form.");
+
 	}
 
 	/* Not needed now this funcionality

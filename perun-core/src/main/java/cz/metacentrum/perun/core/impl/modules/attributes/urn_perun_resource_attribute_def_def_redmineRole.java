@@ -21,11 +21,17 @@ public class urn_perun_resource_attribute_def_def_redmineRole extends ResourceAt
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException {
-		String role = (String)attribute.getValue();
-
-		if (role == null) {
+		if (attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, "Attribute value is invalid. The role can be either Manager, Reporter or Developer");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException {
+		String role = (String)attribute.getValue();
+
+		if (role == null) return;
+
 		else if (!role.equals("Manager") && !role.equals("Reporter") && !role.equals("Developer")) {
 			throw new WrongAttributeValueException(attribute, resource, "Attribute value is invalid. The role can be either Manager, Reporter or Developer");
 		}

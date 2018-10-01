@@ -58,6 +58,7 @@ public class urn_perun_user_attribute_def_def_login_namespace_elixir_persistent_
         });
 
         assertEquals(attribute.getValue().toString(), "28c5353b8bb34984a8bd4169ba94c606@elixir-europe.org");
+		classInstance.checkAttributeSyntax(session, user, attribute);
         classInstance.checkAttributeValue(session, user, attribute);
     }
 

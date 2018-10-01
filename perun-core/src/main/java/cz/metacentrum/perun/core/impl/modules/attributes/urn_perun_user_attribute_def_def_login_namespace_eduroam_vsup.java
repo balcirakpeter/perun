@@ -62,6 +62,13 @@ public class urn_perun_user_attribute_def_def_login_namespace_eduroam_vsup exten
 
 	}
 
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException {
+
+		super.checkAttributeSyntax(sess, user, attribute);
+
+	}
+
 	/**
 	 * Fill eduroam login based on všup login. Values must be the same all the time.
 	 *

@@ -28,6 +28,11 @@ public class urn_perun_resource_attribute_def_def_k5loginTargetUser extends Reso
 		if (attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, null, "Attribute value can't be null.");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() == null) return;
 
 		String targetUser = (String) attribute.getValue();
 		Matcher userMatcher = userPattern.matcher(targetUser);

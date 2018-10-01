@@ -78,13 +78,21 @@ public class urn_perun_user_attribute_def_def_vsupMail extends UserAttributesMod
 			}
 
 			//if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, user, "School mail can't be null.");
-
-			Matcher emailMatcher = emailPattern.matcher((String)attribute.getValue());
-			if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "School mail is not in a correct form: \"login@vsup.cz\".");
-
 		}
 
 		// We check uniqueness on all related attributes change, so we don't need to do it here.
+
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+
+		// check only if not null
+		if (attribute.getValue() != null) {
+
+			Matcher emailMatcher = emailPattern.matcher((String)attribute.getValue());
+			if(!emailMatcher.find()) throw new WrongAttributeValueException(attribute, user, "School mail is not in a correct form: \"login@vsup.cz\".");
+		}
 
 	}
 

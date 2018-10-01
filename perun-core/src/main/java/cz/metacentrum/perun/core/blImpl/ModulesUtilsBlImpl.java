@@ -689,7 +689,7 @@ public class ModulesUtilsBlImpl implements ModulesUtilsBl {
 	}
 
 	@Override
-	public Map<String, Pair<BigDecimal, BigDecimal>> checkAndTransferQuotas(Attribute quotasAttribute, PerunBean firstPlaceholder, PerunBean secondPlaceholder, boolean withMetrics) throws InternalErrorException, WrongAttributeValueException {
+	public Map<String, Pair<BigDecimal, BigDecimal>> transferQuotas(Attribute quotasAttribute, PerunBean firstPlaceholder, PerunBean secondPlaceholder, boolean withMetrics) throws InternalErrorException, WrongAttributeValueException {
 		//firstPlaceholder can't be null
 		if(firstPlaceholder == null) throw new InternalErrorException("Missing first mandatory placeHolder (PerunBean).");
 		//If quotas attribute is null or it's value is empty, return empty hash map
@@ -703,7 +703,7 @@ public class ModulesUtilsBlImpl implements ModulesUtilsBl {
 		List<String> uniquePaths = new ArrayList<>();
 		for(String path: defaultQuotasMap.keySet()) {
 			//null is not correct path for volume on File System
-			if(path == null || path.isEmpty()) throw new WrongAttributeValueException(quotasAttribute, firstPlaceholder, secondPlaceholder, "The path of some volume where quota should be set is null.");
+			if(path == null) throw new WrongAttributeValueException(quotasAttribute, firstPlaceholder, secondPlaceholder, "The path of some volume where quota should be set is null.");
 
 			//testing if path is unique
 			String canonicalPath;
@@ -725,10 +725,8 @@ public class ModulesUtilsBlImpl implements ModulesUtilsBl {
 			Matcher quotaMatcher;
 			if(withMetrics) {
 				quotaMatcher = ModulesUtilsBlImpl.quotaWithMetricsPattern.matcher(quota);
-				if(!quotaMatcher.matches()) throw new WrongAttributeValueException(quotasAttribute, firstPlaceholder, secondPlaceholder, "Format of quota in quotas attribute is not correct.");
 			} else {
 				quotaMatcher = ModulesUtilsBlImpl.quotaWithoutMetricsPattern.matcher(quota);
-				if(!quotaMatcher.matches()) throw new WrongAttributeValueException(quotasAttribute, firstPlaceholder, secondPlaceholder, "Format of quota in quotas attribute is not correct.");
 			}
 
 			//Parse quotas to variables
@@ -744,7 +742,6 @@ public class ModulesUtilsBlImpl implements ModulesUtilsBl {
 			if(withMetrics) {
 				String softQuotaNumber = null;
 				Matcher numberMatcher = numberPattern.matcher(softQuota);
-				if(!numberMatcher.find()) throw new ConsistencyErrorException("Matcher can't find number in softQuota '" + softQuota + "' in attribute " + quotasAttribute);
 				softQuotaNumber = numberMatcher.group();
 
 				//SoftQuotaLetter
@@ -757,7 +754,6 @@ public class ModulesUtilsBlImpl implements ModulesUtilsBl {
 				//HardQuotaNumber
 				String hardQuotaNumber = null;
 				numberMatcher = numberPattern.matcher(hardQuota);
-				if(!numberMatcher.find()) throw new ConsistencyErrorException("Matcher can't find number in hardQuota '" + hardQuota + "' in attribute " + quotasAttribute);
 				hardQuotaNumber = numberMatcher.group();
 
 				//HardQuotaLetter
@@ -836,6 +832,54 @@ public class ModulesUtilsBlImpl implements ModulesUtilsBl {
 		}
 
 		return transferedQuotas;
+	}
+
+	public void checkQuotas(Attribute quotasAttribute, boolean withMetrics)  throws WrongAttributeValueException{
+
+		//If quotas attribute is null or it's value is empty, return empty hash map
+		if(quotasAttribute == null || quotasAttribute.getValue() == null) return;
+
+		Map<String, String> defaultQuotasMap = (Map<String, String>) quotasAttribute.getValue();
+
+		for(String path: defaultQuotasMap.keySet()) {
+			if(path == null) continue;
+			if(path.isEmpty()) throw new WrongAttributeValueException(quotasAttribute, "The path of some volume where quota should be set is empty.");
+
+			try {
+				new URI(path);
+			} catch (URISyntaxException ex) {
+				throw new WrongAttributeValueException(quotasAttribute, "Path '" + path + "' is not correct form.");
+			}
+
+			String quota = defaultQuotasMap.get(path);
+			if(quota == null) return;
+
+			//check format of quota parameter (for data with metrics, for count of files without metrics)
+			Matcher quotaMatcher;
+			if(withMetrics) {
+				quotaMatcher = ModulesUtilsBlImpl.quotaWithMetricsPattern.matcher(quota);
+				if(!quotaMatcher.matches()) throw new WrongAttributeValueException(quotasAttribute, "Format of quota in quotas attribute is not correct.");
+			} else {
+				quotaMatcher = ModulesUtilsBlImpl.quotaWithoutMetricsPattern.matcher(quota);
+				if(!quotaMatcher.matches()) throw new WrongAttributeValueException(quotasAttribute, "Format of quota in quotas attribute is not correct.");
+			}
+
+			//Parse quotas to variables
+			String softQuota = quotaMatcher.group(1);
+			String hardQuota = quotaMatcher.group(3);
+
+			//Parse number pattern and letter pattern from whole quotas
+
+			if(withMetrics) {
+				Matcher numberMatcher = numberPattern.matcher(softQuota);
+				if (!numberMatcher.find())
+					throw new WrongAttributeValueException("Matcher can't find number in softQuota '" + softQuota + "' in attribute " + quotasAttribute);
+
+				numberMatcher = numberPattern.matcher(hardQuota);
+				if (!numberMatcher.find())
+					throw new WrongAttributeValueException("Matcher can't find number in hardQuota '" + hardQuota + "' in attribute " + quotasAttribute);
+			}
+		}
 	}
 
 	@Override

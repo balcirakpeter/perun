@@ -34,7 +34,7 @@ public abstract class AbstractMembershipExpirationRulesModule<T extends PerunBea
 	public static final String membershipPeriodLoaKeyName = "periodLoa";
 	public static final String membershipDoNotAllowLoaKeyName = "doNotAllowLoa";
 
-	public void checkAttributeValue(PerunSessionImpl sess, T entity, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+	public void checkAttributeSyntax(PerunSessionImpl sess, T entity, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
 		Map<String, String> attrValue;
 
 		//For no value is correct (it means no rules)
@@ -122,6 +122,10 @@ public abstract class AbstractMembershipExpirationRulesModule<T extends PerunBea
 				}
 			}
 		}
+	}
+
+	public void checkAttributeValue(PerunSessionImpl sess, T entity, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
 	}
 
 	/**

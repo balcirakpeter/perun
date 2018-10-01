@@ -27,8 +27,7 @@ public class urn_perun_facility_attribute_def_def_shells extends FacilityAttribu
 
 	/**
 	 * Checks if the facility has properly set shells. There must be at least one
-	 * shell per facility which must match regular expression
-	 * e.g. corretct unix path.
+	 * shell per facility
 	 */
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
@@ -38,12 +37,25 @@ public class urn_perun_facility_attribute_def_def_shells extends FacilityAttribu
 			throw new WrongAttributeValueException(attribute, "This attribute cannot be null.");
 		}
 
+		if (shells.isEmpty()) {
+			throw new WrongAttributeValueException(attribute);
+		}
+	}
+
+	/**
+	 * Shells must match regular expression
+	 * e.g. corretct unix path.
+	 */
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException {
+		List<String> shells = (List<String>) attribute.getValue();
+		if (shells == null) {
+			return;
+		}
 		if (!shells.isEmpty()) {
 			for (String st : shells) {
 				perunSession.getPerunBl().getModulesUtilsBl().checkFormatOfShell(st, attribute);
 			}
-		} else {
-			throw new WrongAttributeValueException(attribute);
 		}
 	}
 

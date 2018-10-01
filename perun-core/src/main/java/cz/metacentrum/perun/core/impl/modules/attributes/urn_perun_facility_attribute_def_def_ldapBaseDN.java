@@ -22,16 +22,22 @@ public class urn_perun_facility_attribute_def_def_ldapBaseDN extends FacilityAtt
 		if (attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, facility, "attribute is null");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 
 		String value = (String) attribute.getValue();
-		if (value.length() < 3) {
-			throw new WrongAttributeValueException(attribute, facility, "attribute has to start with \"ou=\" or \"dc=\"");
-		}
+		if(value != null) {
+			if (value.length() < 3) {
+				throw new WrongAttributeValueException(attribute, facility, "attribute has to start with \"ou=\" or \"dc=\"");
+			}
 
-		String sub = value.substring(0,3);
+			String sub = value.substring(0,3);
 
-		if ( !(sub.equalsIgnoreCase("ou=") || sub.equalsIgnoreCase("dc=")) ) {
-			throw new WrongAttributeValueException(attribute, facility, "attribute has to start with \"ou=\" or \"dc=\"");
+			if ( !(sub.equalsIgnoreCase("ou=") || sub.equalsIgnoreCase("dc=")) ) {
+				throw new WrongAttributeValueException(attribute, facility, "attribute has to start with \"ou=\" or \"dc=\"");
+			}
 		}
 	}
 

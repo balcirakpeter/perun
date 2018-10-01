@@ -46,6 +46,7 @@ public class urn_perun_facility_attribute_def_def_shellsTest {
 		shells.add("/bin/csh");
 		attribute.setValue(shells);
 
+		classInstance.checkAttributeSyntax(session, new Facility(), attribute);
 		classInstance.checkAttributeValue(session, new Facility(), attribute);
 
 	}
@@ -54,6 +55,7 @@ public class urn_perun_facility_attribute_def_def_shellsTest {
 	public void testCheckAttributeValueEmptyAttribute() throws Exception {
 		System.out.println("testCheckAttributeValueEmptyAttribute()");
 
+		classInstance.checkAttributeSyntax(session, new Facility(), attribute);
 		classInstance.checkAttributeValue(session, new Facility(), attribute);
 	}
 
@@ -62,6 +64,7 @@ public class urn_perun_facility_attribute_def_def_shellsTest {
 		System.out.println("testCheckAttributeValueNoShellsSet()");
 
 		attribute.setValue(new ArrayList<String>());
+		classInstance.checkAttributeSyntax(session, new Facility(), attribute);
 		classInstance.checkAttributeValue(session, new Facility(), attribute);
 	}
 }

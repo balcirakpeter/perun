@@ -48,8 +48,6 @@ public class urn_perun_user_attribute_def_def_login_namespace extends UserAttrib
 		String userLogin = (String) attribute.getValue();
 		if (userLogin == null) throw new WrongAttributeValueException(attribute, user, "Value can't be null");
 
-		//Check attribute regex
-		sess.getPerunBl().getModulesUtilsBl().checkAttributeRegex(attribute, "^[a-zA-Z0-9_][-A-z0-9_.@/]*$");
 		//Check if user login is permitted or not permitted
 		sess.getPerunBl().getModulesUtilsBl().checkUnpermittedUserLogins(attribute);
 
@@ -68,6 +66,16 @@ public class urn_perun_user_attribute_def_def_login_namespace extends UserAttrib
 			throw new WrongAttributeValueException(attribute, user, "Login in specific namespace already reserved.", ex);
 		}
 	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException {
+
+		String userLogin = (String) attribute.getValue();
+		if (userLogin == null) return;
+
+		//Check attribute regex
+		sess.getPerunBl().getModulesUtilsBl().checkAttributeRegex(attribute, "^[a-zA-Z0-9_][-A-z0-9_.@/]*$");
+		}
 
 	/**
 	 * Filling implemented for:

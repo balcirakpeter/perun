@@ -33,9 +33,6 @@ public class urn_perun_group_attribute_def_def_synchronizationEnabled extends Gr
 
 		String attrValue = (String) attribute.getValue();
 
-		if(!attrValue.equals("true") && !attrValue.equals("false")) {
-			throw new WrongAttributeValueException(attribute, group, "If attribute is not null, only string 'true' or 'false' is correct format.");
-		}
 			try {
 				if (attrValue.equals("true")) {
 					Attribute requiredAttribute = sess.getPerunBl().getAttributesManagerBl().getAttribute(sess, group, GroupsManager.GROUPSYNCHROINTERVAL_ATTRNAME);
@@ -56,6 +53,18 @@ public class urn_perun_group_attribute_def_def_synchronizationEnabled extends Gr
 			} catch (AttributeNotExistsException e) {
 				throw new ConsistencyErrorException(e);
 			}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException{
+		//Null value is ok, means no settings for group
+		if(attribute.getValue() == null) return;
+
+		String attrValue = (String) attribute.getValue();
+
+		if(!attrValue.equals("true") && !attrValue.equals("false")) {
+			throw new WrongAttributeValueException(attribute, group, "If attribute is not null, only string 'true' or 'false' is correct format.");
+		}
 	}
 
 	@Override

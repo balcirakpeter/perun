@@ -23,10 +23,10 @@ import java.util.Date;
  */
 public class urn_perun_member_group_attribute_def_def_groupMembershipExpiration extends MemberGroupAttributesModuleAbstract implements MemberGroupAttributesModuleImplApi {
 	@Override
-	public void checkAttributeValue(PerunSessionImpl perunSession, Member member, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Member member, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		String membershipExpTime = (String) attribute.getValue();
 
-		if(membershipExpTime == null) return; // NULL is ok
+		if(membershipExpTime == null) return;
 
 		Date testDate;
 

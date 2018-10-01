@@ -37,6 +37,7 @@ public class urn_perun_member_attribute_def_def_membershipExpirationTest {
 		System.out.println("testCheckAttriubuteReturnNull()");
 		attributeToCheck.setValue(null);
 
+		classInstance.checkAttributeSyntax(session, new Member(), attributeToCheck);
 		classInstance.checkAttributeValue(session, new Member(), attributeToCheck);
 	}
 
@@ -45,6 +46,7 @@ public class urn_perun_member_attribute_def_def_membershipExpirationTest {
 		System.out.println("testCheckAttributeCommonValue()");
 		attributeToCheck.setValue("2001-12-25");
 
+		classInstance.checkAttributeSyntax(session, new Member(), attributeToCheck);
 		classInstance.checkAttributeValue(session, new Member(), attributeToCheck);
 	}
 
@@ -53,6 +55,7 @@ public class urn_perun_member_attribute_def_def_membershipExpirationTest {
 		System.out.println("testCheckAttributeLowBorderValue()");
 		attributeToCheck.setValue("1000-01-01");
 
+		classInstance.checkAttributeSyntax(session, new Member(), attributeToCheck);
 		classInstance.checkAttributeValue(session, new Member(), attributeToCheck);
 	}
 
@@ -61,6 +64,7 @@ public class urn_perun_member_attribute_def_def_membershipExpirationTest {
 		System.out.println("testCheckAttributeHighBorderValue()");
 		attributeToCheck.setValue("9999-12-31");
 
+		classInstance.checkAttributeSyntax(session, new Member(), attributeToCheck);
 		classInstance.checkAttributeValue(session, new Member(), attributeToCheck);
 	}
 
@@ -68,6 +72,7 @@ public class urn_perun_member_attribute_def_def_membershipExpirationTest {
 		public void testCheckAttributeWrongMonths() throws Exception {
 			System.out.println("testCheckAttributeWrongMonth()");
 			attributeToCheck.setValue("1500-15-25");
+			classInstance.checkAttributeSyntax(session, new Member(), attributeToCheck);
 			classInstance.checkAttributeValue(session, new Member(), attributeToCheck);
 
 		}
@@ -76,6 +81,7 @@ public class urn_perun_member_attribute_def_def_membershipExpirationTest {
 		public void testCheckAttributeWrongYears() throws Exception {
 			System.out.println("testCheckAttributeWrongYear()");
 			attributeToCheck.setValue("500-10-25");
+			classInstance.checkAttributeSyntax(session, new Member(), attributeToCheck);
 			classInstance.checkAttributeValue(session, new Member(), attributeToCheck);
 
 		}
@@ -84,6 +90,7 @@ public class urn_perun_member_attribute_def_def_membershipExpirationTest {
 		public void testCheckAttributeWrongDays() throws Exception {
 			System.out.println("testCheckAttributeWrongDay()");
 			attributeToCheck.setValue("1500-10-32");
+			classInstance.checkAttributeSyntax(session, new Member(), attributeToCheck);
 			classInstance.checkAttributeValue(session, new Member(), attributeToCheck);
 
 		}
@@ -92,6 +99,7 @@ public class urn_perun_member_attribute_def_def_membershipExpirationTest {
 		public void testCheckAttributeWrongMonthWithBadDaysValueTime() throws Exception {
 			System.out.println("testCheckAttributeWrongMonthWithBadDaysValueTime()");
 			attributeToCheck.setValue("3595-11-31");
+			classInstance.checkAttributeSyntax(session, new Member(), attributeToCheck);
 			classInstance.checkAttributeValue(session, new Member(), attributeToCheck);
 
 		}
@@ -100,6 +108,7 @@ public class urn_perun_member_attribute_def_def_membershipExpirationTest {
 		public void testCheckAttributeWrongCharInDate() throws Exception {
 			System.out.println("testCheckAttributeWrongCharsInDate()");
 			attributeToCheck.setValue("3595-11-31s");
+			classInstance.checkAttributeSyntax(session, new Member(), attributeToCheck);
 			classInstance.checkAttributeValue(session, new Member(), attributeToCheck);
 
 		}
@@ -108,6 +117,7 @@ public class urn_perun_member_attribute_def_def_membershipExpirationTest {
 		public void testCheckAttributeWrongCharsBetweenDate() throws Exception {
 			System.out.println("testCheckAttributeWrongCharsBetweenDate()");
 			attributeToCheck.setValue("3595.11.31");
+			classInstance.checkAttributeSyntax(session, new Member(), attributeToCheck);
 			classInstance.checkAttributeValue(session, new Member(), attributeToCheck);
 
 		}
@@ -117,6 +127,7 @@ public class urn_perun_member_attribute_def_def_membershipExpirationTest {
 		System.out.println("testCheckAttriubuteReturnNull()");
 		Attribute attribute = classInstance.fillAttribute(session, new Member(), classInstance.getAttributeDefinition());
 		assertNull("Test", attribute.getValue());
+		classInstance.checkAttributeSyntax(session, new Member(), attributeToCheck);
 		classInstance.checkAttributeValue(session, new Member(), attribute);
 	}
 }

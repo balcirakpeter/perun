@@ -41,8 +41,6 @@ public class urn_perun_group_resource_attribute_def_def_isSystemUnixGroup extend
 		Integer isSystemUnixGroup = (Integer) attribute.getValue();
 		if(isSystemUnixGroup == null) return; //isSystemUnixGroup can be null. It is equivalent to 0.
 
-		if(isSystemUnixGroup != 0 && isSystemUnixGroup != 1) throw new WrongAttributeValueException(attribute, "Attribute isSystemUnixGroup should not other number than 0 or 1.");
-
 		Attribute sysUnixGroupName = new Attribute();
 		Attribute sysUnixGID = new Attribute();
 
@@ -74,6 +72,13 @@ public class urn_perun_group_resource_attribute_def_def_isSystemUnixGroup extend
 				throw new InternalErrorException(ex);
 			}
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		Integer isSystemUnixGroup = (Integer) attribute.getValue();
+		if(isSystemUnixGroup == null) return;
+		if(isSystemUnixGroup != 0 && isSystemUnixGroup != 1) throw new WrongAttributeValueException(attribute, "Attribute isSystemUnixGroup should not other number than 0 or 1.");
 	}
 
 	@Override

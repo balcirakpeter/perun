@@ -63,6 +63,12 @@ public class urn_perun_resource_attribute_def_def_defaultHomeMountPoint extends 
 		if (!homeMntPoints.contains(attribute.getValue())) {
 			throw new WrongAttributeValueException(attribute, "Attribute value ins't defined in underlying resource. Attribute name=" + A_R_homeMountPoints);
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+		if (attribute.getValue() == null) return;
 
 		Matcher match = pattern.matcher((String) attribute.getValue());
 		if (!match.matches()) {

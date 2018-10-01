@@ -25,14 +25,25 @@ public class urn_perun_user_attribute_def_def_preferredShells extends UserAttrib
 
 		if (pshell != null){
 			for(String shell : pshell){
+				if(shell == null){
+					throw new WrongAttributeValueException(attribute, user, "shell cannot be null");
+				}
+			}
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+		List<String> pshell = (List<String>) attribute.getValue();
+
+		if (pshell != null){
+			for(String shell : pshell){
 				if(shell != null){
 					if(shell.isEmpty()){
 						throw new WrongAttributeValueException(attribute, user, "shell cannot be empty string");
 					}else{
 						sess.getPerunBl().getModulesUtilsBl().checkFormatOfShell(shell, attribute);
 					}
-				}else{
-					throw new WrongAttributeValueException(attribute, user, "shell cannot be null");
 				}
 			}
 		}

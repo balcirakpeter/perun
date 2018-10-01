@@ -39,9 +39,8 @@ public class urn_perun_member_resource_attribute_def_def_dataQuotas extends Reso
 			return;
 		}
 
-		//Check if every part of this map has the right pattern
 		//And also check if every quota part has right settings (softQuota<=hardQuota)
-		Map<String, Pair<BigDecimal, BigDecimal>> dataQuotasForMemberOnResource = perunSession.getPerunBl().getModulesUtilsBl().checkAndTransferQuotas(attribute, resource, member, true);
+		Map<String, Pair<BigDecimal, BigDecimal>> dataQuotasForMemberOnResource = perunSession.getPerunBl().getModulesUtilsBl().transferQuotas(attribute, resource, member, true);
 
 		//If there are no values after converting quota, we can skip testing against maxUserDataQuota attribute, because there is nothing to check
 		if (dataQuotasForMemberOnResource == null || dataQuotasForMemberOnResource.isEmpty()) return;
@@ -57,7 +56,8 @@ public class urn_perun_member_resource_attribute_def_def_dataQuotas extends Reso
 		//Check and transfer maxUserDataQuotasForResource
 		Map<String, Pair<BigDecimal, BigDecimal>> maxUserDataQuotasForResource;
 		try {
-			maxUserDataQuotasForResource = perunSession.getPerunBl().getModulesUtilsBl().checkAndTransferQuotas(maxUserDataQuotasAttribute, resource, null, true);
+			perunSession.getPerunBl().getModulesUtilsBl().checkQuotas(maxUserDataQuotasAttribute, true);
+			maxUserDataQuotasForResource = perunSession.getPerunBl().getModulesUtilsBl().transferQuotas(maxUserDataQuotasAttribute, resource, null, true);
 		} catch (WrongAttributeValueException ex) {
 			throw new WrongReferenceAttributeValueException(attribute, maxUserDataQuotasAttribute, resource, member, resource, null,
 					"Can't set dataQuotas for member on resource, because maxUserQuota is not in correct format. Please fix it first!", ex);
@@ -72,6 +72,13 @@ public class urn_perun_member_resource_attribute_def_def_dataQuotas extends Reso
 	}
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Member member, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if(attribute.getValue() == null) return;
+		perunSession.getPerunBl().getModulesUtilsBl().checkQuotas(attribute, true);
+	}
+
+
+		@Override
 	public List<String> getDependencies() {
 		List<String> dependencies = new ArrayList<String>();
 		dependencies.add(A_R_maxUserDataQuotas);

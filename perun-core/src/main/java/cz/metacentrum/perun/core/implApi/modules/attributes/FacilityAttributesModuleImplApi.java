@@ -56,4 +56,20 @@ public interface FacilityAttributesModuleImplApi extends AttributesModuleImplApi
 	 * @param attribute the attribute
 	 */
 	void changedAttributeHook(PerunSessionImpl session, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
+	/**
+	 * Checks if syntax of this attribute is valid.
+	 *
+	 * @param perunSession perun session
+	 * @param facility     facility for which you want to check validity of attribute
+	 * @param attribute    attribute to check
+	 * @throws InternalErrorException                if an exception is raised in particular
+	 *                                               implementation, the exception is wrapped in InternalErrorException
+	 * @throws WrongAttributeValueException          if the attribute syntax is wrong/illegal
+	 * @throws WrongReferenceAttributeValueException if an referenced attribute against
+	 *                                               the parameter is to be compared is not available
+	 * @throws WrongAttributeAssignmentException
+	 */
+	void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
 }

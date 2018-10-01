@@ -35,9 +35,15 @@ public class urn_perun_group_attribute_def_def_authoritativeGroup extends GroupA
 
 		//Member group can't have set this attribute
 		if(group.getName().equals(VosManager.MEMBERS_GROUP)) throw new WrongAttributeValueException(attribute, group, "Members group is authoritative automatic, there is not allowed to set this attribute for members group.");
-	
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException{
+
 		Integer value = (Integer) attribute.getValue();
-		if(value < 0 || value > 1) throw new WrongAttributeValueException(attribute, group, "Attribute can have only value 1 or 0 (true or false).");
+		if(value != null) {
+			if(value < 0 || value > 1) throw new WrongAttributeValueException(attribute, group, "Attribute can have only value 1 or 0 (true or false).");
+		}
 	}
 
 	@Override

@@ -27,6 +27,11 @@ public class urn_perun_user_attribute_def_def_kerberosLogins extends UserAttribu
 	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
 		if(attribute.getValue() == null) throw new WrongAttributeValueException(attribute, user, "Attribute's value can't be null.");
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+		if(attribute.getValue() == null) return;
 		List<String> value = (List<String>) attribute.getValue();
 		if(value.isEmpty()) throw new WrongAttributeValueException(attribute, user, "Attribute's value can't be empty list");
 		for(String login : value) {
@@ -34,6 +39,7 @@ public class urn_perun_user_attribute_def_def_kerberosLogins extends UserAttribu
 			if(!matcher.matches()) throw new WrongAttributeValueException(attribute, user, "Attribute's value is not in correct format. format: login@realm");
 		}
 	}
+
 
 	@Override
 	public Attribute fillAttribute(PerunSessionImpl sess, User user, AttributeDefinition attribute) throws InternalErrorException, WrongAttributeAssignmentException {

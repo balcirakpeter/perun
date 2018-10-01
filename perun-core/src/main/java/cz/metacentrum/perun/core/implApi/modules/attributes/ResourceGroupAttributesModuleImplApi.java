@@ -56,4 +56,19 @@ public interface ResourceGroupAttributesModuleImplApi extends AttributesModuleIm
 	 * @param attribute the attribute
 	 */
 	void changedAttributeHook(PerunSessionImpl session, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException;
+
+	/**
+	 * Checks if syntax of this attribute is valid.
+	 *
+	 * @param perunSession perun session
+	 * @param resource     resource for which you want to check validity of attribute syntax
+	 * @param group        group
+	 * @param attribute    attribute to check
+	 * @throws InternalErrorException            if an exception is raised in particular
+	 *                                           implementation, the exception is wrapped in InternalErrorException
+	 * @throws WrongAttributeValueException      if the attribute syntax is wrong/illegal
+	 * @throws WrongAttributeAssignmentException
+	 */
+	void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException;
+
 }

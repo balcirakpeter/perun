@@ -28,9 +28,14 @@ public class urn_perun_member_attribute_def_def_mail extends MemberAttributesMod
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
+		if(attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "Member mail can't be null.");
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Member member, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException, WrongReferenceAttributeValueException {
 		String attributeValue = null;
 
-		if(attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "Member mail can't be null.");
+		if(attribute.getValue() == null) return;
 		else attributeValue = (String) attribute.getValue();
 
 		Matcher emailMatcher = Utils.emailPattern.matcher(attributeValue);

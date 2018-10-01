@@ -28,7 +28,7 @@ public class urn_perun_facility_attribute_def_def_homeDirUmask extends FacilityA
 	 * Method for checking permission mask of home directory.
 	 */
 	@Override
-	public void checkAttributeValue(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Facility facility, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 
 		String mask = (String) attribute.getValue();
 

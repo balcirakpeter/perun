@@ -26,10 +26,15 @@ public class urn_perun_resource_attribute_def_def_redmineProjectID extends Resou
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
-		String id = (String) attribute.getValue();
-		if (id == null) {
+		if (attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, "Attribute can't be empty. It can start with a-z and then a-z, 0-9, _ or -");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		String id = (String) attribute.getValue();
+		if (id == null) return;
 
 		Matcher match = pattern.matcher(id);
 

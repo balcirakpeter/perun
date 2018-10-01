@@ -55,10 +55,7 @@ public class urn_perun_group_resource_attribute_def_def_systemUnixGID extends Re
 			if(isSystemGroup.getValue() != null && (Integer) isSystemGroup.getValue() == 1) {
 				throw new WrongReferenceAttributeValueException(attribute, "Attribute cant be null if " + group + " on " + resource + " is system unix group.");
 			}
-		} else if(gid < 1) {
-			throw new WrongAttributeValueException(attribute,"GID number less than 1 is not allowed value.");
 		}
-
 
 		//Get facility for the resource
 		Facility facility = sess.getPerunBl().getResourcesManagerBl().getFacility(sess, resource);
@@ -96,6 +93,16 @@ public class urn_perun_group_resource_attribute_def_def_systemUnixGID extends Re
 	}
 
 	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		Integer gid = (Integer) attribute.getValue();
+		if (gid == null) return;
+
+		if(gid < 1) {
+			throw new WrongAttributeValueException(attribute,"GID number less than 1 is not allowed value.");
+		}
+	}
+
+		@Override
 	public List<String> getDependencies() {
 		List<String> dependencies = new ArrayList<>();
 		dependencies.add(A_GR_systemUnixGroupName);

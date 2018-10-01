@@ -39,20 +39,10 @@ public class urn_perun_group_resource_attribute_def_def_adName extends ResourceG
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
-		String attributeValue;
 
 		//Attribute can be null
 		if(attribute.getValue() == null) {
 			return;
-		}
-
-		if(attribute.getValue() instanceof String) {
-			attributeValue = (String) attribute.getValue();
-			if (!pattern.matcher(attributeValue).matches()) {
-				throw new WrongAttributeValueException(attribute, "Invalid attribute adName value. It should contain only letters, digits, hyphens, underscores or dots.");
-			}
-		} else {
-			throw new WrongAttributeValueException(attribute, "Attribute adName value must be a String.");
 		}
 
 		Attribute resourceAdOuName;
@@ -74,6 +64,25 @@ public class urn_perun_group_resource_attribute_def_def_adName extends ResourceG
 			throw new WrongReferenceAttributeValueException(attribute, resourceAdOuName, group, resource, resource, null,
 					"Attribute AD Name can't be set for group and resource in this OU, because this value is already " +
 					"set for different group and resource in the same OU!");
+		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl sess, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		String attributeValue;
+
+		//Attribute can be null
+		if (attribute.getValue() == null) {
+			return;
+		}
+
+		if (attribute.getValue() instanceof String) {
+			attributeValue = (String) attribute.getValue();
+			if (!pattern.matcher(attributeValue).matches()) {
+				throw new WrongAttributeValueException(attribute, "Invalid attribute adName value. It should contain only letters, digits, hyphens, underscores or dots.");
+			}
+		} else {
+			throw new WrongAttributeValueException(attribute, "Attribute adName value must be a String.");
 		}
 	}
 

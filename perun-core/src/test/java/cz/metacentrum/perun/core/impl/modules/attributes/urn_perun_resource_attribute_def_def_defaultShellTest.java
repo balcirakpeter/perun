@@ -113,6 +113,7 @@ public class urn_perun_resource_attribute_def_def_defaultShellTest {
 		attribute.setValue(shellName);
 
 		//ideal scenario without exceptions..
+		defShellAttr.checkAttributeSyntax(ps, new Resource(), attribute);
 		defShellAttr.checkAttributeValue(ps, new Resource(), attribute);
 
 	}
@@ -120,6 +121,7 @@ public class urn_perun_resource_attribute_def_def_defaultShellTest {
 	@Test(expected=WrongAttributeValueException.class)
 	public void checkAttributeWithoutValue() throws Exception {
 		System.out.println("checkAttributeWithoutValue()");
+		defShellAttr.checkAttributeSyntax(ps, new Resource(), new Attribute());
 		defShellAttr.checkAttributeValue(ps, new Resource(), new Attribute());
 	}
 
@@ -134,6 +136,7 @@ public class urn_perun_resource_attribute_def_def_defaultShellTest {
 		attribute.setValue("mujShell");
 
 		try {
+			defShellAttr.checkAttributeSyntax(ps, new Resource(), attribute);
 			defShellAttr.checkAttributeValue(ps, new Resource(), attribute);
 			fail();
 		} catch (InternalErrorException ex) {
@@ -151,6 +154,7 @@ public class urn_perun_resource_attribute_def_def_defaultShellTest {
 		final Attribute attribute = new Attribute();
 		attribute.setValue("mujShell");
 
+		defShellAttr.checkAttributeSyntax(ps, new Resource(), attribute);
 		defShellAttr.checkAttributeValue(ps, new Resource(), attribute);
 	}
 

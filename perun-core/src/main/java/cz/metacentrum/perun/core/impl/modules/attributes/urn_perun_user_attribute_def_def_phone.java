@@ -27,15 +27,21 @@ public class urn_perun_user_attribute_def_def_phone extends UserAttributesModule
 
 	@Override
 	public void checkAttributeValue(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
-		String phone = null;
 
 		// null attribute
 		if (attribute.getValue() == null) throw new WrongAttributeValueException(attribute, "User attribute phone cannot be null.");
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, User user, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+
+		// null attribute
+		if (attribute.getValue() == null) return;
 
 		// wrong type of the attribute
 		if (!(attribute.getValue() instanceof String)) throw new WrongAttributeValueException(attribute, "Wrong type of the attribute. Expected: String");
 
-		phone = (String) attribute.getValue();
+		String phone = (String) attribute.getValue();
 
 		Matcher matcher = pattern.matcher(phone);
 		if (!matcher.matches()) {

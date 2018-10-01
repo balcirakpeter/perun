@@ -39,9 +39,8 @@ public class urn_perun_resource_attribute_def_def_defaultFileQuotas extends Reso
 			return;
 		}
 
-		//Check if every part of this map has the right pattern
-		//And also check if every quota part has right settings (softQuota<=hardQuota)
-		Map<String, Pair<BigDecimal, BigDecimal>> defaultFileQuotasForResource = perunSession.getPerunBl().getModulesUtilsBl().checkAndTransferQuotas(attribute, resource, null, false);
+		//Check if every quota part has right settings (softQuota<=hardQuota)
+		Map<String, Pair<BigDecimal, BigDecimal>> defaultFileQuotasForResource = perunSession.getPerunBl().getModulesUtilsBl().transferQuotas(attribute, resource, null, true);
 
 		//If there are no values after converting quota, we can skip testing against maxUserFileQuota attribute, because there is nothing to check
 		if (defaultFileQuotasForResource == null || defaultFileQuotasForResource.isEmpty()) return;
@@ -57,7 +56,8 @@ public class urn_perun_resource_attribute_def_def_defaultFileQuotas extends Reso
 		//Check and transfer maxUserFileQuotasForResource
 		Map<String, Pair<BigDecimal, BigDecimal>> maxUserFileQuotasForResource;
 		try {
-			maxUserFileQuotasForResource = perunSession.getPerunBl().getModulesUtilsBl().checkAndTransferQuotas(maxUserFileQuotasAttribute, resource, null, false);
+			perunSession.getPerunBl().getModulesUtilsBl().checkQuotas(maxUserFileQuotasAttribute, false);
+			maxUserFileQuotasForResource = perunSession.getPerunBl().getModulesUtilsBl().transferQuotas(maxUserFileQuotasAttribute, resource, null, false);
 		} catch (WrongAttributeValueException ex) {
 			throw new WrongReferenceAttributeValueException(attribute, maxUserFileQuotasAttribute, resource, null, resource, null,
 					"Can't set defaultFileQuotas for resource, because maxUserQuota is not in correct format. Please fix it first!", ex);
@@ -69,6 +69,12 @@ public class urn_perun_resource_attribute_def_def_defaultFileQuotas extends Reso
 			throw new WrongReferenceAttributeValueException(attribute, maxUserFileQuotasAttribute, resource, null, resource, null,
 					"DefaultFileQuotas for resource is not in limit of maxUserQuota!", ex);
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() == null) return;
+		perunSession.getPerunBl().getModulesUtilsBl().checkQuotas(attribute, true);
 	}
 
 	@Override

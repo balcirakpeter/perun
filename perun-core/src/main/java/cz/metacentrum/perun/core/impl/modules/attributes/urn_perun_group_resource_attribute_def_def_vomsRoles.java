@@ -21,11 +21,11 @@ import java.util.regex.Pattern;
  */
 public class urn_perun_group_resource_attribute_def_def_vomsRoles extends ResourceGroupAttributesModuleAbstract implements ResourceGroupAttributesModuleImplApi {
 
-	private final Pattern pattern = Pattern.compile("^[^<>&]*$");
+	private static final Pattern pattern = Pattern.compile("^[^<>&]*$");
 
 	@Override
 	@SuppressWarnings("unchecked")
-	public void checkAttributeValue(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Group group, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
 		if(attribute.getValue() == null) {
 			return;
 		}

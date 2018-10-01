@@ -30,8 +30,12 @@ public class urn_perun_resource_attribute_def_def_apacheAuthzFile extends Resour
 		if (attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, null, "Attribute value can not be null.");
 		}
+	}
 
-		//checks for valid unix file path in attribute based on pattern
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		if (attribute.getValue() == null) return;
+
 		Matcher match = pattern.matcher((String) attribute.getValue());
 
 		if(!match.matches()) {

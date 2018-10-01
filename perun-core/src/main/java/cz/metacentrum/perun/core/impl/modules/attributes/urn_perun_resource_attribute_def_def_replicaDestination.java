@@ -20,6 +20,12 @@ public class urn_perun_resource_attribute_def_def_replicaDestination extends Res
 		if(attribute.getValue() == null) {
 			throw new WrongAttributeValueException(attribute, resource, "Destination for FS replica can't be empty.");
 		}
+	}
+
+	@Override
+	public void checkAttributeSyntax(PerunSessionImpl perunSession, Resource resource, Attribute attribute) throws WrongAttributeValueException {
+
+		if(attribute.getValue() == null) return;
 
 		if (!perunSession.getPerunBl().getModulesUtilsBl().isFQDNValid(perunSession, (String) attribute.getValue())) {
 			throw new WrongAttributeValueException(attribute, resource, "Bad replicaDestination attribute format " + attribute.getValue() + ". It should be " +
