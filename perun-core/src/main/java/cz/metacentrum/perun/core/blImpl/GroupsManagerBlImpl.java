@@ -160,6 +160,10 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	private final PerunBeanProcessingPool<Group> poolOfGroupsStructuresToBeSynchronized;
 	private final List<GroupStructureSynchronizerThread> groupStructureSynchronizerThreads;
 
+	private final Integer maxConcurrentGroupsStructuresMembersToSynchronize;
+	private final PerunBeanProcessingPool<Group> poolOfGroupsStructuresMembersToBeSynchronized;
+	private final List<GroupStructureMembersSynchronizerThread> groupStructureMembersSynchronizerThreads;
+
 	public static final String PARENT_GROUP_NAME = "parentGroupName";
 	public static final String GROUP_NAME = "groupName";
 	public static final String GROUP_DESCRIPTION = "description";
@@ -172,11 +176,14 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		this.groupsManagerImpl = groupsManagerImpl;
 		this.groupSynchronizerThreads = new ArrayList<>();
 		this.groupStructureSynchronizerThreads = new ArrayList<>();
+		this.groupStructureMembersSynchronizerThreads = new ArrayList<>();
 		this.poolOfGroupsToBeSynchronized = new PerunBeanProcessingPool<>();
 		this.poolOfGroupsStructuresToBeSynchronized = new PerunBeanProcessingPool<>();
+		this.poolOfGroupsStructuresMembersToBeSynchronized = new PerunBeanProcessingPool<>();
 		//set maximum concurrent groups to synchronize by property
 		this.maxConcurentGroupsToSynchronize = BeansUtils.getCoreConfig().getGroupMaxConcurentGroupsToSynchronize();
 		this.maxConcurrentGroupsStructuresToSynchronize = BeansUtils.getCoreConfig().getGroupMaxConcurrentGroupsStructuresToSynchronize();
+		this.maxConcurrentGroupsStructuresMembersToSynchronize = BeansUtils.getCoreConfig().getGroupMaxConcurrentGroupsStructuresMembersToSynchronize();
 	}
 
 	@Override
@@ -1674,10 +1681,31 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		updateExistingGroupsWhileSynchronization(sess, baseGroup, groupsToUpdate, skippedGroups);
 		removeFormerGroupsWhileSynchronization(sess, baseGroup, groupsToRemove, skippedGroups);
 
-		log.info("Group structure synchronization {}: ended.", baseGroup);
-
 		synchronizeSubGroupsMembers(sess, baseGroup, source);
 
+		log.info("Group structure synchronization {}: ended.", baseGroup);
+
+		return skippedGroups;
+	}
+
+	@Override
+	public List<String> synchronizeGroupStructureMembers(PerunSession sess, Group baseGroup) throws InternalErrorException {
+		List<Group> groupsForMemberSynchronization = getAllSubGroups(sess, baseGroup);
+		List<String> skippedGroups = new ArrayList<>();
+
+		//Order subGroups from (leaf groups are first)
+		groupsForMemberSynchronization.sort((g1, g2) -> {
+			int g1size = g1.getName().split(":").length;
+			int g2size = g2.getName().split(":").length;
+
+			return g1size - g2size;
+		});
+
+		for (Group group: groupsForMemberSynchronization) {
+			if (synchronizeMembersAndSaveResult(sess, group)) {
+				skippedGroups.add(group.toString());
+			}
+		}
 		return skippedGroups;
 	}
 
@@ -2002,7 +2030,108 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 
 	}
 
+	@Override
+	public synchronized void synchronizeGroupsStructuresMembers(PerunSession sess) throws InternalErrorException {
+		int numberOfNewlyRemovedThreads = processCurrentGroupStructureMembersSynchronizationThreads();
+		int numberOfNewlyCreatedThreads = createNewGroupStructureMembersSynchronizationThreads(sess);
+		int numberOfNewlyAddedGroups = addGroupsToGroupStructureMembersSynchronizationPool(sess);
 
+		log.info("SynchronizeGroupsStructuresMembers method ends with these states: " +
+			"'number of newly removed threads'='" + numberOfNewlyRemovedThreads + "', " +
+			"'number of newly created threads'='" + numberOfNewlyCreatedThreads + "', " +
+			"'number of newly added groups structures to the pool'='" + numberOfNewlyAddedGroups + "', " +
+			"'right now synchronized groups structures'='" + poolOfGroupsStructuresMembersToBeSynchronized.getRunningJobs() + "', " +
+			"'right now waiting groups structures'='" + poolOfGroupsStructuresMembersToBeSynchronized.getWaitingJobs() + "'.");
+	}
+
+	/**
+	 * Private thread class for groups structure members synchronizations
+	 *
+	 * All group structure members synchronizations runs under synchronizer identity.
+	 */
+	private class GroupStructureMembersSynchronizerThread extends Thread {
+
+		private final PerunPrincipal pp = new PerunPrincipal("perunSynchronizer", ExtSourcesManager.EXTSOURCE_NAME_INTERNAL, ExtSourcesManager.EXTSOURCE_INTERNAL);
+		private final PerunBl perunBl;
+		private final PerunSession sess;
+		private volatile long startTime;
+
+		/**
+		 * Take only reference to perun
+		 * Default settings of not running thread (waiting for another group)
+		 *
+		 * @param sess
+		 * @throws InternalErrorException
+		 */
+		public GroupStructureMembersSynchronizerThread(PerunSession sess) throws InternalErrorException {
+			this.perunBl = (PerunBl) sess.getPerun();
+			this.sess = perunBl.getPerunSession(pp, new PerunClient());
+			this.startTime = 0;
+		}
+
+		/**
+		 * Run group structure members synchronization thread
+		 *
+		 */
+		@Override
+		public void run() {
+			while (!this.isInterrupted()) {
+				this.setThreadToDefaultState();
+
+				String exceptionMessage = null;
+				String skippedGroupsMessage = null;
+				boolean failedDueToException = false;
+
+				Group group;
+				try {
+					group = poolOfGroupsStructuresMembersToBeSynchronized.takeJob();
+				} catch (InterruptedException ex) {
+					log.error("Thread was interrupted when trying to take another group structure to synchronize members from pool", ex);
+					this.interrupt();
+					continue;
+				}
+
+				try {
+					startTime = System.currentTimeMillis();
+
+					log.debug("Synchronization thread started synchronization for group structure members {}.", group);
+
+					List<String> skippedGroups = perunBl.getGroupsManagerBl().synchronizeGroupStructureMembers(sess, group);
+
+					skippedGroupsMessage = prepareSkippedObjectsMessage(skippedGroups, "groups");
+					exceptionMessage = skippedGroupsMessage;
+
+					log.debug("Synchronization thread for group structure members {} has finished in {} ms.", group, System.currentTimeMillis() - startTime);
+				} catch (Exception e) {
+					failedDueToException = true;
+					exceptionMessage = "Cannot synchronize group structure members ";
+					log.error(exceptionMessage + group, e);
+					exceptionMessage += "due to exception: " + e.getClass().getName() + " => " + e.getMessage();
+				} finally {
+					try {
+						perunBl.getGroupsManagerBl().saveInformationAboutGroupStructureSynchronizationInNewTransaction(sess, group, failedDueToException, exceptionMessage);
+					} catch (Exception ex) {
+						log.error("When synchronization group structure members for group " + group + ", exception was thrown.", ex);
+						log.error("Info about exception from group structure members synchronization: " + skippedGroupsMessage);
+					}
+					if (!poolOfGroupsStructuresToBeSynchronized.removeJob(group)) {
+						log.error("Can't remove running job for object " + group + " from pool of running jobs because it is not containing it.");
+					}
+
+					log.debug("GroupStructureMembersSynchronizerThread finished for group: {}", group);
+				}
+			}
+		}
+
+		public long getStartTime() {
+			return startTime;
+		}
+
+		private void setThreadToDefaultState() {
+			this.startTime = 0;
+		}
+
+	}
 
 	/**
 	 * Get all groups of member (except members group) where authoritativeGroup attribute is set to 1 (true)
@@ -3346,14 +3475,6 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			throw new WrongAttributeValueException("Group members query attribute is not set for base group " + baseGroup + "!");
 		}
 
-		//Order subGroups from (leaf groups are first)
-		groupsForMemberSynchronization.sort((g1, g2) -> {
-			int g1size = g1.getName().split(":").length;
-			int g2size = g2.getName().split(":").length;
-
-			return g1size - g2size;
-		});
-
 		//for each group set attributes for members synchronization, synchronize them and save the result
 		for (Group group: groupsForMemberSynchronization) {
 
@@ -3375,10 +3496,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			Attribute groupMemberExtsource = getPerunBl().getAttributesManagerBl().getAttribute(sess, baseGroup, GroupsManager.GROUPMEMBERSEXTSOURCE_ATTRNAME);
 			groupMemberExtsource.setValue(baseMemberExtsource.getValue());
 			getPerunBl().getAttributesManagerBl().setAttribute(sess, group, groupMemberExtsource);
-
-			synchronizeMembersAndSaveResult(sess, group);
 		}
-
 	}
 
 	/**
@@ -3389,10 +3507,11 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	 * @param sess perun session
 	 * @param group under which will be members synchronized
 	 */
-	private void synchronizeMembersAndSaveResult(PerunSession sess, Group group) {
+	private boolean synchronizeMembersAndSaveResult(PerunSession sess, Group group) {
 		String exceptionMessage = null;
 		String skippedMembersMessage = null;
 		boolean failedDueToException = false;
+		boolean isGroupSkipped = false;
 		try {
 			List<String> skippedMembers = perunBl.getGroupsManagerBl().synchronizeGroup(sess, group);
 			skippedMembersMessage = prepareSkippedObjectsMessage(skippedMembers, "members");
@@ -3403,6 +3522,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			exceptionMessage = "Cannot synchronize group ";
 			log.error(exceptionMessage + group, e);
 			exceptionMessage += "due to exception: " + e.getClass().getName() + " => " + e.getMessage();
+			isGroupSkipped = true;
 		} finally {
 			try {
 				perunBl.getGroupsManagerBl().saveInformationAboutGroupSynchronizationInNestedTransaction(sess, group, failedDueToException, exceptionMessage);
@@ -3411,6 +3531,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				log.info("Info about exception from synchronization: " + skippedMembersMessage);
 			}
 		}
+		return isGroupSkipped;
 	}
 
 	/**
@@ -3536,6 +3657,111 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 					log.debug("Group structure {} was added to the pool of groups structures waiting for synchronization.", group);
 				} else {
 					log.debug("Group structure {} synchronization is already running.", group);
+				}
+			}
+		}
+
+		return numberOfNewlyAddedGroups;
+	}
+
+	/**
+	 * Interrupt threads after timeout and remove all interrupted threads (group structure members synchronization threads)
+	 *
+	 * Method used by group structure members synchronization
+	 *
+	 * @return number of removed threads
+	 */
+	private int processCurrentGroupStructureMembersSynchronizationThreads() {
+		int timeoutMinutes = BeansUtils.getCoreConfig().getGroupStructureMembersSynchronizationTimeout();
+
+		int numberOfNewlyRemovedThreads = 0;
+		Iterator<GroupStructureMembersSynchronizerThread> threadIterator = groupStructureMembersSynchronizerThreads.iterator();
+		while(threadIterator.hasNext()) {
+			GroupStructureMembersSynchronizerThread thread = threadIterator.next();
+			long threadStart = thread.getStartTime();
+			//If the thread start time is 0, this thread is waiting for another job, skip it
+			if (threadStart == 0) continue;
+
+			long timeDiff = System.currentTimeMillis() - threadStart;
+			if (thread.isInterrupted()) {
+				numberOfNewlyRemovedThreads++;
+				threadIterator.remove();
+			} else if(timeDiff/1000/60 > timeoutMinutes) {
+				log.error("One of threads was interrupted because of timeout!");
+				thread.interrupt();
+				threadIterator.remove();
+				numberOfNewlyRemovedThreads++;
+			}
+		}
+
+		return numberOfNewlyRemovedThreads;
+	}
+
+	/**
+	 * Create and start new threads for group structure members synchronization
+	 *
+	 * Method used by group structure members synchronization
+	 *
+	 * @param sess
+	 * @return number of created threads
+	 * @throws InternalErrorException
+	 */
+	private int createNewGroupStructureMembersSynchronizationThreads(PerunSession sess) throws InternalErrorException {
+		int numberOfNewlyCreatedThreads = 0;
+		while(groupStructureMembersSynchronizerThreads.size() < maxConcurrentGroupsStructuresMembersToSynchronize) {
+			GroupStructureMembersSynchronizerThread thread = new GroupStructureMembersSynchronizerThread(sess);
+			thread.start();
+			groupStructureMembersSynchronizerThreads.add(thread);
+			numberOfNewlyCreatedThreads++;
+			log.debug("New thread for group structure members synchronization started.");
+		}
+
+		return numberOfNewlyCreatedThreads;
+	}
+
+	/**
+	 * Add new groups to the group structure members synchronization poll
+	 *
+	 * Method used by group structure members synchronization
+	 *
+	 * @param sess
+	 * @return number of added groups
+	 * @throws InternalErrorException
+	 */
+	private int addGroupsToGroupStructureMembersSynchronizationPool(PerunSession sess) throws InternalErrorException {
+		int defaultIntervalMultiplier = BeansUtils.getCoreConfig().getGroupStructureMembersSynchronizationInterval();
+		long minutesFromEpoch = System.currentTimeMillis()/1000/60;
+
+		List<Group> groups = groupsManagerImpl.getGroupsStructuresMembersToSynchronize(sess);
+
+		int numberOfNewlyAddedGroups = 0;
+		for (Group group: groups) {
+			int intervalMultiplier;
+			try {
+				Attribute intervalAttribute = getPerunBl().getAttributesManagerBl().getAttribute(sess, group, GroupsManager.GROUP_STRUCTURE_MEMBERS_SYNCHRO_INTERVAL_ATTRNAME);
+				if (intervalAttribute.getValue() != null) {
+					intervalMultiplier = Integer.parseInt((String) intervalAttribute.getValue());
+				} else {
+					intervalMultiplier = defaultIntervalMultiplier;
+					log.debug("Group structure {} hasn't set members synchronization interval, using default {} seconds", group, intervalMultiplier);
+				}
+			} catch (AttributeNotExistsException e) {
+				log.debug("Required attribute {} isn't defined in Perun! Using default value from properties instead!", GroupsManager.GROUP_STRUCTURE_MEMBERS_SYNCHRO_INTERVAL_ATTRNAME);
+				intervalMultiplier = defaultIntervalMultiplier;
+			} catch (WrongAttributeAssignmentException e) {
+				log.debug("Cannot get attribute " + GroupsManager.GROUP_STRUCTURE_SYNCHRO_INTERVAL_ATTRNAME + " for group structure " + group + " due to exception. Using default value from properties instead!",e);
+				intervalMultiplier = defaultIntervalMultiplier;
+			}
+
+			intervalMultiplier = intervalMultiplier*5;
+
+			//If the minutesFromEpoch can be divided by the intervalMultiplier, then synchronize
+			if ((minutesFromEpoch % intervalMultiplier) == 0) {
+				if (poolOfGroupsStructuresMembersToBeSynchronized.putJobIfAbsent(group, false)) {
+					numberOfNewlyAddedGroups++;
+					log.debug("Group structure {} was added to the pool of groups structures waiting for members synchronization.", group);
+				} else {
+					log.debug("Group structure {} members synchronization is already running.", group);
 				}
 			}
 		}

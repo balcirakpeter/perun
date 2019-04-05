@@ -37,6 +37,9 @@ public class CoreConfig {
 	private int groupStructureSynchronizationInterval;
 	private int groupStructureSynchronizationTimeout;
 	private int groupMaxConcurrentGroupsStructuresToSynchronize;
+	private int groupStructureMembersSynchronizationInterval;
+	private int groupStructureMembersSynchronizationTimeout;
+	private int groupMaxConcurrentGroupsStructuresMembersToSynchronize;
 	private int mailchangeValidationWindow;
 	private int pwdresetValidationWindow;
 	private List<String> admins;
@@ -109,6 +112,31 @@ public class CoreConfig {
 
 	public void setGroupStructureSynchronizationTimeout(int groupStructureSynchronizationTimeout) {
 		this.groupStructureSynchronizationTimeout = groupStructureSynchronizationTimeout;
+	}
+
+
+	public int getGroupStructureMembersSynchronizationInterval() {
+		return groupStructureMembersSynchronizationInterval;
+	}
+
+	public void setGroupStructureMembersSynchronizationInterval(int groupStructureMembersSynchronizationInterval) {
+		this.groupStructureMembersSynchronizationInterval = groupStructureMembersSynchronizationInterval;
+	}
+
+	public int getGroupStructureMembersSynchronizationTimeout() {
+		return groupStructureMembersSynchronizationTimeout;
+	}
+
+	public void setGroupStructureMembersSynchronizationTimeout(int groupStructureMembersSynchronizationTimeout) {
+		this.groupStructureMembersSynchronizationTimeout = groupStructureMembersSynchronizationTimeout;
+	}
+
+	public int getGroupMaxConcurrentGroupsStructuresMembersToSynchronize() {
+		return groupMaxConcurrentGroupsStructuresMembersToSynchronize;
+	}
+
+	public void setGroupMaxConcurrentGroupsStructuresMembersToSynchronize(int groupMaxConcurrentGroupsStructuresMembersToSynchronize) {
+		this.groupMaxConcurrentGroupsStructuresMembersToSynchronize = groupMaxConcurrentGroupsStructuresMembersToSynchronize;
 	}
 
 	boolean isDbInitializatorEnabled() {

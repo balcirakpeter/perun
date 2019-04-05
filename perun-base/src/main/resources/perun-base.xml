@@ -20,8 +20,11 @@
 		<property name="groupSynchronizationTimeout" value="${perun.group.synchronization.timeout}"/>
 		<property name="groupStructureSynchronizationInterval" value="${perun.group.structure.synchronization.interval}"/>
 		<property name="groupStructureSynchronizationTimeout" value="${perun.group.structure.synchronization.timeout}"/>
+		<property name="groupStructureMembersSynchronizationInterval" value="${perun.group.structure.members.synchronization.interval}"/>
+		<property name="groupStructureMembersSynchronizationTimeout" value="${perun.group.structure.members.synchronization.timeout}"/>
 		<property name="groupMaxConcurentGroupsToSynchronize" value="${perun.group.maxConcurentGroupsToSynchronize}"/>
 		<property name="groupMaxConcurrentGroupsStructuresToSynchronize" value="${perun.group.structure.maxConcurrentGroupsStructuresToSynchronize}"/>
+		<property name="groupMaxConcurrentGroupsStructuresMembersToSynchronize" value="${perun.group.structure.members.maxConcurrentGroupsStructuresMembersToSynchronize}"/>
 		<property name="instanceId" value="${perun.instanceId}"/>
 		<property name="instanceName" value="${perun.instanceName}"/>
 		<property name="mailchangeBackupFrom" value="${perun.mailchange.backupFrom}"/>
@@ -87,8 +90,11 @@
 				<prop key="perun.group.synchronization.timeout">10</prop>
 				<prop key="perun.group.structure.synchronization.interval">1</prop>
 				<prop key="perun.group.structure.synchronization.timeout">10</prop>
+				<prop key="perun.group.structure.members.synchronization.interval">1</prop>
+				<prop key="perun.group.structure.members.synchronization.timeout">10</prop>
 				<prop key="perun.group.maxConcurentGroupsToSynchronize">10</prop>
 				<prop key="perun.group.structure.maxConcurrentGroupsStructuresToSynchronize">10</prop>
+				<prop key="perun.group.structure.members.maxConcurrentGroupsStructuresMembersToSynchronize">10</prop>
 				<prop key="perun.rpc.powerusers"/>
 				<prop key="perun.perun.db.name">perun</prop>
 				<prop key="perun.rt.url">https://rt3.cesnet.cz/rt/REST/1.0/ticket/new</prop>

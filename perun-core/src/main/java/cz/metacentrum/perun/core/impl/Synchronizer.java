@@ -25,6 +25,7 @@ public class Synchronizer {
 	private PerunBl perunBl;
 	private final AtomicBoolean synchronizeGroupsRunning = new AtomicBoolean(false);
 	private final AtomicBoolean synchronizeGroupsStructuresRunning = new AtomicBoolean(false);
+	private final AtomicBoolean synchronizeGroupsStructuresMembersRunning = new AtomicBoolean(false);
 
 	public Synchronizer() {
 	}
@@ -84,6 +85,31 @@ public class Synchronizer {
 			}
 		} else {
 			log.debug("Synchronizer: group structure synchronization currently running.");
+		}
+	}
+
+	/**
+	 * Start synchronization of groups if not running.
+	 *
+	 * Method is triggered by Spring scheduler (every 5 minutes).
+	 */
+	public void synchronizeGroupsStructuresMembers() {
+		if(perunBl.isPerunReadOnly()) {
+			log.warn("This instance is just read only so skip synchronization of groups structures members.");
+			return;
+		}
+
+		if (synchronizeGroupsStructuresMembersRunning.compareAndSet(false, true)) {
+			try {
+				log.debug("Synchronizer starting synchronizing the groups structures members");
+				this.perunBl.getGroupsManagerBl().synchronizeGroupsStructuresMembers(this.sess);
+				synchronizeGroupsStructuresMembersRunning.set(false);
+			} catch (InternalErrorException e) {
+				log.error("Cannot synchronize groups structures members:", e);
+				synchronizeGroupsStructuresMembersRunning.set(false);
+			}
+		} else {
+			log.debug("Synchronizer: group structure members synchronization currently running.");
 		}
 	}
 

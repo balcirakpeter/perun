@@ -1050,6 +1050,14 @@ public interface GroupsManagerBl {
 
 
 	/**
+	 * Synchronize all groups structures members which have enabled group structure members synchronization. This method is run by the scheduler every 5 minutes.
+	 *
+	 * @param sess
+	 * @throws InternalErrorException
+	 */
+	void synchronizeGroupsStructuresMembers(PerunSession sess) throws InternalErrorException;
+
+	/**
 	 * Returns all groups which have set the attribute with the value. Searching only def and opt attributes.
 	 *
 	 * @param sess
@@ -1603,6 +1611,21 @@ public interface GroupsManagerBl {
 	 * @throws GroupNotExistsException
 	 */
 	List<String> synchronizeGroupStructure(PerunSession sess, Group group) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException, ExtSourceNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupNotExistsException ;
+
+	/**
+	 * Synchronize a group structure members with an external source group structure members.
+	 *
+	 * @param sess
+	 * @param group base group under which will be synchronized structure members of groups
+	 * @throws InternalErrorException
+	 * @throws AttributeNotExistsException
+	 * @throws WrongAttributeAssignmentException
+	 * @throws ExtSourceNotExistsException
+	 * @throws WrongAttributeValueException
+	 * @throws WrongReferenceAttributeValueException
+	 * @throws GroupNotExistsException
+	 */
+	List<String> synchronizeGroupStructureMembers(PerunSession sess, Group group) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException, ExtSourceNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupNotExistsException ;
 
 	/**
 	 * Check if the group or its subgroups are defined as synchronized from an external source at this moment.

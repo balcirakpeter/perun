@@ -529,6 +529,15 @@ public interface GroupsManagerImplApi {
 	boolean isDirectGroupMember(PerunSession sess, Group group, Member member) throws InternalErrorException;
 
 	/**
+	 * Gets all groups which have enabled group structure members synchronization.
+	 *
+	 * @param sess
+	 * @return list of groups structures members to synchronize
+	 * @throws InternalErrorException
+	 */
+	List<Group> getGroupsStructuresMembersToSynchronize(PerunSession sess) throws InternalErrorException;
+
+	/**
 	 * Return list of IDs of all applications, which belongs to Group.
 	 *
 	 * @param sess

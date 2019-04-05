@@ -64,6 +64,10 @@ public interface GroupsManager {
 	String GROUPSYNCHROENABLED_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":synchronizationEnabled";
 	// If the group structure synchronization is enabled/disabled, value is true/false
 	String GROUPS_STRUCTURE_SYNCHRO_ENABLED_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":groupStructureSynchronizationEnabled";
+	// If the group structure synchronization is enabled/disabled, value is true/false
+	String GROUPS_STRUCTURE_MEMBERS_SYNCHRO_ENABLED_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":groupStructureMembersSynchronizationEnabled";
+	// Defines the interval, when the group structure has to be synchronized. It is fold of 5 minutes
+	String GROUP_STRUCTURE_MEMBERS_SYNCHRO_INTERVAL_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":groupStructureMembersSynchronizationInterval";
 	// Defines the interval, when the group has to be synchronized. It is fold of 5 minutes
 	String GROUPSYNCHROINTERVAL_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":synchronizationInterval";
 	// Defines the interval, when the group structure has to be synchronized. It is fold of 5 minutes
