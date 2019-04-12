@@ -42,7 +42,6 @@ import cz.metacentrum.perun.core.api.MemberGroupStatus;
 import cz.metacentrum.perun.core.api.MembershipType;
 import cz.metacentrum.perun.core.api.Pair;
 import cz.metacentrum.perun.core.api.PerunBean;
-import cz.metacentrum.perun.core.api.PerunBeanProcessingPool;
 import cz.metacentrum.perun.core.api.PerunClient;
 import cz.metacentrum.perun.core.api.PerunPrincipal;
 import cz.metacentrum.perun.core.api.PerunSession;
@@ -53,6 +52,8 @@ import cz.metacentrum.perun.core.api.RichUser;
 import cz.metacentrum.perun.core.api.Role;
 import cz.metacentrum.perun.core.api.SecurityTeam;
 import cz.metacentrum.perun.core.api.Status;
+import cz.metacentrum.perun.core.impl.PerunSessionImpl;
+import cz.metacentrum.perun.core.impl.SynchronizationPool;
 import cz.metacentrum.perun.core.api.User;
 import cz.metacentrum.perun.core.api.UserExtSource;
 import cz.metacentrum.perun.core.api.Vo;
@@ -149,7 +150,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	private final GroupsManagerImplApi groupsManagerImpl;
 	private PerunBl perunBl;
 	private final Integer maxConcurentGroupsToSynchronize;
-	private final PerunBeanProcessingPool<Group> poolOfGroupsToBeSynchronized;
+	private final SynchronizationPool poolOfSynchronizations;
 	private final ArrayList<GroupSynchronizerThread> groupSynchronizerThreads;
 	private static final String A_G_D_AUTHORITATIVE_GROUP = AttributesManager.NS_GROUP_ATTR_DEF + ":authoritativeGroup";
 	private static final String A_G_D_EXPIRATION_RULES = AttributesManager.NS_GROUP_ATTR_DEF + ":groupMembershipExpirationRules";
@@ -157,7 +158,6 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	private static final String A_M_V_LOA = AttributesManager.NS_MEMBER_ATTR_VIRT + ":loa";
 
 	private final Integer maxConcurrentGroupsStructuresToSynchronize;
-	private final PerunBeanProcessingPool<Group> poolOfGroupsStructuresToBeSynchronized;
 	private final List<GroupStructureSynchronizerThread> groupStructureSynchronizerThreads;
 
 	public static final String PARENT_GROUP_NAME = "parentGroupName";
@@ -172,8 +172,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		this.groupsManagerImpl = groupsManagerImpl;
 		this.groupSynchronizerThreads = new ArrayList<>();
 		this.groupStructureSynchronizerThreads = new ArrayList<>();
-		this.poolOfGroupsToBeSynchronized = new PerunBeanProcessingPool<>();
-		this.poolOfGroupsStructuresToBeSynchronized = new PerunBeanProcessingPool<>();
+		this.poolOfSynchronizations = new SynchronizationPool();
 		//set maximum concurrent groups to synchronize by property
 		this.maxConcurentGroupsToSynchronize = BeansUtils.getCoreConfig().getGroupMaxConcurentGroupsToSynchronize();
 		this.maxConcurrentGroupsStructuresToSynchronize = BeansUtils.getCoreConfig().getGroupMaxConcurrentGroupsStructuresToSynchronize();
@@ -1673,7 +1672,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	@Override
 	public void forceGroupSynchronization(PerunSession sess, Group group) throws GroupSynchronizationAlreadyRunningException, InternalErrorException {
 		//Check if the group is not currently in synchronization process
-		if(poolOfGroupsToBeSynchronized.putJobIfAbsent(group, true)) {
+		if(poolOfSynchronizations.putGroupToPoolOfWaitingGroups((PerunSessionImpl)sess, group, true)) {
 			log.debug("Scheduling synchronization for the group {} by force!", group);
 		} else {
 			throw new GroupSynchronizationAlreadyRunningException(group);
@@ -1758,7 +1757,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 
 			// If the minutesFromEpoch can be divided by the intervalMultiplier, then synchronize
 			if ((minutesFromEpoch % intervalMultiplier) == 0) {
-				if (poolOfGroupsToBeSynchronized.putJobIfAbsent(group, false)) {
+				if (poolOfSynchronizations.putGroupToPoolOfWaitingGroups((PerunSessionImpl)sess, group, false)) {
 					numberOfNewlyAddedGroups++;
 					log.debug("Group {} was added to the pool of groups waiting for synchronization.", group);
 				} else {
@@ -1772,8 +1771,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				"'number of newly removed threads'='" + numberOfNewlyRemovedThreads + "', " +
 				"'number of newly created threads'='" + numberOfNewlyCreatedThreads + "', " +
 				"'number of newly added groups to the pool'='" + numberOfNewlyAddedGroups + "', " +
-				"'right now synchronized groups'='" + poolOfGroupsToBeSynchronized.getRunningJobs() + "', " +
-				"'right now waiting groups'='" + poolOfGroupsToBeSynchronized.getWaitingJobs() + "'.");
+				"'right now synchronized groups'='" + poolOfSynchronizations.asPoolOfGroupsToBeSynchronized().getRunningJobs() + "', " +
+				"'right now waiting groups'='" + poolOfSynchronizations.asPoolOfGroupsToBeSynchronized().getWaitingJobs() + "'.");
 	}
 
 	private class GroupSynchronizerThread extends Thread {
@@ -1811,8 +1810,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				//Take another group from the pool to synchronize it
 				Group group = null;
 				try {
-					group = poolOfGroupsToBeSynchronized.takeJob();
-				} catch (InterruptedException ex) {
+					group = poolOfSynchronizations.takeGroup((PerunSessionImpl)sess);
+				} catch (InterruptedException | InternalErrorException ex) {
 					log.error("Thread was interrupted when trying to take another group to synchronize from pool", ex);
 					//Interrupt this thread
 					this.interrupt();
@@ -1853,7 +1852,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 						log.error("Info about exception from synchronization: {}", skippedMembersMessage);
 					}
 					//Remove job from running jobs
-					if(!poolOfGroupsToBeSynchronized.removeJob(group)) {
+					if(!poolOfSynchronizations.asPoolOfGroupsToBeSynchronized().removeJob(group)) {
 						log.error("Can't remove running job for object " + group + " from pool of running jobs because it is not containing it.");
 					}
 
@@ -1874,7 +1873,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	@Override
 	public void forceGroupStructureSynchronization(PerunSession sess, Group group) throws GroupStructureSynchronizationAlreadyRunningException, InternalErrorException {
 		//Adds the group on the first place to the queue of groups waiting for group structure synchronization.
-		if (poolOfGroupsStructuresToBeSynchronized.putJobIfAbsent(group, true)) {
+		if (poolOfSynchronizations.putGroupStructureToPoolOfWaitingGroupsStructures(group, true)) {
 			log.info("Scheduling synchronization for the group structure {} by force!", group);
 		} else {
 			throw new GroupStructureSynchronizationAlreadyRunningException(group);
@@ -1891,8 +1890,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				"'number of newly removed threads'='" + numberOfNewlyRemovedThreads + "', " +
 				"'number of newly created threads'='" + numberOfNewlyCreatedThreads + "', " +
 				"'number of newly added groups structures to the pool'='" + numberOfNewlyAddedGroups + "', " +
-				"'right now synchronized groups structures'='" + poolOfGroupsStructuresToBeSynchronized.getRunningJobs() + "', " +
-				"'right now waiting groups structures'='" + poolOfGroupsStructuresToBeSynchronized.getWaitingJobs() + "'.");
+				"'right now synchronized groups structures'='" + poolOfSynchronizations.asPoolOfGroupsStructuresToBeSynchronized().getRunningJobs() + "', " +
+				"'right now waiting groups structures'='" + poolOfSynchronizations.asPoolOfGroupsStructuresToBeSynchronized().getWaitingJobs() + "'.");
 	}
 
 	/**
@@ -1935,8 +1934,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 
 				Group group;
 				try {
-					group = poolOfGroupsStructuresToBeSynchronized.takeJob();
-				} catch (InterruptedException ex) {
+					group = poolOfSynchronizations.takeGroupStructure((PerunSessionImpl)sess);
+				} catch (InterruptedException | InternalErrorException ex) {
 					log.error("Thread was interrupted when trying to take another group structure to synchronize from pool", ex);
 					this.interrupt();
 					continue;
@@ -1965,7 +1964,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 						log.error("When synchronization group structure " + group + ", exception was thrown.", ex);
 						log.error("Info about exception from group structure synchronization: " + skippedGroupsMessage);
 					}
-					if (!poolOfGroupsStructuresToBeSynchronized.removeJob(group)) {
+					if (!poolOfSynchronizations.asPoolOfGroupsStructuresToBeSynchronized().removeJob(group)) {
 						log.error("Can't remove running job for object " + group + " from pool of running jobs because it is not containing it.");
 					}
 
@@ -3508,7 +3507,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 
 			//If the minutesFromEpoch can be divided by the intervalMultiplier, then synchronize
 			if ((minutesFromEpoch % intervalMultiplier) == 0) {
-				if (poolOfGroupsStructuresToBeSynchronized.putJobIfAbsent(group, false)) {
+				if (poolOfSynchronizations.putGroupStructureToPoolOfWaitingGroupsStructures(group, false)) {
 					numberOfNewlyAddedGroups++;
 					log.debug("Group structure {} was added to the pool of groups structures waiting for synchronization.", group);
 				} else {
