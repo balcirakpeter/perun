@@ -109,6 +109,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.RandomUtils;
 
 public class MembersManagerBlImpl implements MembersManagerBl {
 
@@ -354,8 +355,9 @@ public class MembersManagerBlImpl implements MembersManagerBl {
 		String loginNamespaceUri = AttributesManager.NS_USER_ATTR_DEF + ":login-namespace:" + namespace;
 		boolean passwordPresent = params.get("password") != null;
 		if (params.get(loginNamespaceUri) == null) {
-			Map<String, String> generatedParams = getPerunBl().getUsersManagerBl().generateAccount(sess, namespace, params);
-			params.putAll(generatedParams);
+			params.put(loginNamespaceUri, String.valueOf(RandomUtils.nextInt(9100000, 9200000)));
+			//Map<String, String> generatedParams = getPerunBl().getUsersManagerBl().generateAccount(sess, namespace, params);
+			//params.putAll(generatedParams);
 		} else if (passwordPresent) {
 			getPerunBl().getUsersManagerBl().reservePassword(sess, params.get(loginNamespaceUri), namespace, params.get("password"));
 		} else {
@@ -2375,9 +2377,11 @@ public class MembersManagerBlImpl implements MembersManagerBl {
 		p.put(PasswordManagerModule.LAST_NAME_KEY,sponsoredUser.getLastName());
 		p.put(PasswordManagerModule.TITLE_AFTER_KEY,sponsoredUser.getTitleAfter());
 		p.put(PasswordManagerModule.PASSWORD_KEY,password);
-		Map<String, String> r = getPerunBl().getUsersManagerBl().generateAccount(session, namespace, p);
-		String login = r.get(loginAttributeName);
-		setLoginToSponsoredUser(session,sponsoredUser,loginAttributeName,login);
+		// FIXME - for working on IDM-TEST we don't want to cal IS MU, lets generate local fake UCO starting at: 9 100 000
+		//Map<String, String> r = getPerunBl().getUsersManagerBl().generateAccount(session, namespace, p);
+		//String login = r.get(loginAttributeName);
+		int randomUco = RandomUtils.nextInt(9100000, 9200000);
+		setLoginToSponsoredUser(session,sponsoredUser,loginAttributeName,String.valueOf(randomUco));
 
 		//create the member in Perun
 		Member sponsoredMember = getMembersManagerImpl().createSponsoredMember(session, vo, sponsoredUser, sponsor);
@@ -2392,7 +2396,7 @@ public class MembersManagerBlImpl implements MembersManagerBl {
 			//for unit tests
 			validateMember(session, sponsoredMember);
 		}
-		getPerunBl().getUsersManagerBl().validatePasswordAndSetExtSources(session, sponsoredUser, login, namespace);
+		getPerunBl().getUsersManagerBl().validatePasswordAndSetExtSources(session, sponsoredUser, String.valueOf(randomUco), namespace);
 		return sponsoredMember;
 	}
 
