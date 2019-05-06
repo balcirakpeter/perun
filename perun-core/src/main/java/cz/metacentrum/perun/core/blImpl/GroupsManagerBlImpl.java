@@ -137,6 +137,10 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static cz.metacentrum.perun.core.impl.PerunLocksUtils.lockGroupMembership;
+import static java.util.Arrays.asList;
+import static java.util.Collections.singletonList;
+
 /**
  * GroupsManager business logic
  *
@@ -847,6 +851,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	 */
 	protected void addDirectMember(PerunSession sess, Group group, Member member) throws InternalErrorException, AlreadyMemberException, WrongAttributeValueException, WrongReferenceAttributeValueException, GroupNotExistsException {
 
+		lockGroupMembership(group, singletonList(member));
+
 		if(this.groupsManagerImpl.isDirectGroupMember(sess, group, member)) throw new AlreadyMemberException(member);
 
 		boolean memberWasIndirectInGroup = this.isGroupMember(sess, group, member);
@@ -859,7 +865,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		// check all relations with this group and call addRelationMembers to reflect changes of adding member to group
 		List<Integer> relations = groupsManagerImpl.getResultGroupsIds(sess, group.getId());
 		for (Integer groupId : relations) {
-			addRelationMembers(sess, groupsManagerImpl.getGroupById(sess, groupId), Collections.singletonList(member), group.getId());
+			addRelationMembers(sess, groupsManagerImpl.getGroupById(sess, groupId), singletonList(member), group.getId());
 		}
 		setRequiredAttributes(sess, member, group);
 
@@ -894,6 +900,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		// save list of old group members
 		List<Member> oldMembers = this.getGroupMembers(sess, group);
 		List<Member> membersToAdd = new ArrayList<>(members);
+
+		lockGroupMembership(group, members);
 
 		for (Member member : membersToAdd) {
 			groupsManagerImpl.addMember(sess, group, member, MembershipType.INDIRECT, sourceGroupId);
@@ -945,6 +953,9 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	 */
 	private List<Member> removeIndirectMembers(PerunSession sess, Group group, List<Member> members, int sourceGroupId) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException, NotGroupMemberException {
 		List<Member> membersToRemove = new ArrayList<>(members);
+
+		lockGroupMembership(group, membersToRemove);
+
 		for (Member member: membersToRemove) {
 			member.setSourceGroupId(sourceGroupId);
 			groupsManagerImpl.removeMember(sess, group, member);
@@ -991,6 +1002,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 
 	private void removeDirectMember(PerunSession sess, Group group, Member member) throws InternalErrorException, NotGroupMemberException, GroupNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException {
 
+		lockGroupMembership(group, singletonList(member));
+
 		member.setSourceGroupId(group.getId());
 		getGroupsManagerImpl().removeMember(sess, group, member);
 		if (this.getGroupsManagerImpl().isGroupMember(sess, group, member)) {
@@ -1007,7 +1020,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		// check all relations with this group and call removeRelationMembers to reflect changes of removing member from group
 		List<Integer> relations = groupsManagerImpl.getResultGroupsIds(sess, group.getId());
 		for (Integer groupId : relations) {
-			removeRelationMembers(sess, groupsManagerImpl.getGroupById(sess, groupId), Collections.singletonList(member), group.getId());
+			removeRelationMembers(sess, groupsManagerImpl.getGroupById(sess, groupId), singletonList(member), group.getId());
 		}
 
 		if (!VosManager.MEMBERS_GROUP.equals(group.getName())) {
@@ -1088,7 +1101,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		if (status == null) {
 			return this.getGroupMembers(sess, group);
 		}
-		return this.filterMembersByMembershipTypeInGroup(getGroupsManagerImpl().getGroupMembers(sess, group, Collections.singletonList(status), false));
+		return this.filterMembersByMembershipTypeInGroup(getGroupsManagerImpl().getGroupMembers(sess, group, singletonList(status), false));
 	}
 
 	@Override
@@ -1098,12 +1111,12 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 
 	@Override
 	public List<Member> getGroupMembersExceptInvalid(PerunSession sess, Group group) throws InternalErrorException {
-		return getGroupsManagerImpl().getGroupMembers(sess, group, Collections.singletonList(Status.INVALID), true);
+		return getGroupsManagerImpl().getGroupMembers(sess, group, singletonList(Status.INVALID), true);
 	}
 
 	@Override
 	public List<Member> getGroupMembersExceptInvalidAndDisabled(PerunSession sess, Group group) throws InternalErrorException {
-		return getGroupsManagerImpl().getGroupMembers(sess, group, Arrays.asList(Status.INVALID, Status.DISABLED), true);
+		return getGroupsManagerImpl().getGroupMembers(sess, group, asList(Status.INVALID, Status.DISABLED), true);
 	}
 
 	@Override
@@ -2496,7 +2509,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				}
 			} catch (UserExtSourceNotExistsException | UserNotExistsException ex) {
 				//If not find, get more information about him from member extSource
-				List<Map<String, String>> subjectToConvert = Collections.singletonList(subjectFromLoginSource);
+				List<Map<String, String>> subjectToConvert = singletonList(subjectFromLoginSource);
 				List<Candidate> converetedCandidatesList = convertSubjectsToCandidates(sess, subjectToConvert, memberSource, loginSource, skippedMembers);
 				//Empty means not found (skipped)
 				if(!converetedCandidatesList.isEmpty()) {
@@ -2645,7 +2658,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		if(overwriteUserAttributes != null && !overwriteUserAttributes.isEmpty()) {
 			//remove all white spaces and invisible characters
 			overwriteUserAttributes = overwriteUserAttributes.replaceAll("\\s", "");
-			overwriteUserAttributesList = Arrays.asList(overwriteUserAttributes.split(","));
+			overwriteUserAttributesList = asList(overwriteUserAttributes.split(","));
 		}
 		return overwriteUserAttributesList;
 	}
@@ -2671,7 +2684,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		if(mergeMemberAttributes != null && !mergeMemberAttributes.isEmpty()) {
 			//remove all white spaces and invisible characters
 			mergeMemberAttributes = mergeMemberAttributes.replaceAll("\\s", "");
-			mergeMemberAttributesList = Arrays.asList(mergeMemberAttributes.split(","));
+			mergeMemberAttributesList = asList(mergeMemberAttributes.split(","));
 		}
 		return mergeMemberAttributesList;
 	}
@@ -2848,7 +2861,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			}
 
 			//get RichMember with attributes
-			richMember = getPerunBl().getMembersManagerBl().convertMembersToRichMembersWithAttributes(sess, Collections.singletonList(richMember), attrDefs).get(0);
+			richMember = getPerunBl().getMembersManagerBl().convertMembersToRichMembersWithAttributes(sess, singletonList(richMember), attrDefs).get(0);
 
 			// try to find user core attributes and update user -> update name and titles
 			if (overwriteUserAttributesList != null) {
