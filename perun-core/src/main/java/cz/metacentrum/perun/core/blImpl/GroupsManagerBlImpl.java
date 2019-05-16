@@ -1685,7 +1685,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	@Override
 	public void forceGroupSynchronization(PerunSession sess, Group group) throws GroupSynchronizationAlreadyRunningException, InternalErrorException {
 		//Check if the group is not currently in synchronization process
-		if(poolOfSynchronizations.putGroupToPoolOfWaitingGroups((PerunSessionImpl)sess, group, true)) {
+		if(poolOfSynchronizations.putGroupToPoolOfWaitingGroups(group, true)) {
 			log.debug("Scheduling synchronization for the group {} by force!", group);
 		} else {
 			throw new GroupSynchronizationAlreadyRunningException(group);
@@ -1770,7 +1770,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 
 			// If the minutesFromEpoch can be divided by the intervalMultiplier, then synchronize
 			if ((minutesFromEpoch % intervalMultiplier) == 0) {
-				if (poolOfSynchronizations.putGroupToPoolOfWaitingGroups((PerunSessionImpl)sess, group, false)) {
+				if (poolOfSynchronizations.putGroupToPoolOfWaitingGroups(group, false)) {
 					numberOfNewlyAddedGroups++;
 					log.debug("Group {} was added to the pool of groups waiting for synchronization.", group);
 				} else {
@@ -1824,8 +1824,13 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				Group group;
 				try {
 					group = poolOfSynchronizations.takeGroup((PerunSessionImpl)sess);
-				} catch (InterruptedException | InternalErrorException ex) {
+				} catch (InterruptedException ex) {
 					log.error("Thread was interrupted when trying to take another group to synchronize from pool", ex);
+					//Interrupt this thread
+					this.interrupt();
+					return;
+				}  catch (InternalErrorException ex) {
+					log.error("Internal error exception was thrown when the thread was trying to take another group to synchronize from pool", ex);
 					//Interrupt this thread
 					this.interrupt();
 					return;
@@ -1865,7 +1870,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 						log.error("Info about exception from synchronization: {}", skippedMembersMessage);
 					}
 					//Remove job from running jobs
-					if(!poolOfSynchronizations.asPoolOfGroupsToBeSynchronized().removeJob(group)) {
+					if(!poolOfSynchronizations.removeGroup(group)) {
 						log.error("Can't remove running job for object " + group + " from pool of running jobs because it is not containing it.");
 					}
 
@@ -1948,10 +1953,15 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				Group group;
 				try {
 					group = poolOfSynchronizations.takeGroupStructure((PerunSessionImpl)sess);
-				} catch (InterruptedException | InternalErrorException ex) {
+				} catch (InterruptedException ex) {
 					log.error("Thread was interrupted when trying to take another group structure to synchronize from pool", ex);
 					this.interrupt();
 					continue;
+				}  catch (InternalErrorException ex) {
+					log.error("Internal error exception was thrown when the thread was trying to take another group structure to synchronize from pool", ex);
+					//Interrupt this thread
+					this.interrupt();
+					return;
 				}
 
 				try {
@@ -1977,7 +1987,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 						log.error("When synchronization group structure " + group + ", exception was thrown.", ex);
 						log.error("Info about exception from group structure synchronization: " + skippedGroupsMessage);
 					}
-					if (!poolOfSynchronizations.asPoolOfGroupsStructuresToBeSynchronized().removeJob(group)) {
+					if (!poolOfSynchronizations.removeGroupStructure(group)) {
 						log.error("Can't remove running job for object " + group + " from pool of running jobs because it is not containing it.");
 					}
 
