@@ -3338,7 +3338,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	private void setUpSynchronizationAttributesForAllSubGroups(PerunSession sess, Group baseGroup, ExtSource source) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException, WrongAttributeValueException, WrongReferenceAttributeValueException {
 		List<Group> groupsForMemberSynchronization = getAllSubGroups(sess, baseGroup);
 
-		Attribute membersQueryAttribute = getPerunBl().getAttributesManagerBl().getAttribute(sess, baseGroup, GroupsManager.GROUPMEMBERSQUERY_ATTRNAME);
+		Attribute baseMembersQuery = getPerunBl().getAttributesManagerBl().getAttribute(sess, baseGroup, GroupsManager.GROUPMEMBERSQUERY_ATTRNAME);
+		Attribute membersQueryAttribute = new Attribute(getPerunBl().getAttributesManagerBl().getAttributeDefinition(sess, GroupsManager.GROUPMEMBERSQUERY_ATTRNAME));
 		Attribute baseMemberExtsource = getPerunBl().getAttributesManagerBl().getAttribute(sess, baseGroup, GroupsManager.GROUPMEMBERSEXTSOURCE_ATTRNAME);
 		Attribute lightWeightSynchronization = getPerunBl().getAttributesManagerBl().getAttribute(sess, baseGroup, GroupsManager.GROUPLIGHTWEIGHTSYNCHRONIZATION_ATTRNAME);
 		Attribute synchronizationInterval = getPerunBl().getAttributesManagerBl().getAttribute(sess, baseGroup, GroupsManager.GROUPSYNCHROINTERVAL_ATTRNAME);
@@ -3348,7 +3349,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		extSourceNameAttr.setValue(source.getName());
 		synchroEnabled.setValue("true");
 
-		if (membersQueryAttribute.getValue() == null) {
+		if (baseMembersQuery.getValue() == null) {
 			throw new WrongAttributeValueException("Group members query attribute is not set for base group " + baseGroup + "!");
 		}
 
@@ -3364,7 +3365,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				getPerunBl().getAttributesManagerBl().setAttribute(sess, group, extSourceNameAttr);
 			}
 
-			membersQueryAttribute.setValue(membersQueryAttribute.getValue().toString().replace("?", group.getShortName()));
+			membersQueryAttribute.setValue(baseMembersQuery.getValue().toString().replace("?", group.getShortName()));
 
 			getPerunBl().getAttributesManagerBl().setAttributes(sess, group, asList(baseMemberExtsource, lightWeightSynchronization, synchronizationInterval, synchroEnabled, membersQueryAttribute));
 		}
