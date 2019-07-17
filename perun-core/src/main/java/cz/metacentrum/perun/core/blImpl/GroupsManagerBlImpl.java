@@ -94,6 +94,7 @@ import cz.metacentrum.perun.core.api.exceptions.ParserException;
 import cz.metacentrum.perun.core.api.exceptions.PasswordDeletionFailedException;
 import cz.metacentrum.perun.core.api.exceptions.PasswordOperationTimeoutException;
 import cz.metacentrum.perun.core.api.exceptions.RelationExistsException;
+import cz.metacentrum.perun.core.api.exceptions.UserDuplicateException;
 import cz.metacentrum.perun.core.api.exceptions.UserExtSourceExistsException;
 import cz.metacentrum.perun.core.api.exceptions.UserExtSourceNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.UserNotAdminException;
@@ -3212,6 +3213,15 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 		for (Candidate candidate: candidatesToAdd) {
 			Member member;
 			try {
+				// Check if candidate represents duplicated user
+				try {
+					checkDuplicationOfUser(sess, candidate);
+				} catch (UserDuplicateException e) {
+					// If we have duplicated user, log it and skip the candidate
+					log.warn("Duplication of Users detected by synchronizing candidate [{}]. User duplicate exception was thrown [{}].", candidate, e);
+					skippedMembers.add("MemberEntry:[" + candidate + "] was skipped because there was user duplication detected: Exception: " + e.getName() + " => '" + e.getMessage() + "'");
+					continue;
+				}
 				// Check if the member is already in the VO (just not in the group)
 				member = getPerunBl().getMembersManagerBl().getMemberByUserExtSources(sess, getPerunBl().getGroupsManagerBl().getVo(sess, group), candidate.getUserExtSources());
 
@@ -3415,6 +3425,34 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				// ExtSource doesn't support that functionality, so silently skip it.
 			} catch (InternalErrorException e) {
 				log.info("Can't close extSource connection. Cause: {}", e);
+			}
+		}
+	}
+
+	/**
+	 * Check if candidate represents duplicated User.
+	 * If yes, the UserDuplicateException will be thrown. Nothing will happen otherwise.
+	 *
+	 * @param sess
+	 * @param candidate
+	 * @throws InternalErrorException
+	 * @throws UserDuplicateException
+	 */
+	private void checkDuplicationOfUser(PerunSession sess, Candidate candidate) throws InternalErrorException, UserDuplicateException {
+		User user = null;
+		// Check if user does not exist in Perun multiple times
+		if (candidate.getUserExtSources() != null) {
+			for (UserExtSource ues: candidate.getUserExtSources()) {
+				try {
+					// Try to find the user by userExtSource
+					User tmp = getPerunBl().getUsersManagerBl().getUserByUserExtSource(sess, ues);
+					if (user != null && !tmp.equals(user)) {
+						throw new UserDuplicateException(user, tmp);
+					}
+					user = tmp;
+				} catch (UserNotExistsException IGNORE) {
+					// Ignore, we are only checking if the user exists
+				}
 			}
 		}
 	}
