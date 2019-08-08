@@ -2,6 +2,7 @@ package cz.metacentrum.perun.core.bl;
 
 import cz.metacentrum.perun.core.api.Attribute;
 import cz.metacentrum.perun.core.api.AttributeDefinition;
+import cz.metacentrum.perun.core.api.Candidate;
 import cz.metacentrum.perun.core.api.ExtSource;
 import cz.metacentrum.perun.core.api.Facility;
 import cz.metacentrum.perun.core.api.Group;
@@ -1372,5 +1373,61 @@ public interface UsersManagerBl {
 	 * @return List of groups where user is active (is a VALID vo and group member) on specified facility
 	 */
 	List<Group> getGroupsWhereUserIsActive(PerunSession sess, Facility facility, User user) throws InternalErrorException;
+
+	/**
+	 * This method will set timestamp, synchronization start time and exceptionMessage to userExtSource attributes for the user.
+	 * Also log information about failed synchronization to auditer_log.
+	 *
+	 * IMPORTANT: This method is run in a new transaction to ensure successful saving of given information, in case of a rollback in previous transaction.
+	 * However, this method cannot be used in method running in the nested transaction, where the user was changed in the database.
+	 *
+	 * Set timestamp to attribute "ues_def_lastSynchronizationTimestamp"
+	 * Set exception message to attribute "ues_def_lastSynchronizationState"
+	 * Set start time to attribute "ues_def_startOfLastSuccessSynchronizationTimestamp"
+	 *
+	 * FailedDueToException is true means user synchronization failed completely.
+	 * FailedDueToException is false means user synchronization is ok.
+	 *
+	 * @param sess perun session
+	 * @param candidate the candidate for synchronization
+	 * @param startTime of the synchronization
+	 * @param failedDueToException if exception means fail of whole synchronization of this user or only problem with some data
+	 * @param exceptionMessage message of an exception, ok if everything is ok
+	 * @throws AttributeNotExistsException
+	 * @throws InternalErrorException
+	 * @throws WrongReferenceAttributeValueException
+	 * @throws WrongAttributeAssignmentException
+	 * @throws WrongAttributeValueException
+	 */
+	void saveInformationAboutUserSynchronizationInNewTransaction(PerunSession sess, Candidate candidate, long startTime, boolean failedDueToException, String exceptionMessage) throws AttributeNotExistsException, InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, WrongAttributeValueException;
+
+	/**
+	 * This method will set timestamp, synchronization start time and exceptionMessage to userExtSource attributes for the user.
+	 * Also log information about failed synchronization to auditer_log.
+	 *
+	 * IMPORTANT: This method runs in nested transaction so it can be used in another transaction
+	 * With a nested transaction, this method can be used in method running in the nested transaction, where the user was changed in the database.
+	 * However, rollback on the outer transaction, where this method is used, will revert saving of given information.
+	 *
+	 * Set timestamp to attribute "ues_def_lastSynchronizationTimestamp"
+	 * Set exception message to attribute "ues_def_lastSynchronizationState"
+	 * Set start time to attribute "ues_def_startOfLastSuccessSynchronizationTimestamp"
+	 *
+	 * FailedDueToException is true means user synchronization failed completely.
+	 * FailedDueToException is false means user synchronization is ok.
+	 *
+	 * @param sess perun session
+	 * @param candidate the candidate for synchronization
+	 * @param startTime of the synchronization
+	 * @param failedDueToException if exception means fail of whole synchronization of this user or only problem with some data
+	 * @param exceptionMessage message of an exception, ok if everything is ok
+	 * @throws AttributeNotExistsException
+	 * @throws InternalErrorException
+	 * @throws WrongReferenceAttributeValueException
+	 * @throws WrongAttributeAssignmentException
+	 * @throws WrongAttributeValueException
+	 */
+	void saveInformationAboutUserSynchronizationInNestedTransaction(PerunSession sess, Candidate candidate, long startTime, boolean failedDueToException, String exceptionMessage) throws AttributeNotExistsException, InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, WrongAttributeValueException;
+
 
 }

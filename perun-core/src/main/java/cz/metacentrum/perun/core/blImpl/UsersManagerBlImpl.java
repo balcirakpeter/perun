@@ -18,6 +18,7 @@ import cz.metacentrum.perun.core.api.AttributesManager;
 import cz.metacentrum.perun.core.api.AuthzResolver;
 import cz.metacentrum.perun.core.api.BanOnFacility;
 import cz.metacentrum.perun.core.api.BeansUtils;
+import cz.metacentrum.perun.core.api.Candidate;
 import cz.metacentrum.perun.core.api.ContactGroup;
 import cz.metacentrum.perun.core.api.ExtSource;
 import cz.metacentrum.perun.core.api.ExtSourcesManager;
@@ -98,6 +99,7 @@ import java.io.PrintWriter;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -2431,6 +2433,85 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 
 		return new ArrayList<>(groups);
 
+	}
+
+	@Override
+	public void saveInformationAboutUserSynchronizationInNewTransaction(PerunSession sess, Candidate candidate, long startTime, boolean failedDueToException, String exceptionMessage) throws AttributeNotExistsException, InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, WrongAttributeValueException {
+		saveInformationAboutUserSynchronization(sess, candidate, startTime, failedDueToException, exceptionMessage);
+	}
+
+	@Override
+	public void saveInformationAboutUserSynchronizationInNestedTransaction(PerunSession sess, Candidate candidate, long startTime, boolean failedDueToException, String exceptionMessage) throws AttributeNotExistsException, InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, WrongAttributeValueException {
+		saveInformationAboutUserSynchronization(sess, candidate, startTime, failedDueToException, exceptionMessage);
+	}
+
+	private void saveInformationAboutUserSynchronization(PerunSession sess, Candidate candidate, long startTime, boolean failedDueToException, String exceptionMessage) throws AttributeNotExistsException, InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, WrongAttributeValueException {
+		//get current timestamp of this synchronization
+		Date currentTimestamp = new Date();
+		String originalExceptionMessage = exceptionMessage;
+		//If session is null, throw an exception
+		if (sess == null) {
+			throw new InternalErrorException("Session is null when trying to save information about synchronization. Candidate: " + candidate+ ", timestamp: " + currentTimestamp + ",message: " + exceptionMessage);
+		}
+
+		//If group is null, throw an exception
+		if (candidate == null) {
+			throw new InternalErrorException("Object candidate is null when trying to save information about synchronization. Timestamp: " + currentTimestamp + ", message: " + exceptionMessage);
+		}
+
+		//if exceptionMessage is empty, use "Empty message" instead
+		if (exceptionMessage != null && exceptionMessage.isEmpty()) {
+			exceptionMessage = "Empty message.";
+			//else trim the message on 1000 characters if not null
+		} else if (exceptionMessage != null && exceptionMessage.length() > 1000) {
+			exceptionMessage = exceptionMessage.substring(0, 1000) + " ... message is too long, other info is in perun log file. If needed, please ask perun administrators.";
+		}
+
+		//Set correct format of currentTimestamp
+		String correctTimestampString = BeansUtils.getDateFormatter().format(currentTimestamp);
+
+		//Get both attribute definition lastSynchroTimestamp and lastSynchroState
+		//Get definitions and values, set values
+		Attribute lastSynchronizationTimestamp = new Attribute(((PerunBl) sess.getPerun()).getAttributesManagerBl().getAttributeDefinition(sess, AttributesManager.NS_UES_ATTR_DEF + ":lastSynchronizationTimestamp"));
+		Attribute lastSynchronizationState = new Attribute(((PerunBl) sess.getPerun()).getAttributesManagerBl().getAttributeDefinition(sess, AttributesManager.NS_UES_ATTR_DEF + ":lastSynchronizationState"));
+		lastSynchronizationTimestamp.setValue(correctTimestampString);
+		//if exception is null, set null to value => remove attribute instead of setting in method setAttributes
+		lastSynchronizationState.setValue(exceptionMessage);
+
+		//attributes to set
+		List<Attribute> attrsToSet = new ArrayList<>();
+
+		//null in exceptionMessage means no exception, success
+		//Set lastSuccessSynchronizationTimestamp if this one is success
+		if(exceptionMessage == null) {
+			String attrName = AttributesManager.NS_UES_ATTR_DEF + ":lastSuccessSynchronizationTimestamp";
+			try {
+				Attribute lastSuccessSynchronizationTimestamp = new Attribute(((PerunBl) sess.getPerun()).getAttributesManagerBl().getAttributeDefinition(sess, AttributesManager.NS_UES_ATTR_DEF + ":lastSuccessSynchronizationTimestamp"));
+				lastSuccessSynchronizationTimestamp.setValue(correctTimestampString);
+				attrsToSet.add(lastSuccessSynchronizationTimestamp);
+			} catch (AttributeNotExistsException ex) {
+				log.error("Can't save lastSuccessSynchronizationTimestamp, because there is missing attribute with name {}", attrName);
+			}
+		} else {
+			//Log to auditer_log that synchronization failed or finished with some errors
+			if(failedDueToException) {
+				getPerunBl().getAuditer().log(sess, new UserSyncFailed(candidate));
+				log.debug("{} synchronization failed because of {}", candidate, originalExceptionMessage);
+			} else {
+				getPerunBl().getAuditer().log(sess,new UserSyncFinishedWithErrors(candidate));
+				log.debug("{} synchronization finished with errors: {}", candidate, originalExceptionMessage);
+			}
+		}
+
+		//set lastSynchronizationState and lastSynchronizationTimestamp
+		attrsToSet.add(lastSynchronizationState);
+		attrsToSet.add(lastSynchronizationTimestamp);
+		try {
+			UserExtSource userExtSourceFromPerun = getPerunBl().getUsersManagerBl().getUserExtSourceByExtLogin(sess, candidate.getUserExtSource().getExtSource(), candidate.getUserExtSource().getLogin());
+			((PerunBl) sess.getPerun()).getAttributesManagerBl().setAttributes(sess, userExtSourceFromPerun, attrsToSet);
+		} catch (UserExtSourceNotExistsException e) {
+			log.error("Can't save information about user synchronization, because the userExtSource from candidate doesn't exist in Perun.");
+		}
 	}
 
 }

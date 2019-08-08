@@ -38,8 +38,10 @@ http://www.springframework.org/schema/context http://www.springframework.org/sch
 		<aop:advisor advice-ref="txAdviceNoneTransaction" pointcut="execution(* cz.metacentrum.perun.core.impl.Auditer.storeMessagesToDb(..))"/>
 		<aop:advisor advice-ref="txAdviceRequiresNewTransaction" pointcut="execution(* cz.metacentrum.perun.core.blImpl.GroupsManagerBlImpl.saveInformationAboutGroupSynchronizationInNewTransaction(..))"/>
 		<aop:advisor advice-ref="txAdviceRequiresNewTransaction" pointcut="execution(* cz.metacentrum.perun.core.blImpl.GroupsManagerBlImpl.saveInformationAboutGroupStructureSynchronizationInNewTransaction(..))"/>
+		<aop:advisor advice-ref="txAdviceRequiresNewTransaction" pointcut="execution(* cz.metacentrum.perun.core.blImpl.UsersManagerBlImpl.saveInformationAboutUserStructureSynchronizationInNewTransaction(..))"/>
 		<aop:advisor advice-ref="txAdviceNestedTransaction" pointcut="execution(* cz.metacentrum.perun.core.blImpl.GroupsManagerBlImpl.saveInformationAboutGroupSynchronizationInNestedTransaction(..))"/>
 		<aop:advisor advice-ref="txAdviceNestedTransaction" pointcut="execution(* cz.metacentrum.perun.core.blImpl.GroupsManagerBlImpl.saveInformationAboutGroupStructureSynchronizationInNestedTransaction(..))"/>
+		<aop:advisor advice-ref="txAdviceNestedTransaction" pointcut="execution(* cz.metacentrum.perun.core.blImpl.UsersManagerBlImpl.saveInformationAboutUserStructureSynchronizationInNestedTransaction(..))"/>
 		<!-- START OF NESTED TRANSACTIONS FOR COMPATIBILITY WITH POSTGRESQL -->
 		<!-- AttributesManagerImpl -->
 		<aop:advisor advice-ref="txAdviceNestedTransaction" pointcut="execution(* cz.metacentrum.perun.core.impl.AttributesManagerImpl.setAttributeWithNullValue(..))"/>
