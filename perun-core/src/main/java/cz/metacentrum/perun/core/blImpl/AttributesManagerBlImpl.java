@@ -2270,7 +2270,7 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		return changed;
 	}
 
-	private boolean setAttributeWithoutCheck(PerunSession sess, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongAttributeAssignmentException, WrongAttributeValueException {
+	private boolean setAttributeWithoutCheck(PerunSession sess, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongAttributeAssignmentException, WrongAttributeValueException, WrongReferenceAttributeValueException {
 		getAttributesManagerImpl().checkNamespace(sess, attribute, AttributesManager.NS_UES_ATTR);
 		if (getAttributesManagerImpl().isCoreAttribute(sess, attribute))
 			throw new WrongAttributeAssignmentException(attribute);
@@ -3757,7 +3757,7 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 	}
 
 	@Override
-	public void checkAttributesSemantics(PerunSession sess, UserExtSource ues, List<Attribute> attributes) throws InternalErrorException, WrongAttributeAssignmentException {
+	public void checkAttributesSemantics(PerunSession sess, UserExtSource ues, List<Attribute> attributes) throws InternalErrorException, WrongAttributeAssignmentException, WrongAttributeValueException, WrongReferenceAttributeValueException {
 		getAttributesManagerImpl().checkNamespace(sess, attributes, AttributesManager.NS_UES_ATTR);
 
 		for (Attribute attribute : attributes) {
@@ -3766,7 +3766,7 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 	}
 
 	@Override
-	public void checkAttributeSemantics(PerunSession sess, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongAttributeAssignmentException {
+	public void checkAttributeSemantics(PerunSession sess, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongAttributeAssignmentException, WrongAttributeValueException, WrongReferenceAttributeValueException {
 		getAttributesManagerImpl().checkNamespace(sess, attribute, AttributesManager.NS_UES_ATTR);
 
 		getAttributesManagerImpl().checkAttributeSemantics(sess, ues, attribute);
@@ -5163,7 +5163,11 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 
 		boolean changed = getAttributesManagerImpl().removeAttribute(sess, ues, attribute);
 		if (changed) {
+			try {
 			getAttributesManagerImpl().changedAttributeHook(sess, ues, new Attribute(attribute));
+			} catch (WrongReferenceAttributeValueException ex) {
+				throw new InternalErrorException(ex);
+			}
 			log.info("{} removed attribute {} from user external source {}.", sess.getLogId(), attribute.getName(), ues.getId());
 			getPerunBl().getAuditer().log(sess, new AttributeRemovedForUes(new AttributeDefinition(attribute), ues));
 		}
@@ -6912,6 +6916,30 @@ public class AttributesManagerBlImpl implements AttributesManagerBl {
 		//set attribute rights (with dummy id of attribute - not known yet)
 		rights = new ArrayList<>();
 		rights.add(new AttributeRights(-1, Role.SELF, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+		rights.add(new AttributeRights(-1, Role.VOADMIN, Collections.singletonList(ActionType.READ)));
+		rights.add(new AttributeRights(-1, Role.GROUPADMIN, Collections.singletonList(ActionType.READ)));
+		attributes.put(attr, rights);
+
+		//urn:perun:ues:attribute-def:def:priority
+		attr = new AttributeDefinition();
+		attr.setNamespace(AttributesManager.NS_UES_ATTR_DEF);
+		attr.setFriendlyName("priority");
+		attr.setDisplayName("Priority");
+		attr.setType(Integer.class.getName());
+		attr.setDescription("Priority of UserExtSource. Priority must be bigger than 0.");
+		rights = new ArrayList<>();
+		rights.add(new AttributeRights(-1, Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+		rights.add(new AttributeRights(-1, Role.GROUPADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+		attributes.put(attr, rights);
+
+		//urn:perun:ues:attribute-def:def:storedAttributes
+		attr = new AttributeDefinition();
+		attr.setNamespace(AttributesManager.NS_UES_ATTR_DEF);
+		attr.setFriendlyName("storedAttributes");
+		attr.setDisplayName("Stored attributes");
+		attr.setType(String.class.getName());
+		attr.setDescription("Stored attributes during synchronization.");
+		rights = new ArrayList<>();
 		rights.add(new AttributeRights(-1, Role.VOADMIN, Collections.singletonList(ActionType.READ)));
 		rights.add(new AttributeRights(-1, Role.GROUPADMIN, Collections.singletonList(ActionType.READ)));
 		attributes.put(attr, rights);

@@ -1693,8 +1693,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			//Initialization of groupMembers extSource (if it is set), in other case set membersSource = source
 			membersSource = getGroupMembersExtSourceForSynchronization(sess, group, source);
 
-			//Prepare info about userAttributes which need to be overwrite (not just updated) and memberAttributes which need to be merged )not overwrite
-			List<String> overwriteUserAttributesList = getOverwriteUserAttributesListFromExtSource(membersSource);
+			//Prepare info about memberAttributes which need to be merged
 			List<String> mergeMemberAttributesList = getMemberAttributesListToBeMergedFromExtSource(membersSource);
 
 			//Get info about type of synchronization (with or without update)
@@ -1722,10 +1721,10 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			}
 
 			//Update members already presented in group
-			updateExistingMembersWhileSynchronization(sess, group, membersToUpdate, overwriteUserAttributesList, mergeMemberAttributesList);
+			updateExistingMembersWhileSynchronization(sess, group, membersToUpdate, mergeMemberAttributesList);
 
 			//Add not presented candidates to group
-			addMissingMembersWhileSynchronization(sess, group, candidatesToAdd, overwriteUserAttributesList, mergeMemberAttributesList, skippedMembers);
+			addMissingMembersWhileSynchronization(sess, group, candidatesToAdd, mergeMemberAttributesList, skippedMembers);
 
 			//Remove presented members in group who are not presented in synchronized ExtSource
 			removeFormerMembersWhileSynchronization(sess, group, membersToRemove);
@@ -3083,14 +3082,13 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	 * @param sess
 	 * @param group to be synchronized
 	 * @param membersToUpdate list of members for updating in Perun by information from extSource
-	 * @param overwriteUserAttributesList list of user attributes to be updated instead of merged
 	 * @param mergeMemberAttributesList list of member attributes to be merged instead of updated
 	 *
 	 * @throws InternalErrorException if some internal error occurs
 	 * @throws AttributeNotExistsException if some attributes not exists and for this reason can't be updated
 	 * @throws WrongAttributeAssignmentException if some attribute is updated in bad way (bad assignment)
 	 */
-	private void updateExistingMembersWhileSynchronization(PerunSession sess, Group group, Map<Candidate, RichMember> membersToUpdate, List<String> overwriteUserAttributesList, List<String> mergeMemberAttributesList) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	private void updateExistingMembersWhileSynchronization(PerunSession sess, Group group, Map<Candidate, RichMember> membersToUpdate, List<String> mergeMemberAttributesList) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		List<AttributeDefinition> attrDefs = new ArrayList<>();
 		//Iterate through all subject attributes
 		for(Candidate candidate: membersToUpdate.keySet()) {
@@ -3108,12 +3106,14 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			//load attrDefinitions just once for first candidate
 			if(attrDefs.isEmpty()) {
 				for(String attrName : candidate.getAttributes().keySet()) {
-					try {
-						AttributeDefinition attrDef = getPerunBl().getAttributesManagerBl().getAttributeDefinition(sess, attrName);
-						attrDefs.add(attrDef);
-					} catch (AttributeNotExistsException ex) {
-						log.error("Can't synchronize attribute " + attrName + " for candidate " + candidate + " and for group " + group);
-						//skip this attribute at all
+					if(attrName.startsWith(AttributesManager.NS_MEMBER_ATTR)) {
+						try {
+							AttributeDefinition attrDef = getPerunBl().getAttributesManagerBl().getAttributeDefinition(sess, attrName);
+							attrDefs.add(attrDef);
+						} catch (AttributeNotExistsException ex) {
+							log.error("Can't synchronize attribute " + attrName + " for candidate " + candidate + " and for group " + group);
+							//skip this attribute at all
+						}
 					}
 				}
 			}
@@ -3121,43 +3121,21 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			//get RichMember with attributes
 			richMember = getPerunBl().getMembersManagerBl().convertMembersToRichMembersWithAttributes(sess, Collections.singletonList(richMember), attrDefs).get(0);
 
-			// try to find user core attributes and update user -> update name and titles
-			if (overwriteUserAttributesList != null) {
-				boolean someFound = false;
-				User user = richMember.getUser();
-				for (String attrName : overwriteUserAttributesList) {
-					if (attrName.startsWith(AttributesManager.NS_USER_ATTR_CORE+":firstName")) {
-						user.setFirstName(candidate.getFirstName());
-						someFound = true;
-					} else if (attrName.startsWith(AttributesManager.NS_USER_ATTR_CORE+":middleName")) {
-						user.setMiddleName(candidate.getMiddleName());
-						someFound = true;
-					} else if (attrName.startsWith(AttributesManager.NS_USER_ATTR_CORE+":lastName")) {
-						user.setLastName(candidate.getLastName());
-						someFound = true;
-					} else if (attrName.startsWith(AttributesManager.NS_USER_ATTR_CORE+":titleBefore")) {
-						user.setTitleBefore(candidate.getTitleBefore());
-						someFound = true;
-					} else if (attrName.startsWith(AttributesManager.NS_USER_ATTR_CORE+":titleAfter")) {
-						user.setTitleAfter(candidate.getTitleAfter());
-						someFound = true;
-					}
-				}
-				if (someFound) {
-					try {
-						perunBl.getUsersManagerBl().updateUser(sess, user);
-					} catch (UserNotExistsException e) {
-						throw new ConsistencyErrorException("User from perun not exists when should - removed during sync.", e);
-					}
-				}
+			try {
+				perunBl.getUsersManagerBl().synchronizeUser(sess, candidate);
+			} catch (AttributeValueException e) {
+				// There is a problem with attribute value, so set INVALID status for the member
+				getPerunBl().getMembersManagerBl().invalidateMember(sess, richMember);
+			} catch (WrongAttributeAssignmentException e) {
+				throw new ConsistencyErrorException(e);
 			}
 
 			for (String attributeName : candidate.getAttributes().keySet()) {
 				//update member attribute
 				if(attributeName.startsWith(AttributesManager.NS_MEMBER_ATTR)) {
 					boolean attributeFound = false;
-					for (Attribute memberAttribute: richMember.getMemberAttributes()) {
-						if(memberAttribute.getName().equals(attributeName)) {
+					for (Attribute memberAttribute : richMember.getMemberAttributes()) {
+						if (memberAttribute.getName().equals(attributeName)) {
 							attributeFound = true;
 							Object subjectAttributeValue = getPerunBl().getAttributesManagerBl().stringToAttributeValue(candidate.getAttributes().get(attributeName), memberAttribute.getType());
 							if (subjectAttributeValue != null && !Objects.equals(memberAttribute.getValue(), subjectAttributeValue)) {
@@ -3165,7 +3143,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 									group, memberAttribute, richMember.getId(), memberAttribute.getValue(), subjectAttributeValue);
 								memberAttribute.setValue(subjectAttributeValue);
 								try {
-									if(mergeMemberAttributesList.contains(memberAttribute.getName())) {
+									if (mergeMemberAttributesList.contains(memberAttribute.getName())) {
 										getPerunBl().getAttributesManagerBl().mergeAttributeValueInNestedTransaction(sess, richMember, memberAttribute);
 									} else {
 										getPerunBl().getAttributesManagerBl().setAttributeInNestedTransaction(sess, richMember, memberAttribute);
@@ -3173,7 +3151,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 								} catch (AttributeValueException e) {
 									// There is a problem with attribute value, so set INVALID status for the member
 									getPerunBl().getMembersManagerBl().invalidateMember(sess, richMember);
-								} catch	(WrongAttributeAssignmentException e) {
+								} catch (WrongAttributeAssignmentException e) {
 									throw new ConsistencyErrorException(e);
 								}
 							}
@@ -3182,7 +3160,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 						}
 					}
 					//member has not set this attribute so set it now if possible
-					if(!attributeFound) {
+					if (!attributeFound) {
 						// FIXME - this whole section probably can be removed. Previously null attributes were not retrieved with member
 						// FIXME - they are now always present, if not the same, then they are set in a code above.
 						Attribute newAttribute = new Attribute(getPerunBl().getAttributesManagerBl().getAttributeDefinition(sess, attributeName));
@@ -3196,65 +3174,6 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 							// There is a problem with attribute value, so set INVALID status for the member
 							getPerunBl().getMembersManagerBl().invalidateMember(sess, richMember);
 						}
-					}
-				//update user attribute
-				} else if(attributeName.startsWith(AttributesManager.NS_USER_ATTR)) {
-					boolean attributeFound = false;
-					for (Attribute userAttribute: richMember.getUserAttributes()) {
-						if(userAttribute.getName().equals(attributeName)) {
-							attributeFound = true;
-							Object subjectAttributeValue = getPerunBl().getAttributesManagerBl().stringToAttributeValue(candidate.getAttributes().get(attributeName), userAttribute.getType());
-							if (!Objects.equals(userAttribute.getValue(), subjectAttributeValue)) {
-								log.trace("Group synchronization {}: value of the attribute {} for memberId {} changed. Original value {}, new value {}.",
-									group, userAttribute, richMember.getId(), userAttribute.getValue(), subjectAttributeValue);
-								userAttribute.setValue(subjectAttributeValue);
-								try {
-									//Choose set or merge by extSource attribute overwriteUserAttributes (if contains this one)
-									if(overwriteUserAttributesList.contains(userAttribute.getName())) {
-										getPerunBl().getAttributesManagerBl().setAttributeInNestedTransaction(sess, richMember.getUser(), userAttribute);
-									} else {
-										getPerunBl().getAttributesManagerBl().mergeAttributeValueInNestedTransaction(sess, richMember.getUser(), userAttribute);
-									}
-								} catch (AttributeValueException e) {
-									// There is a problem with attribute value, so set INVALID status for the member
-									getPerunBl().getMembersManagerBl().invalidateMember(sess, richMember);
-								} catch (WrongAttributeAssignmentException e) {
-									throw new ConsistencyErrorException(e);
-								}
-							}
-							//we found it, but there is no change
-							break;
-						}
-					}
-					//user has not set this attribute so set it now if
-					if(!attributeFound) {
-						// FIXME - this whole section probably can be removed. Previously null attributes were not retrieved with member
-						// FIXME - they are now always present, if not the same, then they are set in a code above.
-						Attribute newAttribute = new Attribute(getPerunBl().getAttributesManagerBl().getAttributeDefinition(sess, attributeName));
-						Object subjectAttributeValue = getPerunBl().getAttributesManagerBl().stringToAttributeValue(candidate.getAttributes().get(attributeName), newAttribute.getType());
-						newAttribute.setValue(subjectAttributeValue);
-						try {
-							// Try to set user's attributes
-							getPerunBl().getAttributesManagerBl().setAttributeInNestedTransaction(sess, richMember.getUser(), newAttribute);
-							log.trace("Setting the {} value {}", newAttribute, candidate.getAttributes().get(attributeName));
-						} catch (AttributeValueException e) {
-							// There is a problem with attribute value, so set INVALID status for the member
-							getPerunBl().getMembersManagerBl().invalidateMember(sess, richMember);
-						}
-					}
-				} else {
-					//we are not supporting other attributes then member or user so skip it without error, but log it
-					log.warn("Attribute {} can't be set, because it is not member or user attribute.", attributeName);
-				}
-			}
-
-			//Synchronize userExtSources (add not existing)
-			for (UserExtSource ues : candidate.getUserExtSources()) {
-				if (!getPerunBl().getUsersManagerBl().userExtSourceExists(sess, ues)) {
-					try {
-						getPerunBl().getUsersManagerBl().addUserExtSource(sess, richMember.getUser(), ues);
-					} catch (UserExtSourceExistsException e) {
-						throw new ConsistencyErrorException("Adding already existing userExtSource " + ues, e);
 					}
 				}
 			}
@@ -3317,13 +3236,12 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 	 * @param sess
 	 * @param group to be synchronized
 	 * @param candidatesToAdd list of new members (candidates)
-	 * @param overwriteUserAttributesList list of attributes to be updated for user if found
 	 * @param mergeMemberAttributesList list of attributes to be merged for member if found
 	 * @param skippedMembers list of not successfully synchronized members
 	 *
 	 * @throws InternalErrorException if some internal error occurs
 	 */
-	private void addMissingMembersWhileSynchronization(PerunSession sess, Group group, List<Candidate> candidatesToAdd, List<String> overwriteUserAttributesList, List<String> mergeMemberAttributesList, List<String> skippedMembers) throws InternalErrorException {
+	private void addMissingMembersWhileSynchronization(PerunSession sess, Group group, List<Candidate> candidatesToAdd, List<String> mergeMemberAttributesList, List<String> skippedMembers) throws InternalErrorException {
 		//sort candidates to prevent deadlocks during member locking
 		//IMPORTANT: Candidates sorting may produce a different result than members sorting, thus there is a potential risk of creating a deadlock
 		Collections.sort(candidatesToAdd);
@@ -3338,7 +3256,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				Map<Candidate,RichMember> memberMap = new HashMap<>();
 				memberMap.put(candidate, getPerunBl().getMembersManagerBl().getRichMember(sess, member));
 				try {
-					updateExistingMembersWhileSynchronization(sess, group, memberMap, overwriteUserAttributesList, mergeMemberAttributesList);
+					updateExistingMembersWhileSynchronization(sess, group, memberMap, mergeMemberAttributesList);
 				} catch (WrongAttributeAssignmentException | AttributeNotExistsException e) {
 					// if update fails, skip him
 					log.warn("Can't update member from candidate {} due to attribute value exception {}.", candidate, e);
@@ -3349,7 +3267,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			} catch (MemberNotExistsException e) {
 				try {
 					// We have new member (candidate), so create him using synchronous createMember (and overwrite chosed user attributes)
-					member = getPerunBl().getMembersManagerBl().createMemberSync(sess, getPerunBl().getGroupsManagerBl().getVo(sess, group), candidate, null, overwriteUserAttributesList);
+					member = getPerunBl().getMembersManagerBl().createMemberSync(sess, getPerunBl().getGroupsManagerBl().getVo(sess, group), candidate, null, null);
 					log.info("Group synchronization {}: New member id {} created during synchronization.", group, member.getId());
 				} catch (AlreadyMemberException e1) {
 					//Probably race condition, give him another chance to fix this mess
@@ -3360,7 +3278,7 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 						Map<Candidate,RichMember> memberMap = new HashMap<>();
 						memberMap.put(candidate, getPerunBl().getMembersManagerBl().getRichMember(sess, member));
 						try {
-							updateExistingMembersWhileSynchronization(sess, group, memberMap, overwriteUserAttributesList, mergeMemberAttributesList);
+							updateExistingMembersWhileSynchronization(sess, group, memberMap, mergeMemberAttributesList);
 						} catch (WrongAttributeAssignmentException | AttributeNotExistsException e2) {
 							// if update fails, skip him
 							log.warn("Can't update member from candidate {} due to attribute value exception {}.", candidate, e);

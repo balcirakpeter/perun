@@ -4,7 +4,9 @@ import cz.metacentrum.perun.core.api.Attribute;
 import cz.metacentrum.perun.core.api.AttributeDefinition;
 import cz.metacentrum.perun.core.api.UserExtSource;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
+import cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentException;
 import cz.metacentrum.perun.core.api.exceptions.WrongAttributeValueException;
+import cz.metacentrum.perun.core.api.exceptions.WrongReferenceAttributeValueException;
 import cz.metacentrum.perun.core.impl.PerunSessionImpl;
 
 /**
@@ -22,7 +24,7 @@ public abstract class UserExtSourceAttributesModuleAbstract extends AttributesMo
 
 	}
 
-	public void checkAttributeSemantics(PerunSessionImpl perunSession, UserExtSource ues, Attribute attribute) {
+	public void checkAttributeSemantics(PerunSessionImpl perunSession, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException {
 
 	}
 
@@ -30,7 +32,7 @@ public abstract class UserExtSourceAttributesModuleAbstract extends AttributesMo
 		return new Attribute(attribute);
 	}
 
-	public void changedAttributeHook(PerunSessionImpl session, UserExtSource ues, Attribute attribute) {
+	public void changedAttributeHook(PerunSessionImpl session, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException {
 
 	}
 }

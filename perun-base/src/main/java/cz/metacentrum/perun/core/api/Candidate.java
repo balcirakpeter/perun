@@ -105,18 +105,18 @@ public class Candidate extends User {
 		JSONObject candidateAttributes = new JSONObject();
 
 		//Convert userCoreAttributes to JSON
-		candidateAttributes.append(NS_USER_ATTR_CORE + "firstName", firstName);
-		candidateAttributes.append(NS_USER_ATTR_CORE + "lastName", lastName );
-		candidateAttributes.append(NS_USER_ATTR_CORE + "middleName", middleName);
-		candidateAttributes.append(NS_USER_ATTR_CORE + "tittleAfter", titleAfter);
-		candidateAttributes.append(NS_USER_ATTR_CORE + "tittleBefore", titleBefore);
-		candidateAttributes.append(NS_USER_ATTR_CORE + "serviceUser", isServiceUser());
-		candidateAttributes.append(NS_USER_ATTR_CORE + "sponsoredUser", isSponsoredUser());
+		candidateAttributes.put(NS_USER_ATTR_CORE + "firstName", firstName);
+		candidateAttributes.put(NS_USER_ATTR_CORE + "lastName", lastName );
+		candidateAttributes.put(NS_USER_ATTR_CORE + "middleName", middleName);
+		candidateAttributes.put(NS_USER_ATTR_CORE + "tittleAfter", titleAfter);
+		candidateAttributes.put(NS_USER_ATTR_CORE + "tittleBefore", titleBefore);
+		candidateAttributes.put(NS_USER_ATTR_CORE + "serviceUser", isServiceUser());
+		candidateAttributes.put(NS_USER_ATTR_CORE + "sponsoredUser", isSponsoredUser());
 
 		//Convert other attributes to JSON
 		for (Map.Entry<String, String> attribute : attributes.entrySet()) {
 			if (attribute.getKey().startsWith(NS_USER_ATTR))
-				candidateAttributes.append(attribute.getKey(), attribute.getValue());
+				candidateAttributes.putOpt(attribute.getKey(), attribute.getValue());
 		}
 		return candidateAttributes;
 	}

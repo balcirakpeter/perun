@@ -1221,8 +1221,8 @@ public class UsersManagerEntryIntegrationTest extends AbstractPerunIntegrationTe
 		JSONObject jsonObject = candidate.convertAttributesToJSON();
 
 		assertEquals(8, jsonObject.length());
-		assertEquals("value", jsonObject.getJSONArray(perun.getAttributesManager().NS_USER_ATTR + ":attribute").getString(0));
-		assertEquals(userFirstName, jsonObject.getJSONArray(perun.getAttributesManager().NS_USER_ATTR_CORE + ":firstName").getString(0));
+		assertEquals("value", jsonObject.optString(perun.getAttributesManager().NS_USER_ATTR + ":attribute"));
+		assertEquals(userFirstName, jsonObject.optString(perun.getAttributesManager().NS_USER_ATTR_CORE + ":firstName"));
 	}
 
 	@Test
@@ -1235,7 +1235,7 @@ public class UsersManagerEntryIntegrationTest extends AbstractPerunIntegrationTe
 		JSONObject jsonObject = candidate.convertAttributesToJSON();
 
 		assertEquals(8, jsonObject.length());
-		assertTrue(jsonObject.getJSONArray(perun.getAttributesManager().NS_USER_ATTR + ":attribute").isNull(0));
+		assertNull(jsonObject.optString(perun.getAttributesManager().NS_USER_ATTR + ":attribute") );
 	}
 
 	// PRIVATE METHODS -------------------------------------------------------------

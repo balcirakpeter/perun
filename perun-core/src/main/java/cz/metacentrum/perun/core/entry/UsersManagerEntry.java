@@ -1464,8 +1464,5 @@ public class UsersManagerEntry implements UsersManager {
 		return perunBl.getGroupsManagerBl().filterOnlyAllowedAttributes(sess,
 				perunBl.getGroupsManagerBl().convertGroupsToRichGroupsWithAttributes(sess,
 						perunBl.getUsersManagerBl().getGroupsWhereUserIsActive(sess, facility, user), attrNames), null, true);
-
-
 	}
-
 }

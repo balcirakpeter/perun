@@ -10,6 +10,7 @@ import cz.metacentrum.perun.core.api.AttributesManager;
 import cz.metacentrum.perun.core.api.Candidate;
 import cz.metacentrum.perun.core.api.CandidateGroup;
 import cz.metacentrum.perun.core.api.ExtSource;
+import cz.metacentrum.perun.core.api.ExtSourcesManager;
 import cz.metacentrum.perun.core.api.Group;
 import cz.metacentrum.perun.core.api.GroupsManager;
 import cz.metacentrum.perun.core.api.PerunSession;
@@ -37,6 +38,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -410,5 +412,11 @@ public class ExtSourcesManagerBlImpl implements ExtSourcesManagerBl {
 	@Override
 	public Map<String, String> getAttributes(ExtSource extSource) throws InternalErrorException {
 		return getExtSourcesManagerImpl().getAttributes(extSource);
+	}
+
+	public List<String> getOverwriteUserAttributeList(ExtSource extSource) throws InternalErrorException {
+		Map<String, String> extSourceAttributes = getPerunBl().getExtSourcesManagerBl().getAttributes(extSource);
+		String[] overwriteUserAttributes = extSourceAttributes.get(ExtSourcesManager.OVERWRITEATTRIBUTES_ATTRNAME).split(",");
+		return Arrays.asList(overwriteUserAttributes);
 	}
 }

@@ -4,7 +4,9 @@ import cz.metacentrum.perun.core.api.Attribute;
 import cz.metacentrum.perun.core.api.AttributeDefinition;
 import cz.metacentrum.perun.core.api.UserExtSource;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
+import cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentException;
 import cz.metacentrum.perun.core.api.exceptions.WrongAttributeValueException;
+import cz.metacentrum.perun.core.api.exceptions.WrongReferenceAttributeValueException;
 import cz.metacentrum.perun.core.impl.PerunSessionImpl;
 
 /**
@@ -36,7 +38,7 @@ public interface UserExtSourceAttributesModuleImplApi extends AttributesModuleIm
 	 * @param attribute Attribute to be checked.
 	 *
 	 */
-	void checkAttributeSemantics(PerunSessionImpl perunSession, UserExtSource ues, Attribute attribute);
+	void checkAttributeSemantics(PerunSessionImpl perunSession, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongAttributeAssignmentException;
 
 	/**
 	 * This method fill UserExtSource attributes.
@@ -57,5 +59,5 @@ public interface UserExtSourceAttributesModuleImplApi extends AttributesModuleIm
 	 * @param ues
 	 * @param attribute the attribute
 	 */
-	void changedAttributeHook(PerunSessionImpl session, UserExtSource ues, Attribute attribute);
+	void changedAttributeHook(PerunSessionImpl session, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException;
 }

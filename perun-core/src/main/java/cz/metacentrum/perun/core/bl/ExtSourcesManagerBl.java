@@ -280,4 +280,11 @@ public interface ExtSourcesManagerBl {
 	 */
 	List<CandidateGroup> generateCandidateGroups(PerunSession perunSession, List<Map<String,String>> groupSubjectsData, ExtSource source) throws InternalErrorException;
 
+	/**
+	 * Returns list of overwrite user attribute list
+	 * @param extSource ExtSource
+	 * @return List of overwrite user attributes names
+	 * @throws InternalErrorException
+	 */
+	List<String> getOverwriteUserAttributeList(ExtSource extSource) throws InternalErrorException;
 }

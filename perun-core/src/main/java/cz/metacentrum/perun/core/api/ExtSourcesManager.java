@@ -49,6 +49,7 @@ public interface ExtSourcesManager {
 	String CONFIGURATIONFILE = Utils.configurationsLocations + "perun-extSources.xml";
 
 	String EXTSOURCE_SYNCHRONIZATION_ENABLED_ATTRNAME = "extSourceSynchronizationEnabled";
+	String OVERWRITEATTRIBUTES_ATTRNAME = "overwriteUserAttributes";
 
 	/**
 	 * Creates an external source.

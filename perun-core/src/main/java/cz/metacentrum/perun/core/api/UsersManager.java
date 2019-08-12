@@ -31,6 +31,7 @@ import cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentExceptio
 import cz.metacentrum.perun.core.api.exceptions.WrongAttributeValueException;
 import cz.metacentrum.perun.core.api.exceptions.WrongReferenceAttributeValueException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +44,9 @@ import java.util.Map;
  * @author Sona Mastrakova
  */
 public interface UsersManager {
+
+	String USEREXTSOURCEPRIORITY_ATTRNAME = AttributesManager.NS_UES_ATTR_DEF + ":priority";
+	String USEREXTSOURCESTOREDATTRIBUTES_ATTRNAME = AttributesManager.NS_UES_ATTR_DEF + ":storedAttributes";
 
 	/**
 	 * Returns user by his login in external source and external source.
@@ -1216,5 +1220,4 @@ public interface UsersManager {
 	 * @return List of groups where user is active (is a VALID vo and group member) on specified facility
 	 */
 	List<RichGroup> getRichGroupsWhereUserIsActive(PerunSession sess, Facility facility, User user, List<String> attrNames) throws PrivilegeException, InternalErrorException;
-
 }

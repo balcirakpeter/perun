@@ -2,6 +2,7 @@ package cz.metacentrum.perun.core.bl;
 
 import cz.metacentrum.perun.core.api.Attribute;
 import cz.metacentrum.perun.core.api.AttributeDefinition;
+import cz.metacentrum.perun.core.api.Candidate;
 import cz.metacentrum.perun.core.api.ExtSource;
 import cz.metacentrum.perun.core.api.Facility;
 import cz.metacentrum.perun.core.api.Group;
@@ -523,6 +524,9 @@ public interface UsersManagerBl {
 	 * @throws UserExtSourceExistsException
 	 */
 	UserExtSource addUserExtSource(PerunSession perunSession, User user, UserExtSource userExtSource) throws InternalErrorException, UserExtSourceExistsException;
+
+	/*TODO: Missing JavaDoc*/
+	UserExtSource addUserExtSourceWithPriority(PerunSession sess, User user, UserExtSource userExtSource) throws InternalErrorException, UserExtSourceExistsException;
 
 	/**
 	 * Removes user's external sources.
@@ -1388,4 +1392,99 @@ public interface UsersManagerBl {
 	 */
 	List<Group> getGroupsWhereUserIsActive(PerunSession sess, Facility facility, User user) throws InternalErrorException;
 
+	/**
+	 * Updates all user attributes which was synchronized fron all userExtSources
+	 *
+	 * @param sess PerunSession
+	 * @param user User
+	 * @param attributesNames List of user attributes names which will be updated too
+	 * @throws InternalErrorException
+	 * @throws AttributeNotExistsException
+	 * @throws WrongAttributeAssignmentException
+	 * @throws WrongAttributeValueException
+	 * @throws WrongReferenceAttributeValueException
+	 */
+	void updateUserAttributesByUserExtSources(PerunSession sess, User user, List<String> attributesNames) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException, WrongAttributeValueException, WrongReferenceAttributeValueException;
+
+	/**
+	 * This method set the lowest priority for userExtSource or return the priority if the priority was already setted
+	 *
+	 * @param sess PerunSession
+	 * @param user User
+	 * @param userExtSource UserExtSource
+	 * @return Priority
+	 * @throws WrongAttributeAssignmentException
+	 * @throws WrongAttributeValueException
+	 * @throws WrongReferenceAttributeValueException
+	 * @throws InternalErrorException
+	 * @throws AttributeNotExistsException
+	 */
+	int setLowestPriority(PerunSession sess, User user, UserExtSource userExtSource) throws WrongAttributeAssignmentException, WrongAttributeValueException, WrongReferenceAttributeValueException, InternalErrorException, AttributeNotExistsException;
+
+	/**
+	 * Updates user's userExtSource in DB.
+	 *
+	 * @param perunSession
+	 * @param userExtSource
+	 * @return updated userExtSource
+	 * @throws InternalErrorException
+	 * @throws UserExtSourceExistsException When UES with same login/extSource already exists.
+	 */
+	UserExtSource updateUserExtSourceWithoutUpdateUserAttributes(PerunSession perunSession, UserExtSource userExtSource) throws InternalErrorException, UserExtSourceExistsException;
+
+	/**
+	 * Updates all user attributes which was synchronized fron all userExtSources
+	 *
+	 * @param sess PerunSession
+	 * @param user User
+	 * @throws WrongAttributeAssignmentException
+	 * @throws WrongAttributeValueException
+	 * @throws WrongReferenceAttributeValueException
+	 * @throws InternalErrorException
+	 * @throws AttributeNotExistsException
+	 * @throws UserNotExistsException
+	 */
+	void updateUserAttributesByUserExtSources(PerunSession sess, User user) throws WrongAttributeAssignmentException, WrongAttributeValueException, WrongReferenceAttributeValueException, InternalErrorException, AttributeNotExistsException;
+
+	/**
+	 * Returns list of synchronized attributes names for UserExtSource
+	 * @param sess PerunSession
+	 * @param userExtSource UserExtSource
+	 * @return List of synchronized attributes names
+	 * @throws InternalErrorException
+	 */
+	List<String> getSynchronizedAttributeListForUserExtSource(PerunSession sess, UserExtSource userExtSource) throws InternalErrorException;
+
+	/**
+	 * Returns UserExtSource attribute 'storedAttributes'(attributeName and attributeValue in JSON format) stored during the last successfully synchronization.
+	 *
+	 * @param sess PerunSession
+	 * @param userExtSource UserExtSource
+	 * @return Attribute
+	 * @throws InternalErrorException
+	 */
+	Attribute getUserExtSourceStoredAttributesAttr(PerunSession sess, UserExtSource userExtSource)  throws InternalErrorException;
+
+	/**
+	 * Synchronize user with candidate from external user
+	 *
+	 * @param sess
+	 * @param candidate
+	 * @throws InternalErrorException
+	 * @throws AttributeNotExistsException
+	 * @throws WrongAttributeAssignmentException
+	 * @throws WrongAttributeValueException
+	 * @throws WrongReferenceAttributeValueException
+	 */
+	void synchronizeUser(PerunSession sess, Candidate candidate) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException, WrongAttributeValueException, WrongReferenceAttributeValueException;
+
+
+	/**
+	 * Returns priority of the userExtSource
+	 *
+	 * @param sess PerunSession
+	 * @param userExtSource UserExtSource
+	 * @return priority or -1
+	 */
+	int getUserExtSourcePriority(PerunSession sess, UserExtSource userExtSource) throws WrongAttributeAssignmentException, InternalErrorException, AttributeNotExistsException;
 }

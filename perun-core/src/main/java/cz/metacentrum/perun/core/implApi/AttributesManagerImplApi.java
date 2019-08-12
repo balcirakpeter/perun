@@ -1594,7 +1594,7 @@ public interface AttributesManagerImplApi {
 	 * @param attribute
 	 * @throws InternalErrorException
 	 */
-	void changedAttributeHook(PerunSession sess, UserExtSource ues, Attribute attribute) throws InternalErrorException;
+	void changedAttributeHook(PerunSession sess, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException;
 
 	/**
 	 * Check if value of this facility attribute has valid semantics.
@@ -1764,7 +1764,7 @@ public interface AttributesManagerImplApi {
 	 *
 	 * @throws InternalErrorException if an exception raise in concrete implementation, the exception is wrapped in InternalErrorException
 	 */
-	void checkAttributeSemantics(PerunSession sess, UserExtSource ues, Attribute attribute) throws InternalErrorException;
+	void checkAttributeSemantics(PerunSession sess, UserExtSource ues, Attribute attribute) throws InternalErrorException, WrongAttributeValueException, WrongReferenceAttributeValueException ;
 
 	/**
 	 * Check if value of this facility attribute has valid syntax.
