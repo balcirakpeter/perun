@@ -1,0 +1,29 @@
+{
+	"version": 1.0,
+	"policies": [
+		"createExtSource": {
+			"objects": [],
+			"roles" : ["PERUNADMIN"]
+		}
+	],
+	"roles": ["PERUNADMIN": null,
+		"PERUNOBSERVER": null,
+		"VOADMIN": "Vo",
+		"GROUPADMIN": "Group",
+		"FACILITYADMIN": "Facility",
+		"RESOURCEADMIN": "Resource",
+		"RESOURCESELFSERVICE": null,
+		"ENGINE": null,
+		"RPC": null,
+		"NOTIFICATIONS": null,
+		"SELF": null,
+		"CABINETADMIN": null,
+		"SERVICEUSER": null,
+		"REGISTRAR": null,
+		"SERVICEUSER":,
+		"SPONSOR": null,
+		"VOOBSERVER": "Vo",
+		"TOPGROUPCREATOR": null,
+		"SECURITYADMIN": null
+	]
+}

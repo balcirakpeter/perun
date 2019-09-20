@@ -20,6 +20,7 @@ import cz.metacentrum.perun.core.impl.Privileges;
 import cz.metacentrum.perun.core.impl.Utils;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class AuthzResolver {
@@ -260,6 +261,20 @@ public class AuthzResolver {
 		} catch (AttributeNotExistsException ex) {
 			throw new InternalErrorException(ex);
 		}
+	}
+
+	/**
+	 * Checks if the principal is authorized.
+	 *
+	 * @param sess perun session
+	 * @param politicDefinition from configuration file
+	 * @param objects object names with ids
+	 *
+	 * @return true if the principal authorized, false otherwise
+	 * @throws InternalErrorException if something goes wrong
+	 */
+	public static boolean authorized(PerunSession sess, String politicDefinition, List<PerunBean> objects) throws InternalErrorException {
+		return AuthzResolverBlImpl.authorized(sess, politicDefinition, objects);
 	}
 
 	/**

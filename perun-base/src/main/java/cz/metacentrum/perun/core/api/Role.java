@@ -20,7 +20,9 @@ public enum Role {
 	TOPGROUPCREATOR ("topgroupcreator"),
 	SECURITYADMIN ("securityadmin"),
 	CABINETADMIN ("cabinetadmin"),
-	UNKNOWNROLENAME ("unknown");
+	UNKNOWNROLENAME ("unknown"),
+	TESTADMIN ("testadmin"),
+	ANOTHERADMIN ("anotheradmin");
 
 	private final String roleName;
 

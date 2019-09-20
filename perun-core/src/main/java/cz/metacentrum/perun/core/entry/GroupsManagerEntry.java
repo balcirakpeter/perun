@@ -10,6 +10,7 @@ import cz.metacentrum.perun.core.api.GroupsManager;
 import cz.metacentrum.perun.core.api.Member;
 import cz.metacentrum.perun.core.api.MemberGroupStatus;
 import cz.metacentrum.perun.core.api.MembershipType;
+import cz.metacentrum.perun.core.api.PerunBean;
 import cz.metacentrum.perun.core.api.PerunSession;
 import cz.metacentrum.perun.core.api.Resource;
 import cz.metacentrum.perun.core.api.RichGroup;
@@ -57,6 +58,9 @@ import cz.metacentrum.perun.core.bl.PerunBl;
 import cz.metacentrum.perun.core.impl.Utils;
 import cz.metacentrum.perun.core.implApi.GroupsManagerImplApi;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -293,22 +297,23 @@ public class GroupsManagerEntry implements GroupsManager {
 		return group;
 	}
 
-	@Override
-	public void addMembers(PerunSession sess, Group group, List<Member> members) throws InternalErrorException, MemberNotExistsException, PrivilegeException, AlreadyMemberException, GroupNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, AttributeNotExistsException, ExternallyManagedException {
+	@Override public void addMembers(PerunSession sess, Group group, List<Member> members) throws InternalErrorException, MemberNotExistsException, PrivilegeException, AlreadyMemberException, GroupNotExistsException, WrongAttributeValueException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException, AttributeNotExistsException, ExternallyManagedException {
 		Utils.checkPerunSession(sess);
 		getGroupsManagerBl().checkGroupExists(sess, group);
 
+		List<PerunBean> beans = new ArrayList<>();
 		for (Member member : members) {
 			getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
 			// Check if the member and group are from the same VO
 			if (member.getVoId() != (group.getVoId())) {
 				throw new MembershipMismatchException("Member and group are form the different VO");
 			}
+			beans.add(member);
 		}
+		beans.add(group);
 
 		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, group)
-			&& !AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, group)) {
+		if (!AuthzResolver.authorized(sess, "addMembers", beans)) {
 			throw new PrivilegeException(sess, "addMembers");
 		}
 
@@ -373,9 +378,11 @@ public class GroupsManagerEntry implements GroupsManager {
 		getGroupsManagerBl().checkGroupExists(sess, group);
 		getPerunBl().getMembersManagerBl().checkMemberExists(sess, member);
 
+		List<PerunBean> beans = new ArrayList<>();
+		beans.add(group);
+		beans.add(member);
 		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, group)
-		    && !AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, group)) {
+		if (!AuthzResolver.authorized(sess, "addMember", beans)) {
 			throw new PrivilegeException(sess, "addMember");
 		}
 

@@ -5,6 +5,7 @@ import cz.metacentrum.perun.core.api.BanOnResource;
 import cz.metacentrum.perun.core.api.Facility;
 import cz.metacentrum.perun.core.api.Group;
 import cz.metacentrum.perun.core.api.Member;
+import cz.metacentrum.perun.core.api.PerunBean;
 import cz.metacentrum.perun.core.api.PerunSession;
 import cz.metacentrum.perun.core.api.Resource;
 import cz.metacentrum.perun.core.api.ResourceTag;
@@ -52,8 +53,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -331,7 +336,7 @@ public class ResourcesManagerEntry implements ResourcesManager {
 		getResourcesManagerBl().checkResourceExists(sess, resource);
 
 		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, resource) &&
+		/*if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, resource) &&
 				!AuthzResolver.isAuthorized(sess, Role.RESOURCEADMIN, resource)) {
 
 			if (!AuthzResolver.isAuthorized(sess, Role.RESOURCESELFSERVICE, resource) ||
@@ -339,7 +344,9 @@ public class ResourcesManagerEntry implements ResourcesManager {
 
 				throw new PrivilegeException(sess, "assignGroupToResource");
 			}
-		}
+		}*/
+
+		if (!AuthzResolver.authorized(sess, "assignGroupToResource", Arrays.asList(group, resource))) throw new PrivilegeException("assignGroupToResource");
 
 		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
 
@@ -353,7 +360,7 @@ public class ResourcesManagerEntry implements ResourcesManager {
 		getResourcesManagerBl().checkResourceExists(perunSession, resource);
 
 		// Authorization
-		if (!AuthzResolver.isAuthorized(perunSession, Role.VOADMIN, resource) &&
+		/*if (!AuthzResolver.isAuthorized(perunSession, Role.VOADMIN, resource) &&
 				!AuthzResolver.isAuthorized(perunSession, Role.RESOURCEADMIN, resource)) {
 
 			if (!AuthzResolver.isAuthorized(perunSession, Role.RESOURCESELFSERVICE, resource)) {
@@ -365,11 +372,17 @@ public class ResourcesManagerEntry implements ResourcesManager {
 					throw new PrivilegeException(perunSession, "assignGroupsToResource");
 				}
 			}
-		}
+		}*/
 
-		for(Group g: groups) {
+		List<PerunBean> objectsToCheck= new ArrayList<>();
+
+		for (Group g : groups) {
 			getPerunBl().getGroupsManagerBl().checkGroupExists(perunSession, g);
+			objectsToCheck.add(g);
 		}
+		objectsToCheck.add(resource);
+
+		if (!AuthzResolver.authorized(perunSession, "assignGroupsToResource", objectsToCheck)) throw new PrivilegeException("assignGroupsToResource");
 
 		getResourcesManagerBl().assignGroupsToResource(perunSession, groups, resource);
 	}
@@ -381,13 +394,19 @@ public class ResourcesManagerEntry implements ResourcesManager {
 		getPerunBl().getGroupsManagerBl().checkGroupExists(perunSession, group);
 
 		// Authorization
-		if (!AuthzResolver.isAuthorized(perunSession, Role.VOADMIN, group)) {
+		/*if (!AuthzResolver.isAuthorized(perunSession, Role.VOADMIN, group)) {
 			throw new PrivilegeException(perunSession, "assignGroupToResources");
-		}
+		}*/
+
+		List<PerunBean> objectsToCheck= new ArrayList<>();
 
 		for(Resource r: resources) {
 			getResourcesManagerBl().checkResourceExists(perunSession, r);
+			objectsToCheck.add(r);
 		}
+		objectsToCheck.add(group);
+
+		if (!AuthzResolver.authorized(perunSession, "assignGroupToResources", objectsToCheck)) throw new PrivilegeException("assignGroupToResources");
 
 		getResourcesManagerBl().assignGroupToResources(perunSession, group, resources);
 	}

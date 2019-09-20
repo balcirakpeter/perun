@@ -27,6 +27,7 @@ import cz.metacentrum.perun.core.api.exceptions.FacilityNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.GroupNotAdminException;
 import cz.metacentrum.perun.core.api.exceptions.GroupNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
+import cz.metacentrum.perun.core.api.exceptions.MemberNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.ResourceNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.SecurityTeamNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.ServiceNotExistsException;
@@ -39,12 +40,26 @@ import cz.metacentrum.perun.core.bl.PerunBl;
 import cz.metacentrum.perun.core.bl.VosManagerBl;
 import cz.metacentrum.perun.core.impl.AuthzResolverImpl;
 import cz.metacentrum.perun.core.impl.AuthzRoles;
+import cz.metacentrum.perun.core.impl.PerunSessionImpl;
 import cz.metacentrum.perun.core.impl.Utils;
 import cz.metacentrum.perun.core.implApi.AuthzResolverImplApi;
+import jdk.nashorn.internal.parser.JSONParser;
+import org.apache.commons.io.IOUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.nio.cs.UTF_8;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -65,6 +80,293 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	private static final String SET_ROLE = "SET";
 
 	private final static Set<String> extSourcesWithMultipleIdentifiers = BeansUtils.getCoreConfig().getExtSourcesMultipleIdentifiers();
+
+	public static boolean authorized(PerunSession sess, String policyDefinition, List<PerunBean> objects) throws InternalErrorException {
+		InputStream is = null;
+		try {
+			is = new FileInputStream( "/etc/perun/policies.json");
+		} catch (FileNotFoundException e) {
+		}
+		String jsonTxt = null;
+		try {
+			jsonTxt = IOUtils.toString( is, "UTF-8");
+		} catch (IOException e) {
+		}
+
+		JSONObject policies = new JSONObject(jsonTxt);
+
+		Utils.notNull(sess, "sess");
+
+		// We need to load additional information about the principal
+		if (!sess.getPerunPrincipal().isAuthzInitialized()) {
+			refreshAuthz(sess);
+		}
+
+		// If the user has no roles, deny access
+		if (sess.getPerunPrincipal().getRoles() == null) {
+			return false;
+		}
+
+		// Perun admin can do anything
+		//if (sess.getPerunPrincipal().getRoles().hasRole(Role.PERUNADMIN)) {
+		//	return true;
+		//}
+
+		JSONObject policy = policies.getJSONObject("policies").optJSONObject(policyDefinition);
+		JSONObject defaultPolicy = policies.getJSONObject("policies").optJSONObject("defaultPolicy");
+		//JSONObject rolesToObjects = policies.getJSONObject("roles");
+		JSONArray defaultPolicyRoles = defaultPolicy.getJSONArray("policy_roles");
+		JSONArray policyRoles = policy.getJSONArray("policy_roles");
+		//JSONArray policyObjects = policy.getJSONArray("policy_objects");
+
+		/*
+		boolean hasSomeRole = false;
+		for (Object role: policyRoles) {
+			// If user doesn't have requested role, deny request
+			if (sess.getPerunPrincipal().getRoles().hasRole(Role.valueOf(role.toString()))) {
+				hasSomeRole = true;
+			}
+		}
+		if (!hasSomeRole) return false;
+		*/
+
+		// policy with default policy
+		for (Object object: defaultPolicyRoles) {
+			policyRoles.put(object);
+		}
+
+		//Fetch super objects like Vo for group etc.
+		/**
+		 * bacha treba zistit ci vracia vsetko potrebne: asi hej treba zistit sourceGroupId pre membra. AppForm asi vyriesime special
+		 */
+		objects.addAll(fetchAllReliableObjects(sess, objects));
+
+		//create a map from objects for easier manipulation
+		Map <String, List<PerunBean>> mapOfBeans = new HashMap<>();
+		for (PerunBean object: objects) {
+			if (!mapOfBeans.containsKey(object.getBeanName())) mapOfBeans.put(object.getBeanName(), Collections.singletonList(object));
+			else mapOfBeans.get(object.getBeanName()).add(object);
+		}
+
+		//Traverse through outer role list which works like logical OR
+		for (Object roleArray: policyRoles) {
+			boolean authorized = true;
+			//Traverse through inner role list which works like logical AND
+			for (String role : ((JSONObject) roleArray).keySet()) {
+				//fetch the role, object is connected with, from config
+				String roleObject = ((JSONObject) roleArray).optString(role);
+				// If policy role is not connected to any object or if there is no corresponding type of object in the perunBeans map
+				if (roleObject.isEmpty() || !mapOfBeans.containsKey(roleObject)) {
+					//If principal does not have the role, this inner list's result is false
+					if (!sess.getPerunPrincipal().getRoles().hasRole(Role.valueOf(role))) {
+						authorized = false;
+						break;
+					}
+					// If policy role is connected to some object, like VOADMIN->Vo
+				} else {
+					//traverse all reliable objects from perun which are reliable for the authorized method
+					for (PerunBean object : mapOfBeans.get(roleObject)) {
+						//If the principal does not have rights on role-object, this inner list's result is false
+						/**
+						 * bacha, co ked je tam moznych objektov viac daneho typu; zrejme spravime ako and, akonahle zlyha na jednom objekte daneho typu tak to da ako false
+						 */
+						if (!sess.getPerunPrincipal().getRoles().hasRole(Role.valueOf(role))) {
+							authorized = false;
+							break;
+						}
+						if (!sess.getPerunPrincipal().getRoles().hasRole(Role.valueOf(role), object)) {
+							authorized = false;
+							break;
+						}
+					}
+					//Some inner role check failed so jump out of the loop
+					if (!authorized) break;
+				}
+			}
+			// If all checks for inner role list pass, return true. Otherwise proceed to another inner role list
+			if (authorized) return true;
+		}
+		//If all checks failed return false
+		return false;
+	}
+
+	public static boolean authorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, String policyDefinition, List<PerunBean> objects) throws InternalErrorException {
+
+		//This method get all possible roles which can do action on attribute
+		//Map<Role, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+
+		/**
+		 * Napad: Rozdelit actionType na action a object like Write, Vo
+		 * 		 Myslene ze by sa vzdy kontrolovalo ci je user vo Vo toho atributu
+		 * 		 Tym padom by boli na zaciatku len dva action types: READ, WRITE
+		 * Napad: Read/Write_Public zmenit na Read/Write User(SELF)
+		 * Napad: ActionType brat z konfiguraku tak ako role
+		 * Napad; READ/WRITE namapovat na role, ktore s nim mozu pracovat (V podstate to vidime z getRolesWhichCanWork....)
+		 */
+
+		InputStream is = null;
+		try {
+			is = new FileInputStream( "/etc/perun/policies.json");
+		} catch (FileNotFoundException e) {
+		}
+		String jsonTxt = null;
+		try {
+			jsonTxt = IOUtils.toString( is, "UTF-8");
+		} catch (IOException e) {
+		}
+
+		JSONObject policies = new JSONObject(jsonTxt);
+
+		Utils.notNull(sess, "sess");
+
+		// We need to load additional information about the principal
+		if (!sess.getPerunPrincipal().isAuthzInitialized()) {
+			refreshAuthz(sess);
+		}
+
+		// If the user has no roles, deny access
+		if (sess.getPerunPrincipal().getRoles() == null) {
+			return false;
+		}
+
+		//Fetch super objects like Vo for group etc.
+		/**
+		 * bacha treba zistit ci vracia vsetko potrebne,
+		 */
+		objects.addAll(fetchAllReliableObjects(sess, objects));
+
+		JSONObject policy = policies.getJSONObject("policies").optJSONObject(policyDefinition);
+		JSONObject rolesToObjects = policies.getJSONObject("roles");
+		JSONObject action_policies = policy.getJSONObject("action_policy");
+		JSONObject action_types = policy.getJSONObject("action_types");
+
+		for (String keyStr : action_policies.keySet()) {
+			Object role_action_policy = action_policies.get(keyStr);
+			//Object action_type = action_types.get(keyStr);
+			for (Object action_type_to_role: (JSONArray)role_action_policy) {
+				if (!actionType.toString().equals(action_type_to_role.toString())) break;
+				Object action_type_object = ((JSONObject)action_types.get(action_type_to_role.toString())).getString(actionType.toString());
+				if (action_type_object != null && action_type_object.equals("public")) return true;
+				if (action_type_object == null) {
+					if (rolesToObjects.optJSONObject(keyStr) == null || objects.isEmpty()) {
+						//If principal does not have the role, this inner list's result is false
+						if (sess.getPerunPrincipal().getRoles().hasRole(Role.valueOf(keyStr))) return true;
+						// If policy role is connected to some object, like VOADMIN->Vo
+					} else {
+						//fetch the role, object is connected with, from config
+						Object roleObject = rolesToObjects.optJSONObject(keyStr);
+						//traverse all reliable objects from perun which are reliable for the authorized method
+						for (PerunBean object : objects) {
+							// if role object equals traversed object, do the check for the role and the Perun object
+							if (roleObject.toString().equals(object.getBeanName())) {
+								//If the principal does not have rights on role-object, this inner list's result is false
+								if (sess.getPerunPrincipal().getRoles().hasRole(Role.valueOf(keyStr), object)) return true;
+							}
+						}
+					}
+					//check the principal association to action type object
+				} else {
+					if (isPrincipalAssociatedToObject(sess, objects, action_type_object.toString())) return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static boolean isPrincipalAssociatedToObject(PerunSession sess, List<PerunBean> objects, String objectType) throws InternalErrorException {
+		for (PerunBean object: objects) {
+			if (!object.getBeanName().equals(objectType)) continue;
+			if (sess.getPerunPrincipal().getUser() == null) continue;
+			switch(objectType) {
+				case "User":
+					if (sess.getPerunPrincipal().getUser() == object) return true;
+					break;
+				case "Member":
+					List<Member> principalUserMembers = ((PerunSessionImpl) sess).getPerunBl().getMembersManagerBl().getMembersByUser(sess, sess.getPerunPrincipal().getUser());
+					if (principalUserMembers.contains(object)) return true;
+					break;
+				case "Group":
+					List<Member> activeMembers = ((PerunSessionImpl) sess).getPerunBl().getGroupsManagerBl().getActiveGroupMembers(sess, (Group)object);
+					for (Member member: activeMembers) if (member.getUserId() == sess.getPerunPrincipal().getUser().getId()) return true;
+					break;
+				case "Vo":
+					Member member = null;
+					try {
+						member = ((PerunSessionImpl) sess).getPerunBl().getMembersManagerBl().getMemberByUser(sess, (Vo)object,sess.getPerunPrincipal().getUser());
+					} catch (MemberNotExistsException e) {
+						//We are just checking the membership so we can ignore it
+					}
+					if (member != null && member.getStatus() != Status.INVALID) return true;
+					break;
+				case "Resource":
+					List<Resource> principalResources = ((PerunSessionImpl) sess).getPerunBl().getUsersManagerBl().getAllowedResources(sess, sess.getPerunPrincipal().getUser());
+					if (principalResources.contains(object)) return true;
+					break;
+				case "Facility":
+					List<Facility> principalFacilities = ((PerunSessionImpl) sess).getPerunBl().getFacilitiesManagerBl().getAllowedFacilities(sess, sess.getPerunPrincipal().getUser());
+					if (principalFacilities.contains(object)) return true;
+					break;
+			}
+		}
+		return false;
+	}
+
+	private static List<PerunBean> fetchAllReliableObjects(PerunSession sess,List<PerunBean> objects) throws InternalErrorException {
+		List<PerunBean> reliableObjects = new ArrayList<>();
+
+		/**
+		 * What about source group id for member?
+		 */
+		for (PerunBean object: objects) {
+			if (object.getBeanName().equals(Member.class.getSimpleName())) {
+				User user = null;
+				try {
+					user = getPerunBl().getUsersManagerBl().getUserById(sess, ((Member) object).getUserId());
+				} catch (UserNotExistsException e) {
+					//this is ok, facility was probably deleted but still exists in user session, only log it
+					log.debug("User not find by id {} but still exists in user session when fetchAllReliableObjects method was called.", ((Member) object).getUserId());
+				}
+				if (!reliableObjects.contains(user) && !objects.contains(user)) reliableObjects.add(user);
+				Vo membersVo = null;
+				try {
+					membersVo = getPerunBl().getVosManagerBl().getVoById(sess, ((Member) object).getVoId());
+				} catch (VoNotExistsException e) {
+					//this is ok, facility was probably deleted but still exists in user session, only log it
+					log.debug("Vo not find by id {} but still exists in user session when fetchAllReliableObjects method was called.", ((Member) object).getVoId());
+				}
+				if (!reliableObjects.contains(membersVo) && !objects.contains(membersVo)) reliableObjects.add(membersVo);
+			} else if (object.getBeanName().equals(Group.class.getSimpleName())) {
+				Vo vo = null;
+				try {
+					vo = getPerunBl().getVosManagerBl().getVoById(sess, ((Group) object).getVoId());
+				} catch (VoNotExistsException e) {
+					//this is ok, vo was probably deleted but still exists in user session, only log it
+					log.debug("Vo not find by id {} but still exists in user session when fetchAllReliableObjects method was called.", ((Group) object).getVoId());
+				}
+				if (!reliableObjects.contains(vo) && !objects.contains(vo)) reliableObjects.add(vo);
+			} else if (object.getBeanName().equals(Resource.class.getSimpleName())) {
+				Vo vo = null;
+				try {
+					vo = getPerunBl().getVosManagerBl().getVoById(sess, ((Resource) object).getVoId());
+				} catch (VoNotExistsException e) {
+					//this is ok, vo was probably deleted but still exists in user session, only log it
+					log.debug("Vo not find by id {} but still exists in user session when fetchAllReliableObjects method was called.", ((Resource) object).getVoId());
+				}
+				if (!reliableObjects.contains(vo) && !objects.contains(vo)) reliableObjects.add(vo);
+				Facility facility = null;
+				try {
+					facility = getPerunBl().getFacilitiesManagerBl().getFacilityById(sess, ((Resource) object).getFacilityId());
+				} catch (FacilityNotExistsException e) {
+					//this is ok, facility was probably deleted but still exists in user session, only log it
+					log.debug("Facility not find by id {} but still exists in user session when fetchAllReliableObjects method was called.", ((Resource) object).getFacilityId());
+				}
+				if (!reliableObjects.contains(facility) && !objects.contains(facility)) reliableObjects.add(facility);
+			}
+		}
+
+		return reliableObjects;
+	}
+
 
 	/**
 	 * Checks if the principal is authorized.

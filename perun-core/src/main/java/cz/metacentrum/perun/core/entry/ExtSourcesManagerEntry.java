@@ -28,6 +28,8 @@ import cz.metacentrum.perun.core.implApi.ExtSourcesManagerImplApi;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -61,7 +63,7 @@ public class ExtSourcesManagerEntry implements ExtSourcesManager {
 		Utils.checkPerunSession(sess);
 
 		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.PERUNADMIN)) {
+		if (!AuthzResolver.authorized(sess, "createExtSource", Collections.emptyList())) {
 			throw new PrivilegeException(sess, "createExtSource");
 		}
 
@@ -160,8 +162,8 @@ public class ExtSourcesManagerEntry implements ExtSourcesManager {
 		Utils.checkPerunSession(sess);
 
 		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.PERUNADMIN)) {
-			throw new PrivilegeException(sess, "addExtSource");
+		if (!AuthzResolver.authorized(sess, "createExtSource", Collections.emptyList())) {
+			throw new PrivilegeException(sess, "createExtSource");
 		}
 
 		getPerunBl().getVosManagerBl().checkVoExists(sess, vo);
