@@ -17,7 +17,7 @@ public class AlreadyAdminException extends PerunException {
 	private Group group;
 	private Group authorizedGroup;
 	private SecurityTeam securityTeam;
-	private Role role;
+	private String role;
 
 
 	public AlreadyAdminException(String message) {
@@ -37,14 +37,14 @@ public class AlreadyAdminException extends PerunException {
 		this.member = member;
 	}
 
-	public AlreadyAdminException(String message, Throwable cause, User user, Vo vo, Role role) {
+	public AlreadyAdminException(String message, Throwable cause, User user, Vo vo, String role) {
 		super(message, cause);
 		this.user = user;
 		this.vo = vo;
 		this.role = role;
 	}
 
-	public AlreadyAdminException(String message, Throwable cause, User user, Resource resource, Role role) {
+	public AlreadyAdminException(String message, Throwable cause, User user, Resource resource, String role) {
 		super(message, cause);
 		this.user = user;
 		this.resource = resource;
@@ -86,14 +86,14 @@ public class AlreadyAdminException extends PerunException {
 		this.vo = vo;
 	}
 
-	public AlreadyAdminException(String message, Throwable cause, Group authorizedGroup, Vo vo, Role role) {
+	public AlreadyAdminException(String message, Throwable cause, Group authorizedGroup, Vo vo, String role) {
 		super(message, cause);
 		this.authorizedGroup = authorizedGroup;
 		this.vo = vo;
 		this.role = role;
 	}
 
-	public AlreadyAdminException(String message, Throwable cause, Group authorizedGroup, Resource resource, Role role) {
+	public AlreadyAdminException(String message, Throwable cause, Group authorizedGroup, Resource resource, String role) {
 		super(message, cause);
 		this.authorizedGroup = authorizedGroup;
 		this.resource = resource;
@@ -192,7 +192,7 @@ public class AlreadyAdminException extends PerunException {
 		return securityTeam;
 	}
 
-	public Role getRole() {
+	public String getRole() {
 		return role;
 	}
 }

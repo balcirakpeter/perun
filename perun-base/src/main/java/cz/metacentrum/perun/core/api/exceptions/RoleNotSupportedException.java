@@ -1,7 +1,5 @@
 package cz.metacentrum.perun.core.api.exceptions;
 
-import cz.metacentrum.perun.core.api.Role;
-
 /**
  * Checked version of RoleNotSupportedException.
  *
@@ -13,13 +11,18 @@ import cz.metacentrum.perun.core.api.Role;
 public class RoleNotSupportedException extends PerunException {
 	static final long serialVersionUID = 0;
 
-	private Role role;
+	private String role;
 
 	public RoleNotSupportedException(String message) {
 		super(message);
 	}
 
-	public RoleNotSupportedException(String message, Role role) {
+	/**
+	 * Constructor with a message and the role
+	 * @param message message with details about the cause
+	 * @param role role that is not supported
+	 */
+	public RoleNotSupportedException(String message, String role) {
 		super(message);
 		this.role = role;
 	}
@@ -28,7 +31,13 @@ public class RoleNotSupportedException extends PerunException {
 		super(message, cause);
 	}
 
-	public RoleNotSupportedException(String message, Role role, Throwable cause) {
+	/**
+	 * Constructor with a message, the role and a throwable
+	 * @param message message with details about the cause
+	 * @param role role that is not supported
+	 * @param cause Throwable that caused throwing of this exception
+	 */
+	public RoleNotSupportedException(String message, String role, Throwable cause) {
 		super(message, cause);
 		this.role = role;
 	}
@@ -37,12 +46,21 @@ public class RoleNotSupportedException extends PerunException {
 		super(cause);
 	}
 
-	public RoleNotSupportedException(Throwable cause, Role role) {
+	/**
+	 * Constructor with the role and a throwable
+	 * @param role role that is not supported
+	 * @param cause Throwable that caused throwing of this exception
+	 */
+	public RoleNotSupportedException(Throwable cause, String role) {
 		super(cause);
 		this.role = role;
 	}
 
-	public Role getRole() {
+	/**
+	 * Getter for the role
+	 * @return role that is not supported
+	 */
+	public String getRole() {
 		return this.role;
 	}
 }

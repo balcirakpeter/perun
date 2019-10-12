@@ -33,7 +33,10 @@ public class AuthzResolver {
 	 * @return true if the principal authorized, false otherwise
 	 * @throws InternalErrorException if something goes wrong
 	 */
-	public static boolean isAuthorized(PerunSession sess, Role role, PerunBean complementaryObject) throws InternalErrorException {
+	public static boolean isAuthorized(PerunSession sess, String role, PerunBean complementaryObject) throws InternalErrorException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
 		return AuthzResolverBlImpl.isAuthorized(sess, role, complementaryObject);
 	}
 
@@ -271,7 +274,10 @@ public class AuthzResolver {
 	 * @return true if the principal authorized, false otherwise
 	 * @throws InternalErrorException if something goes wrong
 	 */
-	public static boolean isAuthorized(PerunSession sess, Role role) throws InternalErrorException {
+	public static boolean isAuthorized(PerunSession sess, String role) throws InternalErrorException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
 		return AuthzResolverBlImpl.isAuthorized(sess, role);
 	}
 
@@ -356,21 +362,21 @@ public class AuthzResolver {
 	}
 
 	/**
-	 * Get all principal role names. Role is defined as a name, translation table is in Role class.
+	 * Get all principal role names.
 	 *
 	 * @param sess perun session
-	 * @return list of integers, which represents role from enum Role.
+	 * @return list of strings, which represents roles.
 	 */
 	public static List<String> getPrincipalRoleNames(PerunSession sess) throws InternalErrorException {
 		return AuthzResolverBlImpl.getPrincipalRoleNames(sess);
 	}
 
 	/**
-	 * Get all user role names. Role is defined as a name, translation table is in Role class.
+	 * Get all user role names.
 	 *
 	 * @param sess perun session
 	 * @param user User
-	 * @return list of integers, which represents role from enum Role.
+	 * @return list of strings, which represents roles.
 	 */
 	public static List<String> getUserRoleNames(PerunSession sess, User user) throws InternalErrorException, UserNotExistsException, PrivilegeException {
 		((PerunBl) sess.getPerun()).getUsersManagerBl().checkUserExists(sess, user);
@@ -396,13 +402,13 @@ public class AuthzResolver {
 	}
 
 	/**
-	 * Get all group role names. Role is defined as a name, translation table is in Role class.
+	 * Get all group role names.
 	 *
 	 * @param sess perun session
 	 * @param group Group
 	 * @throws InternalErrorException
 	 * @throws GroupNotExistsException
-	 * @return list of integers, which represents role from enum Role.
+	 * @return list of strings, which represents roles.
 	 */
 	public static List<String> getGroupRoleNames(PerunSession sess, Group group) throws InternalErrorException, GroupNotExistsException, PrivilegeException {
 		((PerunBl) sess.getPerun()).getGroupsManagerBl().checkGroupExists(sess, group);
@@ -443,7 +449,10 @@ public class AuthzResolver {
 	 * @param perunPrincipal acting person for whom the role is checked
 	 * @param role role to be checked
 	 */
-	public static boolean hasRole(PerunPrincipal perunPrincipal, Role role) {
+	public static boolean hasRole(PerunPrincipal perunPrincipal, String role) {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
 		return AuthzResolverBlImpl.hasRole(perunPrincipal, role);
 	}
 
@@ -456,7 +465,10 @@ public class AuthzResolver {
 	 * @return true, if the current principal can unset the given role for the given object, false otherwise
 	 * @throws InternalErrorException internal error
 	 */
-	public static boolean isAuthorizedToManageRole(PerunSession sess, PerunBean complementaryObject, Role role) throws InternalErrorException {
+	public static boolean isAuthorizedToManageRole(PerunSession sess, PerunBean complementaryObject, String role) throws InternalErrorException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
 		return hasOneOfTheRolesForObject(sess, complementaryObject, Privileges.getRolesWhichCanManageRole(role));
 	}
 
@@ -464,14 +476,17 @@ public class AuthzResolver {
 	 * Set role for user and <b>all</b> complementary objects.
 	 *
 	 * If some complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary objects.
+	 * For role "PERUNADMIN" ignore complementary objects.
 	 *
 	 * @param sess perun session
 	 * @param user the user for setting role
 	 * @param role role of user in a session
 	 * @param complementaryObjects objects for which role will be set
 	 */
-	public static void setRole(PerunSession sess, User user, Role role, List<PerunBean> complementaryObjects) throws InternalErrorException, PrivilegeException, UserNotExistsException, AlreadyAdminException {
+	public static void setRole(PerunSession sess, User user, String role, List<PerunBean> complementaryObjects) throws InternalErrorException, PrivilegeException, UserNotExistsException, AlreadyAdminException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
 		for (PerunBean complementaryObject : complementaryObjects) {
 			setRole(sess, user, complementaryObject, role);
 		}
@@ -481,15 +496,20 @@ public class AuthzResolver {
 	 * Set role for user and <b>one</b> complementary object.
 	 *
 	 * If complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary object.
+	 * For role "PERUNADMIN" ignore complementary object.
 	 *
 	 * @param sess perun session
 	 * @param user the user for setting role
 	 * @param role role of user in a session
 	 * @param complementaryObject object for which role will be set
 	 */
-	public static void setRole(PerunSession sess, User user, PerunBean complementaryObject, Role role) throws  InternalErrorException, PrivilegeException, UserNotExistsException, AlreadyAdminException {
+	public static void setRole(PerunSession sess, User user, PerunBean complementaryObject, String role) throws InternalErrorException, PrivilegeException, UserNotExistsException, AlreadyAdminException {
 		Utils.notNull(role, "role");
+
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
+
 		((PerunBl) sess.getPerun()).getUsersManagerBl().checkUserExists(sess, user);
 		if(!isAuthorizedToManageRole(sess, complementaryObject, role)) {
 			throw new PrivilegeException("You are not privileged to use this method setRole.");
@@ -502,14 +522,18 @@ public class AuthzResolver {
 	 * Set role for auhtorizedGroup and <b>all</b> complementary objects.
 	 *
 	 * If some complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary objects.
+	 * For role "PERUNADMIN" ignore complementary objects.
 	 *
 	 * @param sess perun session
 	 * @param authorizedGroup the group for setting role
 	 * @param role role of user in a session
 	 * @param complementaryObjects objects for which role will be set
 	 */
-	public static void setRole(PerunSession sess, Group authorizedGroup, Role role, List<PerunBean> complementaryObjects) throws InternalErrorException, PrivilegeException, GroupNotExistsException, AlreadyAdminException {
+	public static void setRole(PerunSession sess, Group authorizedGroup, String role, List<PerunBean> complementaryObjects) throws InternalErrorException, PrivilegeException, GroupNotExistsException, AlreadyAdminException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
+
 		for (PerunBean complementaryObject : complementaryObjects) {
 			setRole(sess, authorizedGroup, complementaryObject, role);
 		}
@@ -519,15 +543,18 @@ public class AuthzResolver {
 	 * Set role for authorizedGroup and <b>one</b> complementary object.
 	 *
 	 * If complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary object.
+	 * For role "PERUNADMIN" ignore complementary object.
 	 *
 	 * @param sess perun session
 	 * @param authorizedGroup the group for setting role
 	 * @param role role of user in a session
 	 * @param complementaryObject object for which role will be set
 	 */
-	public static void setRole(PerunSession sess, Group authorizedGroup, PerunBean complementaryObject, Role role) throws  InternalErrorException, PrivilegeException, GroupNotExistsException, AlreadyAdminException {
+	public static void setRole(PerunSession sess, Group authorizedGroup, PerunBean complementaryObject, String role) throws InternalErrorException, PrivilegeException, GroupNotExistsException, AlreadyAdminException {
 		Utils.notNull(role, "role");
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: " + role + " does not exists.");
+		}
 		((PerunBl) sess.getPerun()).getGroupsManagerBl().checkGroupExists(sess, authorizedGroup);
 
 		if(!isAuthorizedToManageRole(sess, complementaryObject, role)) {
@@ -541,7 +568,7 @@ public class AuthzResolver {
 	 * Set role for authorizedGroups and <b>one</b> complementary object.
 	 *
 	 * If complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary object.
+	 * For role "PERUNADMIN" ignore complementary object.
 	 *
 	 * @param sess perun session
 	 * @param authorizedGroups the groups for setting role
@@ -552,7 +579,11 @@ public class AuthzResolver {
 	 * @throws AlreadyAdminException if any of the given groups is already admin
 	 * @throws InternalErrorException internal error
 	 */
-	public static void setRole(PerunSession sess, List<Group> authorizedGroups, PerunBean complementaryObject, Role role) throws GroupNotExistsException, PrivilegeException, AlreadyAdminException, InternalErrorException {
+	public static void setRole(PerunSession sess, List<Group> authorizedGroups, PerunBean complementaryObject, String role) throws GroupNotExistsException, PrivilegeException, AlreadyAdminException, InternalErrorException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
+
 		for (Group authorizedGroup : authorizedGroups) {
 			setRole(sess, authorizedGroup, complementaryObject, role);
 		}
@@ -562,7 +593,7 @@ public class AuthzResolver {
 	 * Set role for given users and <b>one</b> complementary object.
 	 *
 	 * If complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary object.
+	 * For role "PERUNADMIN" ignore complementary object.
 	 *
 	 * @param sess perun session
 	 * @param users users for which the given role is set
@@ -573,7 +604,11 @@ public class AuthzResolver {
 	 * @throws AlreadyAdminException if any of the given users is already admin
 	 * @throws InternalErrorException internal error
 	 */
-	public static void setRole(PerunSession sess, List<User> users, Role role, PerunBean complementaryObject) throws UserNotExistsException, PrivilegeException, AlreadyAdminException, InternalErrorException {
+	public static void setRole(PerunSession sess, List<User> users, String role, PerunBean complementaryObject) throws UserNotExistsException, PrivilegeException, AlreadyAdminException, InternalErrorException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
+
 		for (User user : users) {
 			setRole(sess, user, complementaryObject, role);
 		}
@@ -583,7 +618,7 @@ public class AuthzResolver {
 	 * Set role for authorizedGroups and <b>one</b> complementary object.
 	 *
 	 * If complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary object.
+	 * For role "PERUNADMIN" ignore complementary object.
 	 *
 	 * @param sess perun session
 	 * @param authorizedGroups the groups for setting role
@@ -594,7 +629,11 @@ public class AuthzResolver {
 	 * @throws GroupNotAdminException if any of the given groups is not admin
 	 * @throws InternalErrorException internal error
 	 */
-	public static void unsetRole(PerunSession sess, List<Group> authorizedGroups, PerunBean complementaryObject, Role role) throws GroupNotExistsException, PrivilegeException, InternalErrorException, GroupNotAdminException {
+	public static void unsetRole(PerunSession sess, List<Group> authorizedGroups, PerunBean complementaryObject, String role) throws GroupNotExistsException, PrivilegeException, InternalErrorException, GroupNotAdminException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
+
 		for (Group authorizedGroup : authorizedGroups) {
 			unsetRole(sess, authorizedGroup, complementaryObject, role);
 		}
@@ -604,7 +643,7 @@ public class AuthzResolver {
 	 * Set role for given users and <b>one</b> complementary object.
 	 *
 	 * If complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary object.
+	 * For role "PERUNADMIN" ignore complementary object.
 	 *
 	 * @param sess perun session
 	 * @param users users for which the given role is set
@@ -615,7 +654,11 @@ public class AuthzResolver {
 	 * @throws UserNotAdminException if any of the given users is not admin
 	 * @throws InternalErrorException internal error
 	 */
-	public static void unsetRole(PerunSession sess, List<User> users, Role role, PerunBean complementaryObject) throws UserNotExistsException, PrivilegeException, InternalErrorException, UserNotAdminException {
+	public static void unsetRole(PerunSession sess, List<User> users, String role, PerunBean complementaryObject) throws UserNotExistsException, PrivilegeException, InternalErrorException, UserNotAdminException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
+
 		for (User user : users) {
 			unsetRole(sess, user, complementaryObject, role);
 		}
@@ -625,14 +668,18 @@ public class AuthzResolver {
 	 * Unset role for user and <b>all</b> complementary objects
 	 *
 	 * If some complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary objects.
+	 * For role "PERUNADMIN" ignore complementary objects.
 	 *
 	 * @param sess perun session
 	 * @param user the user for unsetting role
 	 * @param role role of user in a session
 	 * @param complementaryObjects objects for which role will be unset
 	 */
-	public static void unsetRole(PerunSession sess, User user, Role role, List<PerunBean> complementaryObjects) throws InternalErrorException, PrivilegeException, UserNotExistsException, UserNotAdminException {
+	public static void unsetRole(PerunSession sess, User user, String role, List<PerunBean> complementaryObjects) throws InternalErrorException, PrivilegeException, UserNotExistsException, UserNotAdminException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
+
 		for (PerunBean complementaryObject : complementaryObjects) {
 			unsetRole(sess, user, complementaryObject, role);
 		}
@@ -642,15 +689,18 @@ public class AuthzResolver {
 	 * Unset role for user and <b>one</b> complementary object.
 	 *
 	 * If complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary object.
+	 * For role "PERUNADMIN" ignore complementary object.
 	 *
 	 * @param sess perun session
 	 * @param user the user for unsetting role
 	 * @param role role of user in a session
 	 * @param complementaryObject object for which role will be unset
 	 */
-	public static void unsetRole(PerunSession sess, User user, PerunBean complementaryObject, Role role) throws  InternalErrorException, PrivilegeException, UserNotExistsException, UserNotAdminException {
+	public static void unsetRole(PerunSession sess, User user, PerunBean complementaryObject, String role) throws InternalErrorException, PrivilegeException, UserNotExistsException, UserNotAdminException {
 		Utils.notNull(role, "role");
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
 		((PerunBl) sess.getPerun()).getUsersManagerBl().checkUserExists(sess, user);
 
 		if (!isAuthorizedToManageRole(sess, complementaryObject, role)) {
@@ -663,14 +713,18 @@ public class AuthzResolver {
 	 * Unset role for group and <b>all</b> complementary objects
 	 *
 	 * If some complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary objects.
+	 * For role "PERUNADMIN" ignore complementary objects.
 	 *
 	 * @param sess perun session
 	 * @param authorizedGroup the group for unsetting role
 	 * @param role role of user in a session
 	 * @param complementaryObjects objects for which role will be unset
 	 */
-	public static void unsetRole(PerunSession sess, Group authorizedGroup, Role role, List<PerunBean> complementaryObjects) throws InternalErrorException, PrivilegeException, GroupNotExistsException, GroupNotAdminException {
+	public static void unsetRole(PerunSession sess, Group authorizedGroup, String role, List<PerunBean> complementaryObjects) throws InternalErrorException, PrivilegeException, GroupNotExistsException, GroupNotAdminException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
+
 		for (PerunBean complementaryObject : complementaryObjects) {
 			unsetRole(sess, authorizedGroup, complementaryObject, role);
 		}
@@ -680,15 +734,18 @@ public class AuthzResolver {
 	 * Unset role for group and <b>one</b> complementary object
 	 *
 	 * If some complementary object is wrong for the role, throw an exception.
-	 * For role "perunadmin" ignore complementary object.
+	 * For role "PERUNADMIN" ignore complementary object.
 	 *
 	 * @param sess perun session
 	 * @param authorizedGroup the group for unsetting role
 	 * @param role role of user in a session
 	 * @param complementaryObject object for which role will be unset
 	 */
-	public static void unsetRole(PerunSession sess, Group authorizedGroup, PerunBean complementaryObject, Role role) throws  InternalErrorException, PrivilegeException, GroupNotExistsException, GroupNotAdminException {
+	public static void unsetRole(PerunSession sess, Group authorizedGroup, PerunBean complementaryObject, String role) throws InternalErrorException, PrivilegeException, GroupNotExistsException, GroupNotAdminException {
 		Utils.notNull(role, "role");
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
 		((PerunBl) sess.getPerun()).getGroupsManagerBl().checkGroupExists(sess, authorizedGroup);
 
 		if (!isAuthorizedToManageRole(sess, complementaryObject, role)) {
@@ -713,11 +770,15 @@ public class AuthzResolver {
 	 *
 	 * @return list of richUser administrators for complementary object and role with specified attributes.
 	 */
-	public static List<RichUser> getRichAdmins(PerunSession sess, int complementaryObjectId, String complementaryObjectName, List<String> specificAttributes, Role role, boolean onlyDirectAdmins, boolean allUserAttributes) throws  InternalErrorException, PrivilegeException, GroupNotExistsException, VoNotExistsException, FacilityNotExistsException, RoleNotSupportedException, PerunBeanNotSupportedException, UserNotExistsException {
+	public static List<RichUser> getRichAdmins(PerunSession sess, int complementaryObjectId, String complementaryObjectName, List<String> specificAttributes, String role, boolean onlyDirectAdmins, boolean allUserAttributes) throws  InternalErrorException, PrivilegeException, GroupNotExistsException, VoNotExistsException, FacilityNotExistsException, RoleNotSupportedException, PerunBeanNotSupportedException, UserNotExistsException {
 		Utils.checkPerunSession(sess);
 		Utils.notNull(role, "role");
 		Utils.notNull(complementaryObjectName, "complementaryObjectName");
 		if(!allUserAttributes) Utils.notNull(specificAttributes, "specificAttributes");
+
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
 
 		List<RichUser> richUsers;
 		//Try to get complementary Object
@@ -751,14 +812,18 @@ public class AuthzResolver {
 	 * @param sess perun session
 	 * @param complementaryObjectId id of object for which we will get richUser administrators
 	 * @param complementaryObjectName name of object for which we will get richUser administrators
-	 * @param role expected role to filter authorizedGroups by (perunadmin | voadmin | groupadmin | self | facilityadmin | voobserver | topgroupcreator)
+	 * @param role expected role to filter authorizedGroups by (PERUNADMIN | VOADMIN | GROUPADMIN | SELF | FACILITYADMIN | VOOBSERVER | TOPGROUPCREATOR)
 	 *
 	 * @return list of authorizedGroups for complementary object and role
 	 */
-	public static List<Group> getAdminGroups(PerunSession sess, int complementaryObjectId, String complementaryObjectName, Role role) throws InternalErrorException, PrivilegeException, GroupNotExistsException, VoNotExistsException, FacilityNotExistsException, RoleNotSupportedException, PerunBeanNotSupportedException {
+	public static List<Group> getAdminGroups(PerunSession sess, int complementaryObjectId, String complementaryObjectName, String role) throws InternalErrorException, PrivilegeException, GroupNotExistsException, VoNotExistsException, FacilityNotExistsException, RoleNotSupportedException, PerunBeanNotSupportedException {
 		Utils.checkPerunSession(sess);
 		Utils.notNull(role, "role");
 		Utils.notNull(complementaryObjectName, "complementaryObjectName");
+
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
 
 		List<Group> authorizedGroups;
 		//Try to get complementary Object
@@ -806,7 +871,10 @@ public class AuthzResolver {
 	 * @param role to get object for
 	 * @return list of complementary objects
 	 */
-	public static List<PerunBean> getComplementaryObjectsForRole(PerunSession sess, Role role) throws InternalErrorException {
+	public static List<PerunBean> getComplementaryObjectsForRole(PerunSession sess, String role) throws InternalErrorException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
 		return AuthzResolverBlImpl.getComplementaryObjectsForRole(sess, role);
 	}
 
@@ -818,7 +886,10 @@ public class AuthzResolver {
 	 * @param perunBeanClass particular class ( Vo | Group | ... )
 	 * @return list of complementary objects
 	 */
-	public static List<PerunBean> getComplementaryObjectsForRole(PerunSession sess, Role role, Class perunBeanClass) throws InternalErrorException {
+	public static List<PerunBean> getComplementaryObjectsForRole(PerunSession sess, String role, Class perunBeanClass) throws InternalErrorException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
 		return AuthzResolverBlImpl.getComplementaryObjectsForRole(sess, role, perunBeanClass);
 	}
 
@@ -840,15 +911,29 @@ public class AuthzResolver {
 	 * @return true, if the principal is authorized, false otherwise
 	 * @throws InternalErrorException internal error
 	 */
-	public static boolean hasOneOfTheRolesForObject(PerunSession sess, PerunBean complementaryObject, Set<Role> allowedRoles) throws InternalErrorException {
+	public static boolean hasOneOfTheRolesForObject(PerunSession sess, PerunBean complementaryObject, Set<String> allowedRoles) throws InternalErrorException {
 		if (allowedRoles == null) {
 			throw new InternalErrorException("Unsupported role.");
 		}
-		for (Role allowedRole : allowedRoles) {
+		for (String allowedRole : allowedRoles) {
+			if (!roleExists(allowedRole)) {
+				throw new InternalErrorException("Role: "+ allowedRole +" does not exists.");
+			}
 			if (isAuthorized(sess, allowedRole, complementaryObject)) {
 				return true;
 			}
 		}
 		return false;
+	}
+
+	/**
+	 * Check if the given role exists in the database.
+	 * Check is case insensitive.
+	 *
+	 * @param role which will be checked
+	 * @return true if role exists, false otherwise.
+	 */
+	public static boolean roleExists(String role) {
+		return AuthzResolverBlImpl.roleExists(role);
 	}
 }
