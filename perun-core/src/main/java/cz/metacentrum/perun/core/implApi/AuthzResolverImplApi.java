@@ -511,11 +511,4 @@ public interface AuthzResolverImplApi {
 	 */
 	boolean roleExists(String role);
 
-	/**
-	 * Get perun policy by the policy name.
-	 *
-	 * @param policyName
-	 * @return policy as JsonNode
-	 */
-	JsonNode getPerunPolicy(String policyName);
 }

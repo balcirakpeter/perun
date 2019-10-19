@@ -936,4 +936,18 @@ public class AuthzResolver {
 	public static boolean roleExists(String role) {
 		return AuthzResolverBlImpl.roleExists(role);
 	}
+
+	/**
+	 * Checks if the principal is authorized.
+	 *
+	 * @param sess perun session
+	 * @param politicDefinition from configuration file
+	 * @param objects object names with ids
+	 *
+	 * @return true if the principal authorized, false otherwise
+	 * @throws InternalErrorException if something goes wrong
+	 */
+	public static boolean authorized(PerunSession sess, String politicDefinition, PerunBean... objects) throws InternalErrorException {
+		return AuthzResolverBlImpl.authorized(sess, politicDefinition, objects);
+	}
 }

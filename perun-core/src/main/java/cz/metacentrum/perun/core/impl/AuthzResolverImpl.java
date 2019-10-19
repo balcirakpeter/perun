@@ -44,7 +44,7 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 	final static Logger log = LoggerFactory.getLogger(FacilitiesManagerImpl.class);
 
 	private PerunRolesLoader perunRolesLoader;
-	private Map<String, JsonNode> perunPolicies;
+	private static Map<String, JsonNode> perunPolicies;
 
 	//http://static.springsource.org/spring/docs/3.0.x/spring-framework-reference/html/jdbc.html
 	private static JdbcPerunTemplate jdbc;
@@ -750,8 +750,13 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 		return this.perunRolesLoader;
 	}
 
-	@Override
-	public JsonNode getPerunPolicy(String policyName) {
+	/**
+	 * Get perun policy by the policy name.
+	 *
+	 * @param policyName
+	 * @return policy as JsonNode
+	 */
+	public static JsonNode getPerunPolicy(String policyName) {
 		return perunPolicies.get(policyName);
 	}
 }
