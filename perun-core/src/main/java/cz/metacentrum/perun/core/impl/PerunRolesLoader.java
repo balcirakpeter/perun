@@ -15,7 +15,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
 
 public class PerunRolesLoader {
 
@@ -23,19 +27,28 @@ public class PerunRolesLoader {
 
 	private Resource configurationPath;
 
-	public void loadPerunRoles(JdbcPerunTemplate jdbc) {
+	public Map<String, JsonNode> loadPerunRoles(JdbcPerunTemplate jdbc) {
 		if (BeansUtils.isPerunReadOnly()) log.debug("Loading authzresolver manager init in readOnly version.");
 
-		List<String> roles;
+		Map<String, JsonNode> policies = new HashMap<>();
 		ObjectMapper mapper = new ObjectMapper(new YAMLFactory());
 
+		JsonNode rootNode;
 		try (InputStream is = configurationPath.getInputStream()) {
-			JsonNode rolesNode = mapper.readTree(is).get("perun_roles");
-			roles = new ObjectMapper().convertValue(rolesNode, new TypeReference<List<String>>() {});
+			rootNode = mapper.readTree(is);
 		} catch (FileNotFoundException e) {
 			throw new InternalErrorException("Configuration file not found for perun roles. It should be in: " + configurationPath, e);
 		} catch (IOException e) {
 			throw new InternalErrorException("IO exception was thrown during the processing of the file: " + configurationPath, e);
+		}
+		JsonNode rolesNode =rootNode.get("perun_roles");
+		List<String> roles = new ObjectMapper().convertValue(rolesNode, new TypeReference<List<String>>() {});
+
+		JsonNode policiesNode = rootNode.get("perun_policies");
+		Iterator<String> policyNames = policiesNode.fieldNames();
+		while(policyNames.hasNext()) {
+			String policyname = policyNames.next();
+			policies.put(policyname, policiesNode.get(policyname));
 		}
 
 		// Check if all roles defined in class Role exists in the DB
@@ -54,6 +67,8 @@ public class PerunRolesLoader {
 				throw new InternalErrorException(e);
 			}
 		}
+
+		return policies;
 	}
 
 	public void setConfigurationPath(Resource configurationPath) {

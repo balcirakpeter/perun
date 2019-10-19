@@ -1,5 +1,6 @@
 package cz.metacentrum.perun.core.implApi;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import cz.metacentrum.perun.core.api.Facility;
 import cz.metacentrum.perun.core.api.Group;
 import cz.metacentrum.perun.core.api.PerunSession;
@@ -509,4 +510,12 @@ public interface AuthzResolverImplApi {
 	 * @return true if role exists, false otherwise.
 	 */
 	boolean roleExists(String role);
+
+	/**
+	 * Get perun policy by the policy name.
+	 *
+	 * @param policyName
+	 * @return policy as JsonNode
+	 */
+	JsonNode getPerunPolicy(String policyName);
 }
