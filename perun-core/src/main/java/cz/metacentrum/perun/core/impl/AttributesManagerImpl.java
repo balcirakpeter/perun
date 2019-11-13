@@ -76,6 +76,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.lob.LobHandler;
 
 import javax.sql.DataSource;
+import javax.swing.*;
 import java.io.IOException;
 import java.io.Reader;
 import java.lang.reflect.InvocationTargetException;
@@ -214,7 +215,8 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 	private final static String attributeRightSelectQuery =
 			"attributes_authz.attr_id as attr_name_id," +
 					"roles.name as role_name," +
-					"action_types.action_type as action_type";
+					"action_types.action_type as action_type," +
+					"action_types.object as object";
 
 	static String getAttributeMappingSelectQuery(String nameOfValueTable) {
 		return attributeDefinitionMappingSelectQuery + ", attr_value, attr_value_text" +
@@ -4533,10 +4535,13 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 
 	private boolean actionTypeExists(ActionType actionType) throws InternalErrorException {
 		Utils.notNull(actionType, "actionType");
-		Utils.notNull(actionType.getActionType(), "actionType.actionType");
 
 		try {
-			return 1 == jdbc.queryForInt("select count('x') from action_types where action_type=?", actionType.getActionType());
+			if (actionType.getActionTypeObject() == null) {
+				return 1 == jdbc.queryForInt("select count('x') from action_types where action_type_=? and object is null", actionType.getActionTypeName().toLowerCase());
+			} else {
+				return 1 == jdbc.queryForInt("select count('x') from action_types where action_type_=? and object=?", actionType.getActionTypeName().toLowerCase(), actionType.getActionTypeObject());
+			}
 		} catch (RuntimeException e) {
 			throw new InternalErrorException(e);
 		}
@@ -5475,7 +5480,7 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 			while (rs.next()) {
 
 				String role = rs.getString("role_name").toUpperCase();
-				ActionType actionType = ActionType.valueOf(rs.getString("action_type").toUpperCase());
+				ActionType actionType = new ActionType(rs.getString("action_type").toUpperCase(), rs.getString("object"));
 
 				if (map.get(role) != null) {
 					map.get(role).add(actionType);
@@ -5543,28 +5548,44 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 	public void setAttributeRight(PerunSession sess, AttributeRights rights) throws InternalErrorException {
 		try {
 			// get action types of the attribute and role from the database
-			List<ActionType> dbActionTypes = jdbc.query("SELECT action_types.action_type AS action_type FROM attributes_authz JOIN action_types "
+			List<ActionType> dbActionTypes = jdbc.query("SELECT action_types.action_type AS action_type, action_types.object AS object FROM attributes_authz JOIN action_types "
 							+ "ON attributes_authz.action_type_id=action_types.id WHERE attr_id=? AND "
 							+ "role_id=(SELECT id FROM roles WHERE name=?)",
-					(rs, rowNum) -> ActionType.valueOf(rs.getString("action_type").toUpperCase()), rights.getAttributeId(), rights.getRole().toLowerCase());
+					(rs, rowNum) -> new ActionType(rs.getString("action_type").toUpperCase(), rs.getString("object")), rights.getAttributeId(), rights.getRole().toLowerCase());
 
 			// inserting
 			List<ActionType> actionTypesToInsert = new ArrayList<>(rights.getRights());
 			actionTypesToInsert.removeAll(dbActionTypes);
 			for (ActionType actionType : actionTypesToInsert) {
-				jdbc.update("INSERT INTO attributes_authz (attr_id, role_id, action_type_id) VALUES "
-								+ "(?, (SELECT id FROM roles WHERE name=?), (SELECT id FROM action_types WHERE action_type=?))",
-						rights.getAttributeId(), rights.getRole().toLowerCase(), actionType.getActionType());
+				if (actionType.getActionTypeObject() == null) {
+					jdbc.update("INSERT INTO attributes_authz (attr_id, role_id, action_type_id) VALUES "
+							+ "(?, (SELECT id FROM roles WHERE name=?), (SELECT id FROM action_types WHERE action_type=? and object is null))",
+						rights.getAttributeId(), rights.getRole().toLowerCase(), actionType.getActionTypeName().toLowerCase());
+				} else {
+					jdbc.update("INSERT INTO attributes_authz (attr_id, role_id, action_type_id) VALUES "
+							+ "(?, (SELECT id FROM roles WHERE name=?), (SELECT id FROM action_types WHERE action_type=? and object=?))",
+						rights.getAttributeId(), rights.getRole().toLowerCase(), actionType.getActionTypeName().toLowerCase(), actionType.getActionTypeObject());
+				}
 			}
 			// deleting
 			List<ActionType> actionTypesToDelete = new ArrayList<>(dbActionTypes);
 			actionTypesToDelete.removeAll(rights.getRights());
 			for (ActionType actionType : actionTypesToDelete) {
-				if (0 == jdbc.update("DELETE FROM attributes_authz WHERE attr_id=? AND role_id=(SELECT id FROM roles WHERE name=?) AND "
-								+ "action_type_id=(SELECT id FROM action_types WHERE action_type=?)", rights.getAttributeId(),
-						rights.getRole().toLowerCase(), actionType.getActionType())) {
+				int updated = 0;
+				if (actionType.getActionTypeObject() == null) {
+					updated = jdbc.update("DELETE FROM attributes_authz WHERE attr_id=? AND role_id=(SELECT id FROM roles WHERE name=?) AND "
+							+ "action_type_id=(SELECT id FROM action_types WHERE action_type=? and object is null)", rights.getAttributeId(),
+						rights.getRole().toLowerCase(), actionType.getActionTypeName().toLowerCase());
+				} else {
+					updated = jdbc.update("DELETE FROM attributes_authz WHERE attr_id=? AND role_id=(SELECT id FROM roles WHERE name=?) AND "
+							+ "action_type_id=(SELECT id FROM action_types WHERE action_type=? and object=?)", rights.getAttributeId(),
+						rights.getRole().toLowerCase(), actionType.getActionTypeName().toLowerCase(), actionType.getActionTypeObject());
+				}
+
+				if (updated == 0) {
 					throw new ConsistencyErrorException("Trying to delete non existing row : AttributeRight={ attributeId="
-							+ rights.getAttributeId() + " role=" + rights.getRole().toLowerCase() + " actionType=" + actionType.getActionType());
+							+ rights.getAttributeId() + " role=" + rights.getRole().toLowerCase() + " actionTypeName=" + actionType.getActionTypeName().toLowerCase()
+							+ " actionTypeObject=" + actionType.getActionTypeObject());
 				}
 			}
 		} catch (RuntimeException e) {

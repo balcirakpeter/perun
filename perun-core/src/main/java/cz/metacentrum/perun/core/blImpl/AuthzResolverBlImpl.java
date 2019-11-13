@@ -214,7 +214,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
-	private static Boolean doBeforeAttributeRightsCheck(PerunSession sess, ActionType actionType, AttributeDefinition attrDef) throws InternalErrorException, AttributeNotExistsException {
+	private static Boolean doBeforeAttributeRightsCheck(PerunSession sess, String actionType, AttributeDefinition attrDef) throws InternalErrorException, AttributeNotExistsException {
 		Utils.notNull(sess, "sess");
 		Utils.notNull(actionType, "ActionType");
 		Utils.notNull(attrDef, "AttributeDefinition");
@@ -271,7 +271,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return allowedAttributes;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Member member, Resource resource) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Member member, Resource resource) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, resource, member);
@@ -283,7 +283,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, resource, member);
@@ -325,7 +325,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Group group, Resource resource) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Group group, Resource resource) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, group, resource);
 
@@ -336,7 +336,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, group, resource);
@@ -359,7 +359,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, User user, Facility facility) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, User user, Facility facility) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, user, facility);
 
@@ -370,7 +370,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, user, facility);
@@ -435,7 +435,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	}
 
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Member member, Group group) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Member member, Group group) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, member, group);
 
@@ -446,7 +446,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, member, group);
@@ -480,7 +480,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, User user) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, User user) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, user, null);
 
@@ -491,7 +491,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, user);
@@ -541,7 +541,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Member member) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Member member) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, member, null);
 
@@ -552,7 +552,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, member);
@@ -588,7 +588,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Vo vo) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Vo vo) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, vo, null);
 
@@ -599,7 +599,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, vo);
@@ -649,7 +649,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Group group) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Group group) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, group, null);
 
@@ -660,7 +660,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, group);
@@ -704,7 +704,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Resource resource) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Resource resource) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, resource, null);
 
@@ -715,7 +715,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, resource);
@@ -743,7 +743,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Facility facility) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Facility facility) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, facility, null);
 
@@ -754,7 +754,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, facility);
@@ -803,7 +803,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Host host) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Host host) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, host, null);
 
@@ -814,7 +814,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, host);
@@ -830,7 +830,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, UserExtSource ues) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, UserExtSource ues) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, ues, null);
 
@@ -841,7 +841,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		//This method get all possible roles which can do action on attribute
-		Map<String, Set<ActionType>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		Map<String, Set<String>> roles = AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 
 		//Test if handlers are correct for attribute namespace
 		getPerunBl().getAttributesManagerBl().checkAttributeAssignment(sess, attrDef, ues);
@@ -877,7 +877,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, String key) throws InternalErrorException, AttributeNotExistsException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, String key) throws InternalErrorException, AttributeNotExistsException {
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, key, null);
 
@@ -899,10 +899,10 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	 * @param attrDef    attribute what principal want to work with
 	 * @return map of roles with allowed action types
 	 */
-	public static Map<String, Set<ActionType>> getRolesWhichCanWorkWithAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef) throws InternalErrorException, AttributeNotExistsException, ActionTypeNotExistsException {
+	public static Map<String, Set<String>> getRolesWhichCanWorkWithAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef) throws InternalErrorException, AttributeNotExistsException, ActionTypeNotExistsException {
 		getPerunBl().getAttributesManagerBl().checkAttributeExists(sess, attrDef);
-		getPerunBl().getAttributesManagerBl().checkActionTypeExists(sess, actionType);
-		return AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
+		getPerunBl().getAttributesManagerBl().checkActionTypeExists(sess, new ActionType(actionType, null));
+		return cz.metacentrum.perun.core.impl.AuthzResolverImpl.getRolesWhichCanWorkWithAttribute(actionType, attrDef);
 	}
 
 	/**

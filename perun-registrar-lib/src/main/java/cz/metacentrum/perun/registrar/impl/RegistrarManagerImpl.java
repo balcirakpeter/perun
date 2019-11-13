@@ -229,7 +229,7 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -245,7 +245,7 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -261,8 +261,8 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
-			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
+			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -278,8 +278,8 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
-			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
+			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -295,7 +295,7 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -311,8 +311,8 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
-			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
+			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -328,7 +328,7 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -344,8 +344,8 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
-			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
+			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -361,7 +361,7 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -377,8 +377,8 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
-			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
+			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -394,7 +394,7 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -410,8 +410,8 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
-			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
+			rights.add(new AttributeRights(attrDef.getId(), Role.GROUPADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 		try {
@@ -427,7 +427,7 @@ public class RegistrarManagerImpl implements RegistrarManager {
 			attrDef = attrManager.createAttribute(registrarSession, attrDef);
 			// set attribute rights
 			List<AttributeRights> rights = new ArrayList<>();
-			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(ActionType.READ, ActionType.WRITE)));
+			rights.add(new AttributeRights(attrDef.getId(), Role.VOADMIN, Arrays.asList(new ActionType(ActionType.READ, null), new ActionType(ActionType.WRITE, null))));
 			perun.getAttributesManager().setAttributeRights(registrarSession, rights);
 		}
 	}
