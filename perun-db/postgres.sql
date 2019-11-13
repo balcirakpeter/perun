@@ -327,9 +327,9 @@ create table action_types (
 	id integer not null,
 	action_type varchar(20) not null,  --type of action (read/write...)
 	description varchar(1024),         --description
+	object varchar(20),                --object to which is action_type associated
 	constraint actiontyp_pk primary key (id),
-  constraint actiontyp_u unique (action_type),
-  constraint actiontyp_at_chk check (action_type in ('read', 'read_vo', 'read_public', 'write', 'write_vo', 'write_public'))
+  constraint actiontyp_u unique (action_type,object)
 );
 
 -- MEMBERSHIP_TYPES - possible types of membership in group
@@ -1878,14 +1878,6 @@ insert into configurations values ('DATABASE VERSION','3.1.55');
 -- insert membership types
 insert into membership_types (id, membership_type, description) values (1, 'DIRECT', 'Member is directly added into group');
 insert into membership_types (id, membership_type, description) values (2, 'INDIRECT', 'Member is added indirectly through UNION relation');
-
--- insert action types
-insert into action_types (id, action_type, description) values (nextval('action_types_seq'), 'read', 'Can read value.');
-insert into action_types (id, action_type, description) values (nextval('action_types_seq'), 'read_vo', 'Vo related can read value.');
-insert into action_types (id, action_type, description) values (nextval('action_types_seq'), 'read_public', 'Anyone can read value.');
-insert into action_types (id, action_type, description) values (nextval('action_types_seq'), 'write', 'Can write, rewrite and remove value.');
-insert into action_types (id, action_type, description) values (nextval('action_types_seq'), 'write_vo', 'Vo related can write, rewrite and remove value.');
-insert into action_types (id, action_type, description) values (nextval('action_types_seq'), 'write_public', 'Anyone can write, rewrite and remove value.');
 
 -- insert default engine on default port
 insert into engines (id, ip_address, port, last_check_in, created_at, created_by, modified_at, modified_by, status, created_by_uid, modified_by_uid) VALUES (1, '127.0.0.1', 6061, statement_timestamp(), statement_timestamp(), 'perun', statement_timestamp(), 'perun', '1', null, null);

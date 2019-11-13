@@ -33,7 +33,7 @@ public class AttributeRights {
 		this.attributeId = attributeId;
 		this.role = role != null ? role.toUpperCase() : null;
 		if (rights == null) {
-			this.rights = new ArrayList<ActionType>();
+			this.rights = new ArrayList<>();
 		} else {
 			this.rights = rights;
 		}

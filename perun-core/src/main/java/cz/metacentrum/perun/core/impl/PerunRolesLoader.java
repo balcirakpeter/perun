@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import cz.metacentrum.perun.core.api.BeansUtils;
 import cz.metacentrum.perun.core.api.PerunPolicy;
+import cz.metacentrum.perun.core.api.Pair;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,6 +98,36 @@ public class PerunRolesLoader {
 		}
 
 		return policies;
+	}
+
+	public void loadActionTypes(JdbcPerunTemplate jdbc) {
+		JsonNode rootNode = loadConfigurationFile();
+		JsonNode actionTypesNode = rootNode.get("perun_action_types");
+		List<JsonNode> allActionTypes = new ArrayList<>(new ObjectMapper().convertValue(actionTypesNode, new TypeReference<List<JsonNode>>() {}));
+
+		for (JsonNode actionTypeNode : allActionTypes) {
+			String actionTypeName = actionTypeNode.get("name").isNull() ? null : actionTypeNode.get("name").textValue().toLowerCase();
+			String actionTypeObject = actionTypeNode.get("object").isNull() ? null : actionTypeNode.get("object").textValue();
+			String actionTypeDescription = actionTypeNode.get("description").isNull() ? null : actionTypeNode.get("description").textValue();
+			boolean isMissing = false;
+			try {
+				if (actionTypeObject == null)
+					isMissing = (0 == jdbc.queryForInt("select count(*) from action_types where action_type=? and object is null", actionTypeName));
+				else
+					isMissing = (0 == jdbc.queryForInt("select count(*) from action_types where action_type=? and object=?", actionTypeName, actionTypeObject));
+				if (isMissing) {
+					//Skip creating not existing actionTypes for read only Perun
+					if (BeansUtils.isPerunReadOnly()) {
+						throw new InternalErrorException("One of default actionType not exists in DB - " + actionTypeName + ": " + actionTypeObject);
+					} else {
+						int newId = Utils.getNewId(jdbc, "action_types_seq");
+						jdbc.update("insert into action_types (id, action_type, description, object) values (?,?,?,?)", newId, actionTypeName, actionTypeDescription, actionTypeObject);
+					}
+				}
+			} catch (RuntimeException e) {
+				throw new InternalErrorException(e);
+			}
+		}
 	}
 
 	private JsonNode loadConfigurationFile() {

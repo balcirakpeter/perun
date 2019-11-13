@@ -21,6 +21,27 @@ perun_roles:
   - CABINETADMIN
   - UNKNOWN
 
+# A list of action types that are loaded to the database.
+perun_action_types:
+  - name: READ
+    object:
+    description: Can read value.
+  - name: READ_VO
+    object:
+    description: Vo related can read value.
+  - name: READ_PUBLIC
+    object:
+    description: Anyone can read value.
+  - name: WRITE
+    object:
+    description: Can write, rewrite and remove value.
+  - name: WRITE_VO
+    object:
+    description: Vo related can write, rewrite and remove value.
+  - name: WRITE_PUBLIC
+    object:
+    description: Anyone can write, rewrite and remove value.
+
 #A list of Perun policies that are loaded to the PerunPoliciesContainer.
 perun_policies:
 

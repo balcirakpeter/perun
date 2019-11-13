@@ -294,7 +294,7 @@ public class CabinetManagerBlImpl implements CabinetManagerBl {
 				attrDef = perun.getAttributesManager().createAttribute(cabinetSession, attributeDefinition);
 				// set attribute rights
 				List<AttributeRights> rights = new ArrayList<AttributeRights>();
-				rights.add(new AttributeRights(attrDef.getId(), Role.SELF, Arrays.asList(ActionType.READ)));
+				rights.add(new AttributeRights(attrDef.getId(), Role.SELF, Arrays.asList(new ActionType(ActionType.READ, null))));
 				perun.getAttributesManager().setAttributeRights(cabinetSession, rights);
 			} catch (PerunException pe) {
 				log.error("Failed to create attribute "+ ATTR_COEF_NAMESPACE+":"+ATTR_COEF_FRIENDLY_NAME +" in Perun.");
@@ -319,7 +319,7 @@ public class CabinetManagerBlImpl implements CabinetManagerBl {
 				attrDef2 = perun.getAttributesManager().createAttribute(cabinetSession, attributeDefinition);
 				// set attribute rights
 				List<AttributeRights> rights = new ArrayList<AttributeRights>();
-				rights.add(new AttributeRights(attrDef2.getId(), Role.SELF, Arrays.asList(ActionType.READ)));
+				rights.add(new AttributeRights(attrDef2.getId(), Role.SELF, Arrays.asList(new ActionType(ActionType.READ, null))));
 				perun.getAttributesManager().setAttributeRights(cabinetSession, rights);
 			} catch (PerunException pe) {
 				log.error("Failed to create attribute "+ ATTR_PUBS_NAMESPACE+":"+ATTR_PUBS_FRIENDLY_NAME +" in Perun.");

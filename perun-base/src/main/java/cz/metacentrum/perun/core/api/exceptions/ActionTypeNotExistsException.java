@@ -1,7 +1,5 @@
 package cz.metacentrum.perun.core.api.exceptions;
 
-import cz.metacentrum.perun.core.api.ActionType;
-
 /**
  * @author Michal Šťava <stavamichal@gmail.com>
  *
@@ -10,7 +8,7 @@ import cz.metacentrum.perun.core.api.ActionType;
 public class ActionTypeNotExistsException extends EntityNotExistsException {
 	static final long serialVersionUID = 0;
 
-	private ActionType actionType;
+	private String actionType;
 
 	/**
 	 * Simple constructor with a message
@@ -41,8 +39,8 @@ public class ActionTypeNotExistsException extends EntityNotExistsException {
 	 * Constructor with an ActionType
 	 * @param actionType ActionType that doesn't exist
 	 */
-	public ActionTypeNotExistsException(ActionType actionType) {
-		super(actionType.toString());
+	public ActionTypeNotExistsException(String message, String actionType) {
+		super(message);
 		this.actionType = actionType;
 	}
 
@@ -50,7 +48,7 @@ public class ActionTypeNotExistsException extends EntityNotExistsException {
 	 * Getter for ActionType
 	 * @return ActionType which doesn't exist
 	 */
-	public ActionType getActionType() {
+	public String getActionType() {
 		return this.actionType;
 	}
 }

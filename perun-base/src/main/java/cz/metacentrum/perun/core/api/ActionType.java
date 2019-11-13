@@ -1,21 +1,78 @@
 package cz.metacentrum.perun.core.api;
 
-public enum ActionType {
+import java.util.Objects;
 
-	WRITE ("write"),
-	WRITE_VO ("write_vo"),
-	WRITE_PUBLIC ("write_public"),
-	READ ("read"),
-	READ_VO ("read_vo"),
-	READ_PUBLIC ("read_public");
+public class ActionType {
 
-	private final String actionType;
+	public static final String WRITE = "WRITE";
+	public static final String WRITE_VO = "WRITE_VO";
+	public static final String WRITE_PUBLIC = "WRITE_PUBLIC";
+	public static final String READ = "READ";
+	public static final String READ_VO = "READ_VO";
+	public static final String READ_PUBLIC = "READ_PUBLIC";
 
-	ActionType(String actionType) {
-		this.actionType = actionType;
+	private String actionTypeName;
+	private String actionTypeObject;
+	private String actionTypeDescription;
+
+	public ActionType() {}
+
+	public ActionType(String actionTypeName, String actionTypeObject, String actionTypeDescription) {
+		this.actionTypeName = actionTypeName;
+		this.actionTypeObject = actionTypeObject;
+		this.actionTypeDescription = actionTypeDescription;
 	}
 
-	public String getActionType() {
-		return actionType;
+	public ActionType(String actionTypeName, String actionTypeObject) {
+		this.actionTypeName = actionTypeName;
+		this.actionTypeObject = actionTypeObject;
 	}
+
+	public String getActionTypeName() {
+		return actionTypeName;
+	}
+
+	public void setActionTypeName(String actionTypeName) {
+		this.actionTypeName = actionTypeName;
+	}
+
+	public String getActionTypeObject() {
+		return actionTypeObject;
+	}
+
+	public void setActionTypeObject(String actionTypeObject) {
+		this.actionTypeObject = actionTypeObject;
+	}
+
+	public String getActionTypeDescription() {
+		return actionTypeDescription;
+	}
+
+	public void setActionTypeDescription(String actionTypeDescription) {
+		this.actionTypeDescription = actionTypeDescription;
+	}
+
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (!(o instanceof ActionType)) return false;
+		ActionType that = (ActionType) o;
+		return Objects.equals(actionTypeName, that.actionTypeName) &&
+			Objects.equals(actionTypeObject, that.actionTypeObject);
+	}
+
+	@Override
+	public int hashCode() {
+		return Objects.hash(actionTypeName, actionTypeObject);
+	}
+
+	@Override
+	public String toString() {
+		return "ActionType{" +
+			"actionTypeName='" + actionTypeName + '\'' +
+			", actionTypeObject='" + actionTypeObject + '\'' +
+			", actionTypeDescription='" + actionTypeDescription + '\'' +
+			'}';
+	}
+
 }

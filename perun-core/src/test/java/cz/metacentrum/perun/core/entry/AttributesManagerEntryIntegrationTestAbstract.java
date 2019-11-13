@@ -9622,8 +9622,8 @@ public class AttributesManagerEntryIntegrationTestAbstract extends AbstractPerun
 
 		// setting rights
 		List<ActionType> listOfActions = new ArrayList<>();
-		listOfActions.add(ActionType.WRITE);
-		listOfActions.add(ActionType.READ);
+		listOfActions.add(new ActionType(ActionType.WRITE, null));
+		listOfActions.add(new ActionType(ActionType.READ, null));
 		List<AttributeRights> rights = new ArrayList<>();
 		rights.add(new AttributeRights(1, Role.VOADMIN, listOfActions));
 		rights.add(new AttributeRights(1, Role.SELF, new ArrayList<>()));
@@ -9635,8 +9635,8 @@ public class AttributesManagerEntryIntegrationTestAbstract extends AbstractPerun
 		assertTrue("list of rights should have 4 items for each role", rights.size() == 4);
 		for (AttributeRights attributeRights : rights) {
 			if (attributeRights.getRole().equals(Role.VOADMIN)) {
-				assertTrue("our attribute 1 should have right READ for VOADMIN", attributeRights.getRights().contains(ActionType.READ));
-				assertTrue("our attribute 1 should have right WRITE for VOADMIN", attributeRights.getRights().contains(ActionType.WRITE));
+				assertTrue("our attribute 1 should have right READ for VOADMIN", attributeRights.getRights().contains(new ActionType(ActionType.READ, null)));
+				assertTrue("our attribute 1 should have right WRITE for VOADMIN", attributeRights.getRights().contains(new ActionType(ActionType.WRITE, null)));
 			}
 			if (attributeRights.getRole().equals(Role.SELF)) {
 				assertTrue("our attribute 1 should not have rights for SELF", attributeRights.getRights().isEmpty());
@@ -9648,18 +9648,18 @@ public class AttributesManagerEntryIntegrationTestAbstract extends AbstractPerun
 	public void setAttributeRights() throws Exception {
 		System.out.println(CLASS_NAME + "setAttributeRights");
 		List<ActionType> listOfActions = new ArrayList<>();
-		listOfActions.add(ActionType.WRITE);
-		listOfActions.add(ActionType.READ);
+		listOfActions.add(new ActionType(ActionType.WRITE, null));
+		listOfActions.add(new ActionType(ActionType.READ, null));
 		List<AttributeRights> rights = new ArrayList<>();
 		rights.add(new AttributeRights(1, Role.VOADMIN, listOfActions));
 		listOfActions.clear();
-		listOfActions.add(ActionType.READ);
+		listOfActions.add(new ActionType(ActionType.READ, null));
 		rights.add(new AttributeRights(1, Role.SELF, listOfActions));
 		perun.getAttributesManager().setAttributeRights(sess, rights);
 
 		listOfActions.clear();
 		rights.clear();
-		listOfActions.add(ActionType.WRITE);
+		listOfActions.add(new ActionType(ActionType.WRITE, null));
 		rights.add(new AttributeRights(1, Role.VOADMIN, new ArrayList<>()));
 		rights.add(new AttributeRights(1, Role.SELF, listOfActions));
 		perun.getAttributesManager().setAttributeRights(sess, rights);
@@ -9669,8 +9669,8 @@ public class AttributesManagerEntryIntegrationTestAbstract extends AbstractPerun
 
 		for (AttributeRights attributeRights : rights) {
 			if (attributeRights.getRole().equals(Role.SELF)) {
-				assertTrue("our attribute 1 should not have right READ for VOADMIN", !(attributeRights.getRights().contains(ActionType.READ)));
-				assertTrue("our attribute 1 should have right WRITE for VOADMIN", attributeRights.getRights().contains(ActionType.WRITE));
+				assertTrue("our attribute 1 should not have right READ for VOADMIN", !(attributeRights.getRights().contains(new ActionType(ActionType.READ, null))));
+				assertTrue("our attribute 1 should have right WRITE for VOADMIN", attributeRights.getRights().contains(new ActionType(ActionType.WRITE, null)));
 			}
 			if (attributeRights.getRole().equals(Role.VOADMIN)) {
 				assertTrue("our attribute 1 should not have rights for VOADMIN", attributeRights.getRights().isEmpty());

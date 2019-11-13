@@ -64,7 +64,7 @@ public class AuthzResolver {
 	 * @param resource secondary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Group group, Resource resource) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Group group, Resource resource) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, group, resource);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -82,7 +82,7 @@ public class AuthzResolver {
 	 * @param member secondary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Member member, Resource resource) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Member member, Resource resource) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, member, resource);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -100,7 +100,7 @@ public class AuthzResolver {
 	 * @param facility secondary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, User user, Facility facility) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, User user, Facility facility) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, user, facility);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -118,7 +118,7 @@ public class AuthzResolver {
 	 * @param group secondary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Member member, Group group) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Member member, Group group) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, member, group);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -135,7 +135,7 @@ public class AuthzResolver {
 	 * @param user primary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, User user) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, User user) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, user);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -152,7 +152,7 @@ public class AuthzResolver {
 	 * @param member primary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Member member) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Member member) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, member);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -169,7 +169,7 @@ public class AuthzResolver {
 	 * @param vo primary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Vo vo) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Vo vo) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, vo);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -187,7 +187,7 @@ public class AuthzResolver {
 	 * @return true, if principal is authorized for attribute and action
 	 */
 	@SuppressWarnings("unused")
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, PerunBean bean) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, PerunBean bean) throws InternalErrorException {
 		if (bean instanceof Vo) return isAuthorizedForAttribute(sess, actionType, attrDef, (Vo)bean);
 		if (bean instanceof User) return isAuthorizedForAttribute(sess, actionType, attrDef, (User)bean);
 		if (bean instanceof Member) return isAuthorizedForAttribute(sess, actionType, attrDef, (Member)bean);
@@ -209,7 +209,7 @@ public class AuthzResolver {
 	 * @param group primary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Group group) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Group group) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, group);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -226,7 +226,7 @@ public class AuthzResolver {
 	 * @param resource primary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Resource resource) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Resource resource) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, resource);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -243,7 +243,7 @@ public class AuthzResolver {
 	 * @param facility primary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Facility facility) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Facility facility) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, facility);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -260,7 +260,7 @@ public class AuthzResolver {
 	 * @param host primary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, Host host) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Host host) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, host);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -277,7 +277,7 @@ public class AuthzResolver {
 	 * @param ues primary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, UserExtSource ues) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, UserExtSource ues) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, ues);
 		} catch (AttributeNotExistsException | WrongAttributeAssignmentException ex) {
@@ -294,7 +294,7 @@ public class AuthzResolver {
 	 * @param key primary Bean of Attribute (can't be null)
 	 * @return true if principal is authorized, false if not
 	 */
-	public static boolean isAuthorizedForAttribute(PerunSession sess, ActionType actionType, AttributeDefinition attrDef, String key) throws InternalErrorException {
+	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, String key) throws InternalErrorException {
 		try {
 			return AuthzResolverBlImpl.isAuthorizedForAttribute(sess, actionType, attrDef, key);
 		} catch (AttributeNotExistsException ex) {

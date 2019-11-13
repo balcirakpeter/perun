@@ -31,6 +31,7 @@ import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.SingleColumnRowMapper;
 
 import javax.sql.DataSource;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -180,25 +181,26 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 		if (BeansUtils.isPerunReadOnly()) log.debug("Loading authzresolver manager init in readOnly version.");
 
 		this.perunRolesLoader.loadPerunRoles(jdbc);
+		this.perunRolesLoader.loadActionTypes(jdbc);
 		perunPoliciesContainer.setPerunPolicies(this.perunRolesLoader.loadPerunPolicies());
 	}
 
-	public static Map<String, Set<ActionType>> getRolesWhichCanWorkWithAttribute(ActionType actionType, AttributeDefinition attrDef) throws InternalErrorException {
-		String actType = actionType.getActionType().toLowerCase() + "%";
+	public static Map<String, Set<String>> getRolesWhichCanWorkWithAttribute(String actionType, AttributeDefinition attrDef) throws InternalErrorException {
+		String actTypeName = actionType.toLowerCase() + "%";
 		try {
-			List<Pair<String, ActionType>> pairs = jdbc.query("select distinct roles.name, action_types.action_type from attributes_authz " +
-							"join roles on attributes_authz.role_id=roles.id " +
-							"join action_types on attributes_authz.action_type_id=action_types.id " +
-							"where attributes_authz.attr_id=? and action_types.action_type like ?",
-					(rs, arg1) -> new Pair<>(rs.getString("name").toUpperCase(), ActionType.valueOf(rs.getString("action_type").toUpperCase())),
-					attrDef.getId(), actType);
+			List<Pair<String, String>> pairs= jdbc.query("select distinct roles.name, action_types.action_type from attributes_authz " +
+						"join roles on attributes_authz.role_id=roles.id " +
+						"join action_types on attributes_authz.action_type_id=action_types.id " +
+						"where attributes_authz.attr_id=? and action_types.action_type like ? and action_types.object is null",
+					(rs, arg1) -> new Pair<>(rs.getString("name").toUpperCase(), rs.getString("action_type").toUpperCase()),
+					attrDef.getId(), actTypeName);
 
-			Map<String, Set<ActionType>> result = new HashMap<>();
-			for (Pair<String, ActionType> pair : pairs) {
+			Map<String, Set<String>> result = new HashMap<>();
+			for (Pair<String, String> pair : pairs) {
 				if (result.containsKey(pair.getLeft())) {
 					result.get(pair.getLeft()).add(pair.getRight());
 				} else {
-					Set<ActionType> rights = new HashSet<>();
+					Set<String> rights = new HashSet<>();
 					rights.add(pair.getRight());
 					result.put(pair.getLeft(), rights);
 				}
@@ -754,6 +756,7 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 	@Override
 	public void loadAuthorizationComponents() {
 		this.perunRolesLoader.loadPerunRoles(jdbc);
+		this.perunRolesLoader.loadActionTypes(jdbc);
 		perunPoliciesContainer.setPerunPolicies(this.perunRolesLoader.loadPerunPolicies());
 	}
 
