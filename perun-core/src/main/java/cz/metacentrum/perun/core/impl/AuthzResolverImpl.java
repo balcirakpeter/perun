@@ -1,21 +1,6 @@
 package cz.metacentrum.perun.core.impl;
 
-import cz.metacentrum.perun.core.api.ActionType;
-import cz.metacentrum.perun.core.api.AttributeDefinition;
-import cz.metacentrum.perun.core.api.BeansUtils;
-import cz.metacentrum.perun.core.api.Facility;
-import cz.metacentrum.perun.core.api.Group;
-import cz.metacentrum.perun.core.api.Member;
-import cz.metacentrum.perun.core.api.Pair;
-import cz.metacentrum.perun.core.api.PerunPolicy;
-import cz.metacentrum.perun.core.api.PerunSession;
-import cz.metacentrum.perun.core.api.Resource;
-import cz.metacentrum.perun.core.api.Role;
-import cz.metacentrum.perun.core.api.SecurityTeam;
-import cz.metacentrum.perun.core.api.Service;
-import cz.metacentrum.perun.core.api.SpecificUserType;
-import cz.metacentrum.perun.core.api.User;
-import cz.metacentrum.perun.core.api.Vo;
+import cz.metacentrum.perun.core.api.*;
 import cz.metacentrum.perun.core.api.exceptions.AlreadyAdminException;
 import cz.metacentrum.perun.core.api.exceptions.GroupNotAdminException;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
@@ -755,6 +740,10 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 	public void loadAuthorizationComponents() {
 		this.perunRolesLoader.loadPerunRoles(jdbc);
 		perunPoliciesContainer.setPerunPolicies(this.perunRolesLoader.loadPerunPolicies());
+	}
+
+	public static RoleManagementRules getRoleManagementRules(String roleName) throws PolicyNotExistsException {
+		return perunPoliciesContainer.getRoleManagementRules(roleName);
 	}
 
 	public static PerunPolicy getPerunPolicy(String policyName) throws PolicyNotExistsException {

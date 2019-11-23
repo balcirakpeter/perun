@@ -21,32 +21,7 @@ import cz.metacentrum.perun.audit.events.VoManagerEvents.AdminAddedForVo;
 import cz.metacentrum.perun.audit.events.VoManagerEvents.AdminGroupAddedForVo;
 import cz.metacentrum.perun.audit.events.VoManagerEvents.AdminGroupRemovedForVo;
 import cz.metacentrum.perun.audit.events.VoManagerEvents.AdminRemovedForVo;
-import cz.metacentrum.perun.core.api.ActionType;
-import cz.metacentrum.perun.core.api.Attribute;
-import cz.metacentrum.perun.core.api.AttributeDefinition;
-import cz.metacentrum.perun.core.api.AuthzResolver;
-import cz.metacentrum.perun.core.api.BeansUtils;
-import cz.metacentrum.perun.core.api.Facility;
-import cz.metacentrum.perun.core.api.Group;
-import cz.metacentrum.perun.core.api.Host;
-import cz.metacentrum.perun.core.api.Member;
-import cz.metacentrum.perun.core.api.PerunBean;
-import cz.metacentrum.perun.core.api.PerunClient;
-import cz.metacentrum.perun.core.api.PerunPolicy;
-import cz.metacentrum.perun.core.api.PerunPrincipal;
-import cz.metacentrum.perun.core.api.PerunSession;
-import cz.metacentrum.perun.core.api.Resource;
-import cz.metacentrum.perun.core.api.ResourceTag;
-import cz.metacentrum.perun.core.api.RichGroup;
-import cz.metacentrum.perun.core.api.RichMember;
-import cz.metacentrum.perun.core.api.RichResource;
-import cz.metacentrum.perun.core.api.Role;
-import cz.metacentrum.perun.core.api.SecurityTeam;
-import cz.metacentrum.perun.core.api.Service;
-import cz.metacentrum.perun.core.api.Status;
-import cz.metacentrum.perun.core.api.User;
-import cz.metacentrum.perun.core.api.UserExtSource;
-import cz.metacentrum.perun.core.api.Vo;
+import cz.metacentrum.perun.core.api.*;
 import cz.metacentrum.perun.core.api.exceptions.ActionTypeNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.AlreadyAdminException;
 import cz.metacentrum.perun.core.api.exceptions.AttributeNotExistsException;
@@ -127,6 +102,24 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		Map <String, Set<Integer>> mapOfBeans = fetchAllRelatedObjects(objects);
 
 		return resolveAuthorization(sess, policyRoles, mapOfBeans);
+	}
+
+	public static boolean authorizedToManageRole(PerunSession sess, PerunBean object, String roleName) throws PolicyNotExistsException {
+		// We need to load additional information about the principal
+		if (!sess.getPerunPrincipal().isAuthzInitialized()) {
+			refreshAuthz(sess);
+		}
+
+		// If the user has no roles, deny access
+		if (sess.getPerunPrincipal().getRoles() == null) {
+			return false;
+		}
+
+		RoleManagementRules rules = AuthzResolverImpl.getRoleManagementRules(roleName);
+		//Fetch super objects like Vo for group etc.
+		Map <String, Set<Integer>> mapOfBeans = fetchAllRelatedObjects(Collections.singletonList(object));
+
+		return resolveAuthorization(sess, rules.getPrivilegedRoles(), mapOfBeans);
 	}
 
 	/**
@@ -1067,9 +1060,18 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	 * @param complementaryObject object for which role will be unset
 	 */
 	public static void unsetRole(PerunSession sess, User user, PerunBean complementaryObject, String role) throws InternalErrorException, UserNotAdminException {
-		List<PerunBean> complementaryObjects = new ArrayList<>();
-		complementaryObjects.add(complementaryObject);
-		AuthzResolverBlImpl.unsetRole(sess, user, role, complementaryObjects);
+		RoleManagementRules rules;
+		try {
+			rules = AuthzResolverImpl.getRoleManagementRules(role);
+		} catch (PolicyNotExistsException e) {
+			throw new InternalErrorException("Management rules not exist for the role " + role, e);
+		}
+
+		if (objectAndRoleManagedByEntity(complementaryObject, role, rules)) {
+			throw new InternalErrorException("Error");
+		}
+
+		AuthzResolverImpl.unsetRole(sess, user, complementaryObject, role, rules);
 	}
 
 	/**

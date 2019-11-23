@@ -509,6 +509,20 @@ public class AuthzResolver {
 		return hasOneOfTheRolesForObject(sess, complementaryObject, Privileges.getRolesWhichCanManageRole(role));
 	}
 
+	public static boolean authorizedToManageRole(PerunSession sess, String role) throws PolicyNotExistsException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
+		return AuthzResolverBlImpl.authorizedToManageRole(sess, null, role);
+	}
+
+	public static boolean authorizedToManageRole(PerunSession sess, PerunBean complementaryObject, String role) throws PolicyNotExistsException {
+		if (!roleExists(role)) {
+			throw new InternalErrorException("Role: "+ role +" does not exists.");
+		}
+		return AuthzResolverBlImpl.authorizedToManageRole(sess, complementaryObject, role);
+	}
+
 	/**
 	 * Set role for user and <b>all</b> complementary objects.
 	 *
@@ -548,8 +562,12 @@ public class AuthzResolver {
 		}
 
 		((PerunBl) sess.getPerun()).getUsersManagerBl().checkUserExists(sess, user);
-		if(!isAuthorizedToManageRole(sess, complementaryObject, role)) {
-			throw new PrivilegeException("You are not privileged to use this method setRole.");
+		try {
+			if(!authorizedToManageRole(sess, complementaryObject, role)) {
+				throw new PrivilegeException("You are not privileged to use this method setRole.");
+			}
+		} catch (PolicyNotExistsException e) {
+			throw new InternalErrorException("Management rules not exist for the role " + role, e);
 		}
 
 		AuthzResolverBlImpl.setRole(sess, user,complementaryObject, role);
@@ -594,8 +612,12 @@ public class AuthzResolver {
 		}
 		((PerunBl) sess.getPerun()).getGroupsManagerBl().checkGroupExists(sess, authorizedGroup);
 
-		if(!isAuthorizedToManageRole(sess, complementaryObject, role)) {
-			throw new PrivilegeException("You are not privileged to use this method setRole.");
+		try {
+			if(!authorizedToManageRole(sess, complementaryObject, role)) {
+				throw new PrivilegeException("You are not privileged to use this method setRole.");
+			}
+		} catch (PolicyNotExistsException e) {
+			throw new InternalErrorException("Management rules not exist for the role " + role, e);
 		}
 
 		AuthzResolverBlImpl.setRole(sess, authorizedGroup, complementaryObject, role);
@@ -740,8 +762,12 @@ public class AuthzResolver {
 		}
 		((PerunBl) sess.getPerun()).getUsersManagerBl().checkUserExists(sess, user);
 
-		if (!isAuthorizedToManageRole(sess, complementaryObject, role)) {
-			throw new PrivilegeException("You are not privileged to change the given role for the given object.");
+		try {
+			if (!authorizedToManageRole(sess, complementaryObject, role)) {
+				throw new PrivilegeException("You are not privileged to change the given role for the given object.");
+			}
+		} catch (PolicyNotExistsException e) {
+			throw new InternalErrorException("Management rules not exist for the role " + role, e);
 		}
 		AuthzResolverBlImpl.unsetRole(sess, user, complementaryObject, role);
 	}
@@ -785,8 +811,12 @@ public class AuthzResolver {
 		}
 		((PerunBl) sess.getPerun()).getGroupsManagerBl().checkGroupExists(sess, authorizedGroup);
 
-		if (!isAuthorizedToManageRole(sess, complementaryObject, role)) {
-			throw new PrivilegeException("You are not privileged to change the given role for the given object.");
+		try {
+			if (!authorizedToManageRole(sess, complementaryObject, role)) {
+				throw new PrivilegeException("You are not privileged to change the given role for the given object.");
+			}
+		} catch (PolicyNotExistsException e) {
+			throw new InternalErrorException("Management rules not exist for the role " + role, e);
 		}
 		AuthzResolverBlImpl.unsetRole(sess, authorizedGroup, complementaryObject, role);
 	}
