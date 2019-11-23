@@ -17,34 +17,7 @@ import cz.metacentrum.perun.core.api.Service;
 import cz.metacentrum.perun.core.api.ServicesPackage;
 import cz.metacentrum.perun.core.api.User;
 import cz.metacentrum.perun.core.api.Vo;
-import cz.metacentrum.perun.core.api.exceptions.AlreadyAdminException;
-import cz.metacentrum.perun.core.api.exceptions.BanAlreadyExistsException;
-import cz.metacentrum.perun.core.api.exceptions.BanNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.ConsistencyErrorException;
-import cz.metacentrum.perun.core.api.exceptions.FacilityNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.GroupAlreadyAssignedException;
-import cz.metacentrum.perun.core.api.exceptions.GroupAlreadyRemovedFromResourceException;
-import cz.metacentrum.perun.core.api.exceptions.GroupNotAdminException;
-import cz.metacentrum.perun.core.api.exceptions.GroupNotDefinedOnResourceException;
-import cz.metacentrum.perun.core.api.exceptions.GroupNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
-import cz.metacentrum.perun.core.api.exceptions.MemberNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.PrivilegeException;
-import cz.metacentrum.perun.core.api.exceptions.ResourceAlreadyRemovedException;
-import cz.metacentrum.perun.core.api.exceptions.ResourceExistsException;
-import cz.metacentrum.perun.core.api.exceptions.ResourceNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.ResourceTagAlreadyAssignedException;
-import cz.metacentrum.perun.core.api.exceptions.ResourceTagNotAssignedException;
-import cz.metacentrum.perun.core.api.exceptions.ResourceTagNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.ServiceAlreadyAssignedException;
-import cz.metacentrum.perun.core.api.exceptions.ServiceNotAssignedException;
-import cz.metacentrum.perun.core.api.exceptions.ServiceNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.ServicesPackageNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.UserNotAdminException;
-import cz.metacentrum.perun.core.api.exceptions.UserNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.VoNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.WrongAttributeValueException;
-import cz.metacentrum.perun.core.api.exceptions.WrongReferenceAttributeValueException;
+import cz.metacentrum.perun.core.api.exceptions.*;
 import cz.metacentrum.perun.core.bl.PerunBl;
 import cz.metacentrum.perun.core.bl.ResourcesManagerBl;
 import cz.metacentrum.perun.core.blImpl.AuthzResolverBlImpl;
@@ -1256,6 +1229,8 @@ public class ResourcesManagerEntry implements ResourcesManager {
 			vo = sess.getPerun().getVosManager().getVoById(sess, resource.getVoId());
 		} catch (VoNotExistsException e) {
 			throw new InternalErrorException("Failed to find vo for given resource.");
+		} catch (PolicyNotExistsException e) {
+			throw new InternalErrorException("Failed to resolve access rights, because some policy does not exists.", e);
 		}
 
 		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo) &&
@@ -1283,6 +1258,8 @@ public class ResourcesManagerEntry implements ResourcesManager {
 			vo = sess.getPerun().getVosManager().getVoById(sess, resource.getVoId());
 		} catch (VoNotExistsException e) {
 			throw new InternalErrorException("Failed to find vo for given resource.");
+		} catch (PolicyNotExistsException e) {
+			throw new InternalErrorException("Failed to resolve access rights, because some policy does not exists.", e);
 		}
 
 		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo) &&
@@ -1310,6 +1287,8 @@ public class ResourcesManagerEntry implements ResourcesManager {
 			vo = sess.getPerun().getVosManager().getVoById(sess, resource.getVoId());
 		} catch (VoNotExistsException e) {
 			throw new InternalErrorException("Failed to find vo for given resource.");
+		} catch (PolicyNotExistsException e) {
+			throw new InternalErrorException("Failed to resolve access rights, because some policy does not exists.", e);
 		}
 
 		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo) &&
@@ -1337,6 +1316,8 @@ public class ResourcesManagerEntry implements ResourcesManager {
 			vo = sess.getPerun().getVosManager().getVoById(sess, resource.getVoId());
 		} catch (VoNotExistsException e) {
 			throw new InternalErrorException("Failed to find vo for given resource.");
+		} catch (PolicyNotExistsException e) {
+			throw new InternalErrorException("Failed to resolve access rights, because some policy does not exists.", e);
 		}
 
 		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo) &&

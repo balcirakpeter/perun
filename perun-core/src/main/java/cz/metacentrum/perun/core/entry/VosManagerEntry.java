@@ -12,17 +12,7 @@ import cz.metacentrum.perun.core.api.Role;
 import cz.metacentrum.perun.core.api.User;
 import cz.metacentrum.perun.core.api.Vo;
 import cz.metacentrum.perun.core.api.VosManager;
-import cz.metacentrum.perun.core.api.exceptions.AlreadyAdminException;
-import cz.metacentrum.perun.core.api.exceptions.ConsistencyErrorException;
-import cz.metacentrum.perun.core.api.exceptions.GroupNotAdminException;
-import cz.metacentrum.perun.core.api.exceptions.GroupNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
-import cz.metacentrum.perun.core.api.exceptions.PrivilegeException;
-import cz.metacentrum.perun.core.api.exceptions.RoleNotSupportedException;
-import cz.metacentrum.perun.core.api.exceptions.UserNotAdminException;
-import cz.metacentrum.perun.core.api.exceptions.UserNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.VoExistsException;
-import cz.metacentrum.perun.core.api.exceptions.VoNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.*;
 import cz.metacentrum.perun.core.bl.PerunBl;
 import cz.metacentrum.perun.core.bl.VosManagerBl;
 import cz.metacentrum.perun.core.blImpl.AuthzResolverBlImpl;
@@ -30,7 +20,9 @@ import cz.metacentrum.perun.core.impl.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.IllegalArgumentException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -60,56 +52,44 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public List<Vo> getVos(PerunSession sess) throws InternalErrorException, PrivilegeException {
+	public List<Vo> getVos(PerunSession sess) throws InternalErrorException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(sess, "sess");
 
-		// Perun admin can see everything
-		if (AuthzResolver.isAuthorized(sess, Role.PERUNADMIN) ||
-				AuthzResolver.isAuthorized(sess, Role.PERUNOBSERVER)) {
-			return vosManagerBl.getVos(sess);
+		// Authorization
+		if (!AuthzResolver.authorized(sess, "getVos_policy", Collections.emptyList())) {
+			throw new PrivilegeException(sess, "getVos");
 		} else {
-			if(sess.getPerunPrincipal().getRoles().hasRole(Role.VOADMIN) ||
-			   sess.getPerunPrincipal().getRoles().hasRole(Role.VOOBSERVER) ||
-					sess.getPerunPrincipal().getRoles().hasRole(Role.GROUPADMIN)) {
+			List<Vo> tempVos = vosManagerBl.getVos(sess);
+			tempVos.removeIf(vo -> {
+				try {
+					return !AuthzResolver.authorized(sess, "filter-getVos_policy", Collections.singletonList(vo));
+				} catch (InternalErrorException | PolicyNotExistsException e) {
+					// if we can't determine authorization prevent returning it
+					return true;
+				}
+			});
 
-				List<Vo> tempVos = vosManagerBl.getVos(sess);
-				tempVos.removeIf(vo -> {
-					try {
-						return !AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo) &&
-								!AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, vo) &&
-								!AuthzResolver.isAuthorized(sess, Role.VOOBSERVER, vo);
-					} catch (InternalErrorException e) {
-						// if we can't determine authorization prevent returning it
-						return true;
-					}
-				});
-
-				return tempVos;
-			} else {
-				throw new PrivilegeException(sess, "getVos");
-			}
+			return tempVos;
 		}
 	}
 
 	@Override
-	public List<Vo> getAllVos(PerunSession perunSession) throws InternalErrorException, PrivilegeException {
+	public List<Vo> getAllVos(PerunSession perunSession) throws InternalErrorException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(perunSession, "sess");
-		if (!AuthzResolver.isAuthorized(perunSession, Role.VOADMIN) &&
-				!AuthzResolver.isAuthorized(perunSession, Role.GROUPADMIN) &&
-				!AuthzResolver.isAuthorized(perunSession, Role.VOOBSERVER) &&
-				!AuthzResolver.isAuthorized(perunSession, Role.FACILITYADMIN) &&
-				!AuthzResolver.isAuthorized(perunSession, Role.PERUNOBSERVER)) {
+
+		// Authorization
+		if (!AuthzResolver.authorized(perunSession, "getAllVos_policy", Collections.emptyList())) {
 			throw new PrivilegeException(perunSession, "getAllVos");
-				}
+		}
 		return vosManagerBl.getVos(perunSession);
 	}
 
 	@Override
-	public void deleteVo(PerunSession sess, Vo vo, boolean forceDelete) throws VoNotExistsException, InternalErrorException, PrivilegeException {
+	public void deleteVo(PerunSession sess, Vo vo, boolean forceDelete) throws VoNotExistsException, InternalErrorException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(sess, "sess");
 
-		// Authorization - only Perun admin can delete the VO
-		if (!AuthzResolver.isAuthorized(sess, Role.PERUNADMIN)) {
+		// Authorization
+		if (!AuthzResolver.authorized(sess, "deleteVo_Vo_boolean_policy", Collections.emptyList())) {
 			throw new PrivilegeException(sess, "deleteVo");
 		}
 
@@ -119,11 +99,11 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public void deleteVo(PerunSession sess, Vo vo) throws VoNotExistsException, InternalErrorException, PrivilegeException {
+	public void deleteVo(PerunSession sess, Vo vo) throws VoNotExistsException, InternalErrorException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(sess, "sess");
 
-		// Authorization - only Perun admin can delete the VO
-		if (!AuthzResolver.isAuthorized(sess, Role.PERUNADMIN)) {
+		// Authorization
+		if (!AuthzResolver.authorized(sess, "deleteVo_Vo_policy", Collections.emptyList())) {
 			throw new PrivilegeException(sess, "deleteVo");
 		}
 
@@ -133,12 +113,12 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public Vo createVo(PerunSession sess, Vo vo) throws VoExistsException, PrivilegeException, InternalErrorException {
+	public Vo createVo(PerunSession sess, Vo vo) throws VoExistsException, PrivilegeException, InternalErrorException, PolicyNotExistsException {
 		Utils.notNull(sess, "sess");
 		Utils.notNull(vo, "vo");
 
-		// Authorization - Perun admin required
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN)) {
+		// Authorization
+		if (!AuthzResolver.authorized(sess, "createVo_Vo_policy", Collections.emptyList())) {
 			throw new PrivilegeException(sess, "createVo");
 		}
 
@@ -155,12 +135,12 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public Vo updateVo(PerunSession sess, Vo vo) throws VoNotExistsException, InternalErrorException, PrivilegeException {
+	public Vo updateVo(PerunSession sess, Vo vo) throws VoNotExistsException, InternalErrorException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(sess, "sess");
 		vosManagerBl.checkVoExists(sess, vo);
 
-		// Authorization - Vo admin required
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo)) {
+		// Authorization
+		if (!AuthzResolver.authorized(sess, "updateVo_Vo_policy", Collections.singletonList(vo))) {
 			throw new PrivilegeException(sess, "updateVo");
 		}
 
@@ -176,18 +156,13 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public Vo getVoByShortName(PerunSession sess, String shortName) throws VoNotExistsException, InternalErrorException, PrivilegeException {
+	public Vo getVoByShortName(PerunSession sess, String shortName) throws VoNotExistsException, InternalErrorException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(shortName, "shortName");
 		Utils.notNull(sess, "sess");
 		Vo vo = vosManagerBl.getVoByShortName(sess, shortName);
 
 		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.VOOBSERVER, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.TOPGROUPCREATOR, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.ENGINE) &&
-				!AuthzResolver.isAuthorized(sess, Role.PERUNOBSERVER)) {
+		if (!AuthzResolver.authorized(sess, "getVoByShortName_String_policy", Collections.singletonList(vo))) {
 			throw new PrivilegeException(sess, "getVoByShortName");
 		}
 
@@ -195,18 +170,12 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public Vo getVoById(PerunSession sess, int id) throws VoNotExistsException, InternalErrorException, PrivilegeException {
+	public Vo getVoById(PerunSession sess, int id) throws VoNotExistsException, InternalErrorException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(sess, "sess");
 		Vo vo = vosManagerBl.getVoById(sess, id);
 
 		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.VOOBSERVER, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.ENGINE) &&
-				!AuthzResolver.isAuthorized(sess, Role.RPC) &&
-				!AuthzResolver.isAuthorized(sess, Role.SELF) &&
-				!AuthzResolver.isAuthorized(sess, Role.PERUNOBSERVER)) {
+		if (!AuthzResolver.authorized(sess, "getVoById_int_policy", Collections.singletonList(vo))) {
 			throw new PrivilegeException(sess, "getVoById");
 				}
 
@@ -214,15 +183,13 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public List<Candidate> findCandidates(PerunSession sess, Vo vo, String searchString, int maxNumOfResults) throws InternalErrorException, VoNotExistsException, PrivilegeException {
+	public List<Candidate> findCandidates(PerunSession sess, Vo vo, String searchString, int maxNumOfResults) throws InternalErrorException, VoNotExistsException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(searchString, "searchString");
 		Utils.notNull(sess, "sess");
 		vosManagerBl.checkVoExists(sess, vo);
 
-		// Authorization - Vo admin required
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.VOOBSERVER, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.PERUNOBSERVER)) {
+		// Authorization
+		if (!AuthzResolver.authorized(sess, "findCandidates_Vo_String_int_policy", Collections.singletonList(vo))) {
 			throw new PrivilegeException(sess, "findCandidates");
 				}
 
@@ -230,15 +197,13 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public List<Candidate> findCandidates(PerunSession sess, Vo vo, String searchString) throws InternalErrorException, VoNotExistsException, PrivilegeException {
+	public List<Candidate> findCandidates(PerunSession sess, Vo vo, String searchString) throws InternalErrorException, VoNotExistsException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(searchString, "searchString");
 		Utils.notNull(sess, "sess");
 		vosManagerBl.checkVoExists(sess, vo);
 
-		// Authorization - Vo admin required
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.VOOBSERVER, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.PERUNOBSERVER)) {
+		// Authorization
+		if (!AuthzResolver.authorized(sess, "findCandidates_Vo_String_policy", Collections.singletonList(vo))) {
 			throw new PrivilegeException(sess, "findCandidates");
 		}
 
@@ -246,16 +211,13 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public List<Candidate> findCandidates(PerunSession sess, Group group, String searchString) throws InternalErrorException, GroupNotExistsException, PrivilegeException {
+	public List<Candidate> findCandidates(PerunSession sess, Group group, String searchString) throws InternalErrorException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(searchString, "searchString");
 		Utils.notNull(sess, "sess");
 		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
 
-		// Authorization - Vo admin required
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, group) &&
-				!AuthzResolver.isAuthorized(sess, Role.VOOBSERVER, group) &&
-				!AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, group) &&
-				!AuthzResolver.isAuthorized(sess, Role.PERUNOBSERVER)) {
+		// Authorization
+		if (!AuthzResolver.authorized(sess, "findCandidates_Group_String_policy", Collections.singletonList(group))) {
 			throw new PrivilegeException(sess, "findCandidates");
 		}
 
@@ -263,7 +225,7 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public List<MemberCandidate> getCompleteCandidates(PerunSession sess, Vo vo, List<String> attrNames, String searchString) throws InternalErrorException, VoNotExistsException, PrivilegeException {
+	public List<MemberCandidate> getCompleteCandidates(PerunSession sess, Vo vo, List<String> attrNames, String searchString) throws InternalErrorException, VoNotExistsException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(searchString, "searchString");
 		Utils.notNull(sess, "sess");
 		Utils.notNull(vo, "vo");
@@ -272,9 +234,7 @@ public class VosManagerEntry implements VosManager {
 		getPerunBl().getVosManagerBl().checkVoExists(sess, vo);
 
 		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.VOOBSERVER, vo) &&
-				!AuthzResolver.isAuthorized(sess, Role.PERUNOBSERVER)) {
+		if (!AuthzResolver.authorized(sess, "getCompleteCandidates_Vo_List<String>_String_policy", Collections.singletonList(vo))) {
 			throw new PrivilegeException(sess, "getCompleteCandidates");
 		}
 
@@ -282,7 +242,7 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public List<MemberCandidate> getCompleteCandidates(PerunSession sess, Group group, List<String> attrNames, String searchString) throws InternalErrorException, GroupNotExistsException, PrivilegeException {
+	public List<MemberCandidate> getCompleteCandidates(PerunSession sess, Group group, List<String> attrNames, String searchString) throws InternalErrorException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException {
 		Utils.notNull(searchString, "searchString");
 		Utils.notNull(sess, "sess");
 		Utils.notNull(group, "group");
@@ -295,14 +255,12 @@ public class VosManagerEntry implements VosManager {
 		Vo vo = getPerunBl().getGroupsManagerBl().getVo(sess, group);
 
 		// Authorization
-		if (AuthzResolver.isAuthorized(sess, Role.VOADMIN, group) ||
-				AuthzResolver.isAuthorized(sess, Role.VOOBSERVER, group) ||
-				AuthzResolver.isAuthorized(sess, Role.PERUNOBSERVER)) {
+		if (AuthzResolver.authorized(sess, "getCompleteCandidates_Group_List<String>_String_policy", Collections.singletonList(vo))) {
 			extSources = getPerunBl().getExtSourcesManagerBl().getVoExtSources(sess, vo);
 
 			// null the vo so users are searched in whole perun
 			vo = null;
-		} else if (AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, group)) {
+		} else if (AuthzResolver.authorized(sess, "groupExtSource-getCompleteCandidates_Group_List<String>_String_policy", Collections.singletonList(group))) {
 			extSources = getPerunBl().getExtSourcesManagerBl().getGroupExtSources(sess, group);
 		} else {
 			throw new PrivilegeException(sess, "getCompleteCandidates");
@@ -312,7 +270,7 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public void addAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, UserNotExistsException {
+	public void addAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, UserNotExistsException, PolicyNotExistsException {
 		Utils.notNull(sess, "sess");
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
@@ -322,7 +280,7 @@ public class VosManagerEntry implements VosManager {
 
 
 	@Override
-	public void addAdmin(PerunSession sess, Vo vo, Group group) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException {
+	public void addAdmin(PerunSession sess, Vo vo, Group group) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException, PolicyNotExistsException {
 		Utils.notNull(sess, "sess");
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);
@@ -331,7 +289,7 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public void removeAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException, PrivilegeException, VoNotExistsException, UserNotAdminException, UserNotExistsException {
+	public void removeAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException, PrivilegeException, VoNotExistsException, UserNotAdminException, UserNotExistsException, PolicyNotExistsException {
 		Utils.notNull(sess, "sess");
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
@@ -340,7 +298,7 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public void removeAdmin(PerunSession sess, Vo vo, Group group) throws InternalErrorException, PrivilegeException, VoNotExistsException, GroupNotAdminException, GroupNotExistsException {
+	public void removeAdmin(PerunSession sess, Vo vo, Group group) throws InternalErrorException, PrivilegeException, VoNotExistsException, GroupNotAdminException, GroupNotExistsException, PolicyNotExistsException {
 		Utils.notNull(sess, "sess");
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);
@@ -349,7 +307,7 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public List<User> getAdmins(PerunSession perunSession, Vo vo, String role, boolean onlyDirectAdmins) throws InternalErrorException, PrivilegeException, VoNotExistsException, RoleNotSupportedException {
+	public List<User> getAdmins(PerunSession perunSession, Vo vo, String role, boolean onlyDirectAdmins) throws InternalErrorException, PrivilegeException, VoNotExistsException, RoleNotSupportedException, PolicyNotExistsException {
 		Utils.checkPerunSession(perunSession);
 		Utils.notNull(role, "role");
 		vosManagerBl.checkVoExists(perunSession, vo);
@@ -365,10 +323,8 @@ public class VosManagerEntry implements VosManager {
 			throw new RoleNotSupportedException("Supported roles are VoAdmin, VoObserver and TopGroupCreator.", role);
 		}
 
-		//  Authorization - Vo admin required
-		if (!AuthzResolver.isAuthorized(perunSession, Role.VOADMIN, vo) &&
-				!AuthzResolver.isAuthorized(perunSession, Role.VOOBSERVER, vo) &&
-				!AuthzResolver.isAuthorized(perunSession, Role.PERUNOBSERVER)) {
+		// Authorization
+		if (!AuthzResolver.authorized(perunSession, "getAdmins_Vo_String_boolean_policy", Collections.singletonList(vo))) {
 			throw new PrivilegeException(perunSession, "getAdmins");
 		}
 
@@ -376,7 +332,7 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public List<RichUser> getRichAdmins(PerunSession perunSession, Vo vo, String role, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws InternalErrorException, PrivilegeException, VoNotExistsException, UserNotExistsException, RoleNotSupportedException {
+	public List<RichUser> getRichAdmins(PerunSession perunSession, Vo vo, String role, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws InternalErrorException, PrivilegeException, VoNotExistsException, UserNotExistsException, RoleNotSupportedException, PolicyNotExistsException {
 		Utils.notNull(perunSession, "perunSession");
 		Utils.notNull(role, "role");
 		vosManagerBl.checkVoExists(perunSession, vo);
@@ -392,11 +348,8 @@ public class VosManagerEntry implements VosManager {
 			throw new RoleNotSupportedException("Supported roles are VoAdmin, VoObserver and TopGroupCreator.", role);
 		}
 
-		//  Authorization - Vo admin required
-		if (!AuthzResolver.isAuthorized(perunSession, Role.VOADMIN, vo) &&
-				!AuthzResolver.isAuthorized(perunSession, Role.VOOBSERVER, vo) &&
-				!AuthzResolver.isAuthorized(perunSession, Role.ENGINE) &&
-				!AuthzResolver.isAuthorized(perunSession, Role.PERUNOBSERVER)) {
+		// Authorization
+		if (!AuthzResolver.authorized(perunSession, "getRichAdmins_Vo_String_List<String>_boolean_boolean_policy", Collections.singletonList(vo))) {
 			throw new PrivilegeException(perunSession, "getDirectRichAdminsWithSpecificAttributes");
 		}
 
@@ -404,7 +357,7 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public List<Group> getAdminGroups(PerunSession perunSession, Vo vo, String role) throws InternalErrorException, PrivilegeException, VoNotExistsException, RoleNotSupportedException {
+	public List<Group> getAdminGroups(PerunSession perunSession, Vo vo, String role) throws InternalErrorException, PrivilegeException, VoNotExistsException, RoleNotSupportedException, PolicyNotExistsException {
 		Utils.checkPerunSession(perunSession);
 		Utils.notNull(role, "role");
 		vosManagerBl.checkVoExists(perunSession, vo);
@@ -420,10 +373,8 @@ public class VosManagerEntry implements VosManager {
 			throw new RoleNotSupportedException("Supported roles are VoAdmin, VoObserver and TopGroupCreator.", role);
 		}
 
-		//  Authorization - Vo admin required
-		if (!AuthzResolver.isAuthorized(perunSession, Role.VOADMIN, vo) &&
-				!AuthzResolver.isAuthorized(perunSession, Role.VOOBSERVER, vo) &&
-				!AuthzResolver.isAuthorized(perunSession, Role.PERUNOBSERVER)) {
+		// Authorization
+		if (!AuthzResolver.authorized(perunSession, "getAdminGroups_Vo_String_policy", Collections.singletonList(vo))) {
 			throw new PrivilegeException(perunSession, "getAdminGroups");
 				}
 
@@ -554,7 +505,7 @@ public class VosManagerEntry implements VosManager {
 	 * Adds role SPONSOR for user in a VO.
 	 */
 	@Override
-	public void addSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException {
+	public void addSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException, PolicyNotExistsException {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
@@ -567,7 +518,7 @@ public class VosManagerEntry implements VosManager {
 	 * Adds role SPONSOR for group in a VO.
 	 */
 	@Override
-	public void addSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException {
+	public void addSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);
@@ -579,7 +530,7 @@ public class VosManagerEntry implements VosManager {
 	 * Removes role SPONSOR from user in a VO.
 	 */
 	@Override
-	public void removeSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, UserNotAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException {
+	public void removeSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, UserNotAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException, PolicyNotExistsException {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
@@ -591,7 +542,7 @@ public class VosManagerEntry implements VosManager {
 	 * Removes role SPONSOR from group in a VO.
 	 */
 	@Override
-	public void removeSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, GroupNotAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException {
+	public void removeSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, GroupNotAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);

@@ -841,7 +841,11 @@ public class AuthzResolver {
 				break;
 			case "Vo":
 				Vo vo = ((PerunBl) sess.getPerun()).getVosManagerBl().getVoById(sess, complementaryObjectId);
-				richUsers = sess.getPerun().getVosManager().getRichAdmins(sess, vo, role, specificAttributes, allUserAttributes, onlyDirectAdmins);
+				try {
+					richUsers = sess.getPerun().getVosManager().getRichAdmins(sess, vo, role, specificAttributes, allUserAttributes, onlyDirectAdmins);
+				} catch (PolicyNotExistsException e) {
+					throw new InternalErrorException("Failed to resolve access rights, because some policy does not exists.", e);
+				}
 				break;
 			case "Facility":
 				if (!role.equals(Role.FACILITYADMIN))
@@ -886,7 +890,11 @@ public class AuthzResolver {
 				break;
 			case "Vo":
 				Vo vo = ((PerunBl) sess.getPerun()).getVosManagerBl().getVoById(sess, complementaryObjectId);
-				authorizedGroups = sess.getPerun().getVosManager().getAdminGroups(sess, vo, role);
+				try {
+					authorizedGroups = sess.getPerun().getVosManager().getAdminGroups(sess, vo, role);
+				} catch (PolicyNotExistsException e) {
+					throw new InternalErrorException("Failed to resolve access rights, because some policy does not exists.", e);
+				}
 				break;
 			case "Facility":
 				if (!role.equals(Role.FACILITYADMIN))

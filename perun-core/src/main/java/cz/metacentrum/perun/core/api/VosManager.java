@@ -1,16 +1,6 @@
 package cz.metacentrum.perun.core.api;
 
-import cz.metacentrum.perun.core.api.exceptions.AlreadyAdminException;
-import cz.metacentrum.perun.core.api.exceptions.GroupNotAdminException;
-import cz.metacentrum.perun.core.api.exceptions.GroupNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
-import cz.metacentrum.perun.core.api.exceptions.PrivilegeException;
-import cz.metacentrum.perun.core.api.exceptions.RelationExistsException;
-import cz.metacentrum.perun.core.api.exceptions.RoleNotSupportedException;
-import cz.metacentrum.perun.core.api.exceptions.UserNotAdminException;
-import cz.metacentrum.perun.core.api.exceptions.UserNotExistsException;
-import cz.metacentrum.perun.core.api.exceptions.VoExistsException;
-import cz.metacentrum.perun.core.api.exceptions.VoNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.*;
 
 import java.util.List;
 
@@ -46,7 +36,7 @@ public interface VosManager {
 	 * @throws RelationExistsException
 	 * @throws InternalErrorException
 	 */
-	List<Vo> getVos(PerunSession perunSession) throws InternalErrorException, PrivilegeException;
+	List<Vo> getVos(PerunSession perunSession) throws InternalErrorException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Get list of Vos without any privilege.
@@ -57,7 +47,7 @@ public interface VosManager {
 	 * @throws RelationExistsException
 	 * @throws InternalErrorException
 	 */
-	List<Vo> getAllVos(PerunSession perunSession) throws InternalErrorException, PrivilegeException;
+	List<Vo> getAllVos(PerunSession perunSession) throws InternalErrorException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Delete VO.
@@ -68,7 +58,7 @@ public interface VosManager {
 	 * @throws InternalErrorException
 	 * @throws PrivilegeException
 	 */
-	void deleteVo(PerunSession perunSession, Vo vo) throws VoNotExistsException, InternalErrorException, PrivilegeException;
+	void deleteVo(PerunSession perunSession, Vo vo) throws VoNotExistsException, InternalErrorException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Delete VO.
@@ -80,7 +70,7 @@ public interface VosManager {
 	 * @throws InternalErrorException
 	 * @throws PrivilegeException
 	 */
-	void deleteVo(PerunSession perunSession, Vo vo, boolean forceDelete) throws VoNotExistsException, InternalErrorException, PrivilegeException;
+	void deleteVo(PerunSession perunSession, Vo vo, boolean forceDelete) throws VoNotExistsException, InternalErrorException, PrivilegeException, PolicyNotExistsException;
 
 
 	/**
@@ -93,7 +83,7 @@ public interface VosManager {
 	 * @throws InternalErrorException
 	 * @throws PrivilegeException
 	 */
-	Vo createVo(PerunSession perunSession, Vo vo) throws VoExistsException, PrivilegeException, InternalErrorException;
+	Vo createVo(PerunSession perunSession, Vo vo) throws VoExistsException, PrivilegeException, InternalErrorException, PolicyNotExistsException;
 
 	/**
 	 * Updates VO.
@@ -105,7 +95,7 @@ public interface VosManager {
 	 * @throws PrivilegeException
 	 * @throws InternalErrorException
 	 */
-	Vo updateVo(PerunSession perunSession, Vo vo) throws VoNotExistsException, InternalErrorException, PrivilegeException;
+	Vo updateVo(PerunSession perunSession, Vo vo) throws VoNotExistsException, InternalErrorException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Find existing VO by short name (short name is unique).
@@ -117,7 +107,7 @@ public interface VosManager {
 	 * @throws PrivilegeException
 	 * @throws InternalErrorException
 	 */
-	Vo getVoByShortName(PerunSession perunSession, String shortName) throws VoNotExistsException, InternalErrorException, PrivilegeException;
+	Vo getVoByShortName(PerunSession perunSession, String shortName) throws VoNotExistsException, InternalErrorException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Finds existing VO by id.
@@ -129,7 +119,7 @@ public interface VosManager {
 	 * @throws InternalErrorException
 	 * @throws PrivilegeException
 	 */
-	Vo getVoById(PerunSession perunSession, int id) throws VoNotExistsException, InternalErrorException, PrivilegeException;
+	Vo getVoById(PerunSession perunSession, int id) throws VoNotExistsException, InternalErrorException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Finds users, who can join the Vo.
@@ -143,7 +133,7 @@ public interface VosManager {
 	 * @throws VoNotExistsException
 	 * @throws PrivilegeException
 	 */
-	List<Candidate> findCandidates(PerunSession perunSession, Vo vo, String searchString, int maxNumOfResults) throws InternalErrorException, VoNotExistsException, PrivilegeException;
+	List<Candidate> findCandidates(PerunSession perunSession, Vo vo, String searchString, int maxNumOfResults) throws InternalErrorException, VoNotExistsException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Finds users, who can join the Vo.
@@ -156,7 +146,7 @@ public interface VosManager {
 	 * @throws VoNotExistsException
 	 * @throws PrivilegeException
 	 */
-	List<Candidate> findCandidates(PerunSession perunSession, Vo vo, String searchString) throws InternalErrorException, VoNotExistsException, PrivilegeException;
+	List<Candidate> findCandidates(PerunSession perunSession, Vo vo, String searchString) throws InternalErrorException, VoNotExistsException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Finds users, who can join the group in Vo.
@@ -169,7 +159,7 @@ public interface VosManager {
 	 * @throws GroupNotExistsException
 	 * @throws PrivilegeException
 	 */
-	List<Candidate> findCandidates(PerunSession sess, Group group, String searchString) throws InternalErrorException, GroupNotExistsException, PrivilegeException;
+	List<Candidate> findCandidates(PerunSession sess, Group group, String searchString) throws InternalErrorException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Finds MemberCandidates who can join the Vo.
@@ -183,7 +173,7 @@ public interface VosManager {
 	 * @throws VoNotExistsException when vo does not exist
 	 * @throws PrivilegeException privilege exception
 	 */
-	List<MemberCandidate> getCompleteCandidates(PerunSession sess, Vo vo, List<String> attrNames, String searchString) throws InternalErrorException, VoNotExistsException, PrivilegeException;
+	List<MemberCandidate> getCompleteCandidates(PerunSession sess, Vo vo, List<String> attrNames, String searchString) throws InternalErrorException, VoNotExistsException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Finds MemberCandidates who can join the Group.
@@ -197,7 +187,7 @@ public interface VosManager {
 	 * @throws GroupNotExistsException when group does not exist
 	 * @throws PrivilegeException privilege exception
 	 */
-	List<MemberCandidate> getCompleteCandidates(PerunSession sess, Group group, List<String> attrNames, String searchString) throws InternalErrorException, GroupNotExistsException, PrivilegeException;
+	List<MemberCandidate> getCompleteCandidates(PerunSession sess, Group group, List<String> attrNames, String searchString) throws InternalErrorException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException;
 
 
 	/**
@@ -211,7 +201,7 @@ public interface VosManager {
 	 * @throws AlreadyAdminException
 	 * @throws VoNotExistsException
 	 */
-	void addAdmin(PerunSession perunSession, Vo vo, User user) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, UserNotExistsException;
+	void addAdmin(PerunSession perunSession, Vo vo, User user) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, UserNotExistsException, PolicyNotExistsException;
 
 	/**
 	 * Add a group administrator to the VO.
@@ -225,7 +215,7 @@ public interface VosManager {
 	 * @throws VoNotExistsException
 	 * @throws GroupNotExistsException
 	 */
-	void addAdmin(PerunSession perunSession, Vo vo, Group group) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException;
+	void addAdmin(PerunSession perunSession, Vo vo, Group group) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException, PolicyNotExistsException;
 
 
 	/**
@@ -239,7 +229,7 @@ public interface VosManager {
 	 * @throws VoNotExistsException
 	 * @throws UserNotAdminException
 	 */
-	void removeAdmin(PerunSession perunSession, Vo vo, User user) throws InternalErrorException, PrivilegeException, VoNotExistsException, UserNotAdminException, UserNotExistsException;
+	void removeAdmin(PerunSession perunSession, Vo vo, User user) throws InternalErrorException, PrivilegeException, VoNotExistsException, UserNotAdminException, UserNotExistsException, PolicyNotExistsException;
 
 	/**
 	 * Removes a group administrator from the VO.
@@ -253,7 +243,7 @@ public interface VosManager {
 	 * @throws GroupNotAdminException
 	 * @throws GroupNotExistsException
 	 */
-	void removeAdmin(PerunSession perunSession, Vo vo, Group group) throws InternalErrorException, PrivilegeException, VoNotExistsException, GroupNotAdminException, GroupNotExistsException;
+	void removeAdmin(PerunSession perunSession, Vo vo, Group group) throws InternalErrorException, PrivilegeException, VoNotExistsException, GroupNotAdminException, GroupNotExistsException, PolicyNotExistsException;
 
 	/**
 	 * Get list of all user administrators for supported role and specific vo.
@@ -274,7 +264,7 @@ public interface VosManager {
 	 * @throws RoleNotSupportedException
 	 * @throws VoNotExistsException
 	 */
-	List<User> getAdmins(PerunSession perunSession, Vo vo, String role, boolean onlyDirectAdmins) throws InternalErrorException, PrivilegeException, VoNotExistsException, RoleNotSupportedException;
+	List<User> getAdmins(PerunSession perunSession, Vo vo, String role, boolean onlyDirectAdmins) throws InternalErrorException, PrivilegeException, VoNotExistsException, RoleNotSupportedException, PolicyNotExistsException;
 
 	/**
 	 * Get list of all richUser administrators for the vo and supported role with specific attributes.
@@ -299,7 +289,7 @@ public interface VosManager {
 	 * @throws RoleNotSupportedException
 	 * @throws UserNotExistsException
 	 */
-	List<RichUser> getRichAdmins(PerunSession perunSession, Vo vo, String role, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws InternalErrorException, PrivilegeException, VoNotExistsException, RoleNotSupportedException, UserNotExistsException;
+	List<RichUser> getRichAdmins(PerunSession perunSession, Vo vo, String role, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws InternalErrorException, PrivilegeException, VoNotExistsException, RoleNotSupportedException, UserNotExistsException, PolicyNotExistsException;
 
 	/**
 	 * Get list of group administrators of the given VO.
@@ -317,7 +307,7 @@ public interface VosManager {
 	 * @throws PrivilegeException
 	 * @throws RoleNotSupportedException
 	 */
-	List<Group> getAdminGroups(PerunSession perunSession, Vo vo, String role) throws InternalErrorException, PrivilegeException, VoNotExistsException, RoleNotSupportedException;
+	List<Group> getAdminGroups(PerunSession perunSession, Vo vo, String role) throws InternalErrorException, PrivilegeException, VoNotExistsException, RoleNotSupportedException, PolicyNotExistsException;
 
 	/**
 	 * Get list of Vo administrators.
@@ -440,7 +430,7 @@ public interface VosManager {
 	 * @throws UserNotExistsException
 	 * @throws PrivilegeException
 	 */
-	void addSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException;
+	void addSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Adds role SPONSOR for group in a VO.
@@ -454,7 +444,7 @@ public interface VosManager {
 	 * @throws GroupNotExistsException
 	 * @throws PrivilegeException
 	 */
-	void addSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException;
+	void addSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Removes role SPONSOR from user in a VO.
@@ -467,7 +457,7 @@ public interface VosManager {
 	 * @throws UserNotExistsException
 	 * @throws PrivilegeException
 	 */
-	void removeSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, UserNotAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException;
+	void removeSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, UserNotAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException, PolicyNotExistsException;
 
 	/**
 	 * Removes role SPONSOR from group in a VO.
@@ -480,6 +470,6 @@ public interface VosManager {
 	 * @throws GroupNotExistsException
 	 * @throws PrivilegeException
 	 */
-	void removeSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, GroupNotAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException;
+	void removeSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, GroupNotAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException;
 
 }
