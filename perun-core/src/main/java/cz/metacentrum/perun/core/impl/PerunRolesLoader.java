@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import cz.metacentrum.perun.core.api.BeansUtils;
 import cz.metacentrum.perun.core.api.PerunPolicy;
+import cz.metacentrum.perun.core.api.RoleManagementRules;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,14 +80,7 @@ public class PerunRolesLoader {
 
 			//Field policy_roles is saved as List of maps in the for loop
 			for (JsonNode perunRoleNode : perunRolesNode) {
-				Map<String, String> innerRoleMap = new HashMap<>();
-				Iterator<String> roleArrayKeys = perunRoleNode.fieldNames();
-				while (roleArrayKeys.hasNext()) {
-					String role = roleArrayKeys.next();
-					JsonNode roleObjectNode = perunRoleNode.get(role);
-					String object = roleObjectNode.isNull() ? null : roleObjectNode.textValue();
-					innerRoleMap.put(role, object);
-				}
+				Map<String, String> innerRoleMap = createmapFromJsonNode(perunRoleNode);
 				perunRoles.add(innerRoleMap);
 			}
 
@@ -97,6 +91,35 @@ public class PerunRolesLoader {
 		}
 
 		return policies;
+	}
+
+	public Map<String, RoleManagementRules> loadPerunRolesManagement() {
+		Map<String, RoleManagementRules> rolesManagementRules = new HashMap<>();
+		JsonNode rootNode = loadConfigurationFile();
+		//Fetch all policies from the configuration file
+		JsonNode rolesNodes = rootNode.get("perun_roles_management");
+
+		// For each role node construct RoleManagementRules and add it to the map
+		Iterator<String> roleNames =rolesNodes.fieldNames();
+		while(roleNames.hasNext()) {
+			String roleName = roleNames.next();
+			JsonNode roleNode = rolesNodes.get(roleName);
+			List<Map<String, String>> privilegedRoles = new ArrayList<>();
+			JsonNode privilegedRolesNode = roleNode.get("privileged_roles");
+
+			//Field privileged_roles is saved as List of maps in the for loop
+			for (JsonNode privilegedRoleNode : privilegedRolesNode) {
+				Map<String, String> innerRoleMap = createmapFromJsonNode(privilegedRoleNode);
+				privilegedRoles.add(innerRoleMap);
+			}
+
+			Map<String, String> entitiesToManage = createmapFromJsonNode(roleNode.get("entities_to_manage"));
+			Map<String, String> objectsToAssign = createmapFromJsonNode(roleNode.get("assign_to_objects"));
+
+			rolesManagementRules.put(roleName, new RoleManagementRules(roleName, privilegedRoles, entitiesToManage, objectsToAssign));
+		}
+
+		return rolesManagementRules;
 	}
 
 	private JsonNode loadConfigurationFile() {
@@ -111,6 +134,20 @@ public class PerunRolesLoader {
 		}
 
 		return rootNode;
+	}
+
+	private Map<String, String> createmapFromJsonNode(JsonNode node) {
+		Map<String, String> resultMap = new HashMap<>();
+
+		Iterator<String> nodeArrayKeys = node.fieldNames();
+		while (nodeArrayKeys.hasNext()) {
+			String key = nodeArrayKeys.next();
+			JsonNode valueNode = node.get(key);
+			String value = valueNode.isNull() ? null : valueNode.textValue();
+			resultMap.put(key, value);
+		}
+
+		return resultMap;
 	}
 
 	public void setConfigurationPath(Resource configurationPath) {
