@@ -11,6 +11,7 @@ import cz.metacentrum.perun.core.api.PerunPolicy;
 import cz.metacentrum.perun.core.api.PerunSession;
 import cz.metacentrum.perun.core.api.Resource;
 import cz.metacentrum.perun.core.api.Role;
+import cz.metacentrum.perun.core.api.RoleManagementRules;
 import cz.metacentrum.perun.core.api.SecurityTeam;
 import cz.metacentrum.perun.core.api.Service;
 import cz.metacentrum.perun.core.api.SpecificUserType;
@@ -20,8 +21,11 @@ import cz.metacentrum.perun.core.api.exceptions.AlreadyAdminException;
 import cz.metacentrum.perun.core.api.exceptions.GroupNotAdminException;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 import cz.metacentrum.perun.core.api.exceptions.PolicyNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.RoleAlreadySetException;
+import cz.metacentrum.perun.core.api.exceptions.RoleNotSetException;
 import cz.metacentrum.perun.core.api.exceptions.UserNotAdminException;
 import cz.metacentrum.perun.core.implApi.AuthzResolverImplApi;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -184,6 +188,7 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 		this.perunRolesLoader.loadPerunRoles(jdbc);
 		this.perunRolesLoader.loadActionTypes(jdbc);
 		perunPoliciesContainer.setPerunPolicies(this.perunRolesLoader.loadPerunPolicies());
+		perunPoliciesContainer.setRolesmanagementRules(this.perunRolesLoader.loadPerunRolesManagement());
 	}
 
 	public static Map<String, Set<ActionType>> getRolesPrivilegedToOperateOnAttribute(String actionType, AttributeDefinition attrDef) {
@@ -797,6 +802,46 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 		this.perunRolesLoader.loadPerunRoles(jdbc);
 		this.perunRolesLoader.loadActionTypes(jdbc);
 		perunPoliciesContainer.setPerunPolicies(this.perunRolesLoader.loadPerunPolicies());
+		perunPoliciesContainer.setRolesmanagementRules(this.perunRolesLoader.loadPerunRolesManagement());
+	}
+
+	@Override
+	public Integer getRoleId(String role) {
+		try {
+			return jdbc.queryForInt("SELECT id FROM roles WHERE name=?", role.toLowerCase());
+		} catch (RuntimeException e) {
+			throw new InternalErrorException(e);
+		}
+	}
+
+	@Override
+	public void setRole(PerunSession sess, Map<String, Integer> mappingOfValues) throws RoleAlreadySetException {
+		String query = prepareQueryToSetRole(mappingOfValues);
+
+		try {
+			jdbc.update(query);
+		} catch (DataIntegrityViolationException e) {
+			throw new RoleAlreadySetException("The role was already set.");
+		} catch (RuntimeException e) {
+			throw new InternalErrorException(e);
+		}
+	}
+
+	@Override
+	public void unsetRole(PerunSession sess, Map<String, Integer> mappingOfValues) throws RoleNotSetException {
+		String query = prepareQueryToUnsetRole(mappingOfValues);
+
+		try {
+			if (0 == jdbc.update(query)) {
+				throw new RoleNotSetException("The role already unset.");
+			}
+		} catch (RuntimeException e) {
+			throw new InternalErrorException(e);
+		}
+	}
+
+	public static RoleManagementRules getRoleManagementRules(String roleName) throws PolicyNotExistsException {
+		return perunPoliciesContainer.getRoleManagementRules(roleName);
 	}
 
 	public static PerunPolicy getPerunPolicy(String policyName) throws PolicyNotExistsException {
@@ -805,5 +850,36 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 
 	public static List<PerunPolicy> fetchPolicyWithAllIncludedPolicies(String policyName) throws PolicyNotExistsException {
 		return perunPoliciesContainer.fetchPolicyWithAllIncludedPolicies(policyName);
+	}
+
+	private String prepareQueryToSetRole(Map<String, Integer> mappingOfValues) {
+		String columnsFromMapping;
+		String valuesFromMapping;
+		List<String> columnNames = new ArrayList<>();
+		List<String> columnValues = new ArrayList<>();
+
+		for (String columnName: mappingOfValues.keySet()) {
+			columnNames.add(columnName);
+			columnValues.add(mappingOfValues.get(columnName).toString());
+		}
+
+		columnsFromMapping = StringUtils.join(columnNames, ",");
+		valuesFromMapping = StringUtils.join(columnValues, ",");
+
+		return "insert into authz (" + columnsFromMapping + ") values (" + valuesFromMapping + ")";
+	}
+
+	private String prepareQueryToUnsetRole(Map<String, Integer> mappingOfValues) {
+		String mappingAsString;
+		List<String> listofConditions = new ArrayList<>();
+
+		for (String columnName: mappingOfValues.keySet()) {
+			String condition = columnName + "=" + mappingOfValues.get(columnName).toString();
+			listofConditions.add(condition);
+		}
+
+		mappingAsString = StringUtils.join(listofConditions, " and ");
+
+		return "delete from authz where " + mappingAsString;
 	}
 }
