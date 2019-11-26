@@ -20,6 +20,7 @@ perun_roles:
   - SECURITYADMIN
   - CABINETADMIN
   - UNKNOWN
+  - MEMBERSHIP
 
 # A list of action types that are loaded to the database.
 perun_action_types:

@@ -25,6 +25,7 @@ public class Role {
 	public static final String SECURITYADMIN = "SECURITYADMIN";
 	public static final String CABINETADMIN = "CABINETADMIN";
 	public static final String UNKNOWNROLENAME = "UNKNOWN";
+	public static final String MEMBERSHIP = "MEMBERSHIP";
 	
 	public static List<String> rolesAsList() {
 		return Arrays.asList(CABINETADMIN, ENGINE, FACILITYADMIN, GROUPADMIN,
