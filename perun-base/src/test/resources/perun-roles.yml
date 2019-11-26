@@ -42,6 +42,33 @@ perun_action_types:
   - name: WRITE_PUBLIC
     object:
     description: Anyone can write, rewrite and remove value.
+  - name: READ
+    object: Vo
+    description:
+  - name: READ
+    object: Group
+    description:
+  - name: READ
+    object: Facility
+    description:
+  - name: READ
+    object: User
+    description:
+  - name: WRITE
+    object: Vo
+    description:
+  - name: WRITE
+    object: Group
+    description:
+  - name: WRITE
+    object: Facility
+    description:
+  - name: WRITE
+    object: User
+    description:
+  - name: WRITE
+    object: Vo
+    description:
 
 #A list of Perun policies that are loaded to the PerunPoliciesContainer.
 perun_policies:
