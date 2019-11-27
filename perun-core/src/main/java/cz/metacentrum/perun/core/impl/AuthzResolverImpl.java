@@ -33,6 +33,7 @@ import org.springframework.jdbc.core.SingleColumnRowMapper;
 import javax.sql.DataSource;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -183,6 +184,44 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 		this.perunRolesLoader.loadPerunRoles(jdbc);
 		this.perunRolesLoader.loadActionTypes(jdbc);
 		perunPoliciesContainer.setPerunPolicies(this.perunRolesLoader.loadPerunPolicies());
+	}
+
+	public static Map<String, Set<ActionType>> getRolesPrivilegedToOperateOnAttribute(String actionType, AttributeDefinition attrDef) {
+		try {
+			List<Pair<String, ActionType>> pairs= jdbc.query("select distinct roles.name, action_types.action_type, action_types.object from attributes_authz " +
+					"join roles on attributes_authz.role_id=roles.id " +
+					"join action_types on attributes_authz.action_type_id=action_types.id " +
+					"where attributes_authz.attr_id=? and action_types.action_type=?",
+				(rs, arg1) -> new Pair<>(rs.getString("name").toUpperCase(), new ActionType(rs.getString("action_type").toUpperCase(), rs.getString("object"))),
+				attrDef.getId(), actionType.toLowerCase());
+
+			Map<String, Set<ActionType>> result = new HashMap<>();
+			for (Pair<String, ActionType> pair : pairs) {
+				if (result.containsKey(pair.getLeft())) {
+					result.get(pair.getLeft()).add(pair.getRight());
+				} else {
+					Set<ActionType> rights = new HashSet<>();
+					rights.add(pair.getRight());
+					result.put(pair.getLeft(), rights);
+				}
+			}
+
+			if (actionType.equals(ActionType.READ)) {
+				result.put(Role.PERUNADMIN, Collections.singleton(new ActionType(ActionType.READ, null)));
+				result.put(Role.PERUNOBSERVER, Collections.singleton(new ActionType(ActionType.READ, null)));
+				result.put(Role.RPC, Collections.singleton(new ActionType(ActionType.READ, null)));
+				result.put(Role.ENGINE, Collections.singleton(new ActionType(ActionType.READ, null)));
+			} else {
+				result.put(Role.PERUNADMIN, Collections.singleton(new ActionType(ActionType.WRITE, null)));
+			}
+
+			return result;
+
+		} catch (EmptyResultDataAccessException e) {
+			return new HashMap<>();
+		} catch (RuntimeException e) {
+			throw new InternalErrorException(e);
+		}
 	}
 
 	public static Map<String, Set<String>> getRolesWhichCanWorkWithAttribute(String actionType, AttributeDefinition attrDef) throws InternalErrorException {
