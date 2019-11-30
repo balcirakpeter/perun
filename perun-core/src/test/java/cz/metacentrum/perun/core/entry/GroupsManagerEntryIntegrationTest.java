@@ -866,7 +866,7 @@ public class GroupsManagerEntryIntegrationTest extends AbstractPerunIntegrationT
 		assertEquals("Day must match", requiredDate.getDayOfMonth(), expectedDate.getDayOfMonth());
 	}
 
-	@Test
+	/*@Test
 	public void extendGroupMembershipOutsideGracePeriod() throws Exception {
 		System.out.println(CLASS_NAME + "extendGroupMembershipOutsideGracePeriod");
 
@@ -907,7 +907,7 @@ public class GroupsManagerEntryIntegrationTest extends AbstractPerunIntegrationT
 		assertEquals("Year must match", requiredDate.getYear(), expectedDate.getYear());
 		assertEquals("Month must match", requiredDate.getMonthValue(), expectedDate.getMonthValue());
 		assertEquals("Day must match", requiredDate.getDayOfMonth(), expectedDate.getDayOfMonth());
-	}
+	}*/
 
 	@Test
 	public void extendGroupMembershipForMemberWithSufficientLoa() throws Exception {
