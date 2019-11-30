@@ -2805,7 +2805,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 
 	private enum MembershipPrivilegesResolver implements BiFunction<PerunSession, Set<Integer>, Boolean> {
 		Vo((sess, objectIds) -> {
-			if (sess.getPerunPrincipal().getUser() != null) return false;
+			if (sess.getPerunPrincipal().getUser() == null) return false;
 			List<Member> principalUserMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, sess.getPerunPrincipal().getUser());
 			for (Integer objectId: objectIds) {
 				for (Member userMember : principalUserMembers) {
@@ -2817,7 +2817,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 			return false;
 		}),
 		Facility((sess, objectIds) -> {
-			if (sess.getPerunPrincipal().getUser() != null) return false;
+			if (sess.getPerunPrincipal().getUser() == null) return false;
 			HashSet<Resource> resourcesFromUser = new HashSet<>();
 			List<Member> principalUserMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, sess.getPerunPrincipal().getUser());
 			for (Member member : principalUserMembers) {
@@ -2830,6 +2830,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 			return false;
 		}),
 		Group((sess, objectIds) -> {
+			if (sess.getPerunPrincipal().getUser() == null) return false;
 			List<Member> principalUserMembers = getPerunBl().getMembersManagerBl().getMembersByUser(sess, sess.getPerunPrincipal().getUser());
 			for (Member member : principalUserMembers) {
 				if (member.getStatus() != Status.VALID) continue;
