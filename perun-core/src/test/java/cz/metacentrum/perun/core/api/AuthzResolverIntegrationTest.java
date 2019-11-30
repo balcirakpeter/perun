@@ -404,7 +404,8 @@ public class AuthzResolverIntegrationTest extends AbstractPerunIntegrationTest {
 		attrDef = perun.getAttributesManagerBl().createAttribute(sess, attrDef);
 
 		List<AttributeRights> rights = new ArrayList<>();
-		rights.add(new AttributeRights(attrDef.getId(), Role.SELF, Arrays.asList(new ActionType(ActionType.READ, "User"), new ActionType(ActionType.READ, null))));
+		rights.add(new AttributeRights(attrDef.getId(), Role.SELF, Collections.singletonList(new ActionType(ActionType.READ, "User"))));
+		rights.add(new AttributeRights(attrDef.getId(), Role.MEMBERSHIP, Collections.singletonList(new ActionType(ActionType.READ, null))));
 		perun.getAttributesManagerBl().setAttributeRights(sess, rights);
 
 		Attribute userAttribute = new Attribute(attrDef, 2);
@@ -442,7 +443,8 @@ public class AuthzResolverIntegrationTest extends AbstractPerunIntegrationTest {
 		attrDef = perun.getAttributesManagerBl().createAttribute(sess, attrDef);
 
 		List<AttributeRights> rights = new ArrayList<>();
-		rights.add(new AttributeRights(attrDef.getId(), Role.SELF, Arrays.asList(new ActionType(ActionType.READ, "User"), new ActionType(ActionType.READ, "Vo"))));
+		rights.add(new AttributeRights(attrDef.getId(), Role.SELF, Collections.singletonList(new ActionType(ActionType.READ, "User"))));
+		rights.add(new AttributeRights(attrDef.getId(), Role.MEMBERSHIP, Collections.singletonList(new ActionType(ActionType.READ, "Vo"))));
 		perun.getAttributesManagerBl().setAttributeRights(sess, rights);
 
 		Attribute userAttribute = new Attribute(attrDef, 2);
@@ -481,7 +483,8 @@ public class AuthzResolverIntegrationTest extends AbstractPerunIntegrationTest {
 		attrDef = perun.getAttributesManagerBl().createAttribute(sess, attrDef);
 
 		List<AttributeRights> rights = new ArrayList<>();
-		rights.add(new AttributeRights(attrDef.getId(), Role.SELF, Arrays.asList(new ActionType(ActionType.READ, "User"), new ActionType(ActionType.READ, "Vo"))));
+		rights.add(new AttributeRights(attrDef.getId(), Role.SELF, Collections.singletonList(new ActionType(ActionType.READ, "User"))));
+		rights.add(new AttributeRights(attrDef.getId(), Role.MEMBERSHIP, Collections.singletonList(new ActionType(ActionType.READ, "Vo"))));
 		perun.getAttributesManagerBl().setAttributeRights(sess, rights);
 
 		Attribute userAttribute = new Attribute(attrDef, 2);
