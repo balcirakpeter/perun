@@ -1081,12 +1081,7 @@ public class ResourcesManagerEntry implements ResourcesManager {
 		getResourcesManagerBl().checkResourceExists(sess, resource);
 		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
 
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, resource)) {
-			throw new PrivilegeException(sess, "addAdmin");
-		}
-
-		AuthzResolverBlImpl.setRole(sess, user, resource, Role.RESOURCEADMIN);
+		AuthzResolver.setRole(sess, user, resource, Role.RESOURCEADMIN);
 	}
 
 	@Override
@@ -1095,12 +1090,7 @@ public class ResourcesManagerEntry implements ResourcesManager {
 		getResourcesManagerBl().checkResourceExists(sess, resource);
 		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
 
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, resource)) {
-			throw new PrivilegeException(sess, "addAdmin");
-		}
-
-		AuthzResolverBlImpl.setRole(sess, group, resource, Role.RESOURCEADMIN);
+		AuthzResolver.setRole(sess, group, resource, Role.RESOURCEADMIN);
 	}
 
 	@Override
@@ -1109,12 +1099,7 @@ public class ResourcesManagerEntry implements ResourcesManager {
 		getResourcesManagerBl().checkResourceExists(sess, resource);
 		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
 
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, resource)) {
-			throw new PrivilegeException(sess, "removeAdmin");
-		}
-
-		AuthzResolverBlImpl.unsetRole(sess, user, resource, Role.RESOURCEADMIN);
+		AuthzResolver.unsetRole(sess, user, resource, Role.RESOURCEADMIN);
 	}
 
 	@Override
@@ -1123,12 +1108,7 @@ public class ResourcesManagerEntry implements ResourcesManager {
 		getResourcesManagerBl().checkResourceExists(sess, resource);
 		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
 
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, resource)) {
-			throw new PrivilegeException(sess, "removeAdmin");
-		}
-
-		AuthzResolverBlImpl.unsetRole(sess, group, resource, Role.RESOURCEADMIN);
+		AuthzResolver.unsetRole(sess, group, resource, Role.RESOURCEADMIN);
 	}
 
 	@Override

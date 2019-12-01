@@ -238,11 +238,7 @@ public class SecurityTeamsManagerEntry implements cz.metacentrum.perun.core.api.
 
 		getSecurityTeamsManagerBl().checkUserIsNotSecurityAdmin(sess, securityTeam, user);
 
-		if (!AuthzResolver.isAuthorized(sess, Role.SECURITYADMIN, securityTeam)) {
-			throw new PrivilegeException(sess, "addAdmin");
-		}
-
-		AuthzResolverBlImpl.setRole(sess, user, securityTeam, Role.SECURITYADMIN);
+		AuthzResolver.setRole(sess, user, securityTeam, Role.SECURITYADMIN);
 	}
 
 	@Override
@@ -253,11 +249,7 @@ public class SecurityTeamsManagerEntry implements cz.metacentrum.perun.core.api.
 
 		getSecurityTeamsManagerBl().checkGroupIsNotSecurityAdmin(sess, securityTeam, group);
 
-		if (!AuthzResolver.isAuthorized(sess, Role.SECURITYADMIN, securityTeam)) {
-			throw new PrivilegeException(sess, "addAdmin");
-		}
-
-		AuthzResolverBlImpl.setRole(sess, group, securityTeam, Role.SECURITYADMIN);
+		AuthzResolver.setRole(sess, group, securityTeam, Role.SECURITYADMIN);
 
 	}
 
@@ -269,12 +261,7 @@ public class SecurityTeamsManagerEntry implements cz.metacentrum.perun.core.api.
 
 		getSecurityTeamsManagerBl().checkUserIsSecurityAdmin(sess, securityTeam, user);
 
-		if (!AuthzResolver.isAuthorized(sess, Role.SECURITYADMIN, securityTeam)) {
-			throw new PrivilegeException(sess, "removeAdmin");
-		}
-
-
-		AuthzResolverBlImpl.unsetRole(sess, user, securityTeam, Role.SECURITYADMIN);
+		AuthzResolver.unsetRole(sess, user, securityTeam, Role.SECURITYADMIN);
 	}
 
 	@Override
@@ -285,11 +272,7 @@ public class SecurityTeamsManagerEntry implements cz.metacentrum.perun.core.api.
 
 		getSecurityTeamsManagerBl().checkGroupIsSecurityAdmin(sess, securityTeam, group);
 
-		if (!AuthzResolver.isAuthorized(sess, Role.SECURITYADMIN, securityTeam)) {
-			throw new PrivilegeException(sess, "removeAdmin");
-		}
-
-		AuthzResolverBlImpl.unsetRole(sess, group, securityTeam, Role.SECURITYADMIN);
+		AuthzResolver.unsetRole(sess, group, securityTeam, Role.SECURITYADMIN);
 	}
 
 	@Override

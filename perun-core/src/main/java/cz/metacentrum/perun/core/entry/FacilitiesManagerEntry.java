@@ -795,12 +795,7 @@ public class FacilitiesManagerEntry implements FacilitiesManager {
 		getFacilitiesManagerBl().checkFacilityExists(sess, facility);
 		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
 
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.FACILITYADMIN, facility)) {
-			throw new PrivilegeException(sess, "addAdmin");
-		}
-
-		AuthzResolverBlImpl.setRole(sess, user, facility, Role.FACILITYADMIN);
+		AuthzResolver.setRole(sess, user, facility, Role.FACILITYADMIN);
 	}
 
 	@Override
@@ -810,12 +805,7 @@ public class FacilitiesManagerEntry implements FacilitiesManager {
 		getFacilitiesManagerBl().checkFacilityExists(sess, facility);
 		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
 
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.FACILITYADMIN, facility)) {
-			throw new PrivilegeException(sess, "addAdmin");
-		}
-
-		AuthzResolverBlImpl.setRole(sess, group, facility, Role.FACILITYADMIN);
+		AuthzResolver.setRole(sess, group, facility, Role.FACILITYADMIN);
 	}
 
 	@Override
@@ -824,12 +814,8 @@ public class FacilitiesManagerEntry implements FacilitiesManager {
 
 		getFacilitiesManagerBl().checkFacilityExists(sess, facility);
 		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.FACILITYADMIN, facility)) {
-			throw new PrivilegeException(sess, "deleteAdmin");
-		}
 
-		AuthzResolverBlImpl.unsetRole(sess, user, facility, Role.FACILITYADMIN);
+		AuthzResolver.unsetRole(sess, user, facility, Role.FACILITYADMIN);
 
 	}
 
@@ -839,12 +825,8 @@ public class FacilitiesManagerEntry implements FacilitiesManager {
 
 		getFacilitiesManagerBl().checkFacilityExists(sess, facility);
 		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.FACILITYADMIN, facility)) {
-			throw new PrivilegeException(sess, "deleteAdmin");
-		}
 
-		AuthzResolverBlImpl.unsetRole(sess, group, facility, Role.FACILITYADMIN);
+		AuthzResolver.unsetRole(sess, group, facility, Role.FACILITYADMIN);
 
 	}
 

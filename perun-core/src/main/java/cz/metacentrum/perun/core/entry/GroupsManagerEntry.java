@@ -655,13 +655,7 @@ public class GroupsManagerEntry implements GroupsManager {
 		getGroupsManagerBl().checkGroupExists(sess, group);
 		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
 
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, group)
-				&& !AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, group)) {
-			throw new PrivilegeException(sess, "addAdmin");
-				}
-
-		AuthzResolverBlImpl.setRole(sess, user, group, Role.GROUPADMIN);
+		AuthzResolver.setRole(sess, user, group, Role.GROUPADMIN);
 	}
 
 	@Override
@@ -670,14 +664,7 @@ public class GroupsManagerEntry implements GroupsManager {
 		getGroupsManagerBl().checkGroupExists(sess, group);
 		getGroupsManagerBl().checkGroupExists(sess, authorizedGroup);
 
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, group)
-				&& !AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, group)) {
-
-			throw new PrivilegeException(sess, "addAdmin");
-				}
-
-		AuthzResolverBlImpl.setRole(sess, authorizedGroup, group, Role.GROUPADMIN);
+		AuthzResolver.setRole(sess, authorizedGroup, group, Role.GROUPADMIN);
 	}
 
 	@Override
@@ -686,13 +673,7 @@ public class GroupsManagerEntry implements GroupsManager {
 		getGroupsManagerBl().checkGroupExists(sess, group);
 		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
 
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, group)
-				&& !AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, group)) {
-			throw new PrivilegeException(sess, "removeAdmin");
-				}
-
-		AuthzResolverBlImpl.unsetRole(sess, user, group, Role.GROUPADMIN);
+		AuthzResolver.unsetRole(sess, user, group, Role.GROUPADMIN);
 	}
 
 	@Override
@@ -701,13 +682,7 @@ public class GroupsManagerEntry implements GroupsManager {
 		getGroupsManagerBl().checkGroupExists(sess, group);
 		getGroupsManagerBl().checkGroupExists(sess, authorizedGroup);
 
-		// Authorization
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, group)
-				&& !AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, group)) {
-			throw new PrivilegeException(sess, "removeAdmin");
-				}
-
-		AuthzResolverBlImpl.unsetRole(sess, authorizedGroup, group, Role.GROUPADMIN);
+		AuthzResolver.unsetRole(sess, authorizedGroup, group, Role.GROUPADMIN);
 	}
 
 	@Override

@@ -317,12 +317,7 @@ public class VosManagerEntry implements VosManager {
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
 
-		// Authorization - Vo admin required
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo)) {
-			throw new PrivilegeException(sess, "addAdmin");
-		}
-
-		AuthzResolverBlImpl.setRole(sess, user, vo, Role.VOADMIN);
+		AuthzResolver.setRole(sess, user, vo, Role.VOADMIN);
 	}
 
 
@@ -332,12 +327,7 @@ public class VosManagerEntry implements VosManager {
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);
 
-		// Authorization - Vo admin required
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo)) {
-			throw new PrivilegeException(sess, "addAdmin");
-		}
-
-		AuthzResolverBlImpl.setRole(sess, group, vo, Role.VOADMIN);
+		AuthzResolver.setRole(sess, group, vo, Role.VOADMIN);
 	}
 
 	@Override
@@ -346,12 +336,7 @@ public class VosManagerEntry implements VosManager {
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
 
-		// Authorization - Vo admin required
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo)) {
-			throw new PrivilegeException(sess, "deleteAdmin");
-		}
-
-		AuthzResolverBlImpl.unsetRole(sess, user, vo, Role.VOADMIN);
+		AuthzResolver.unsetRole(sess, user, vo, Role.VOADMIN);
 	}
 
 	@Override
@@ -360,12 +345,7 @@ public class VosManagerEntry implements VosManager {
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);
 
-		// Authorization - Vo admin required
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo)) {
-			throw new PrivilegeException(sess, "deleteAdmin");
-		}
-
-		AuthzResolverBlImpl.unsetRole(sess, group, vo, Role.VOADMIN);
+		AuthzResolver.unsetRole(sess, group, vo, Role.VOADMIN);
 	}
 
 	@Override
@@ -578,11 +558,9 @@ public class VosManagerEntry implements VosManager {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo)) {
-			throw new PrivilegeException(sess, "addSponsorRole");
-		}
+
 		log.debug("addSponsorRole({},{})",vo.getShortName(),user.getId());
-		AuthzResolverBlImpl.setRole(sess, user, vo, Role.SPONSOR);
+		AuthzResolver.setRole(sess, user, vo, Role.SPONSOR);
 	}
 
 	/**
@@ -593,10 +571,8 @@ public class VosManagerEntry implements VosManager {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo)) {
-			throw new PrivilegeException(sess, "addSponsorRole");
-		}
-		AuthzResolverBlImpl.setRole(sess, group, vo, Role.SPONSOR);
+
+		AuthzResolver.setRole(sess, group, vo, Role.SPONSOR);
 	}
 
 	/**
@@ -607,10 +583,8 @@ public class VosManagerEntry implements VosManager {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo)) {
-			throw new PrivilegeException(sess, "removeSponsorRole");
-		}
-		AuthzResolverBlImpl.unsetRole(sess, user, vo, Role.SPONSOR);
+
+		AuthzResolver.unsetRole(sess, user, vo, Role.SPONSOR);
 	}
 
 	/**
@@ -621,10 +595,8 @@ public class VosManagerEntry implements VosManager {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);
-		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, vo)) {
-			throw new PrivilegeException(sess, "removeSponsorRole");
-		}
-		AuthzResolverBlImpl.unsetRole(sess, group, vo, Role.SPONSOR);
+
+		AuthzResolver.unsetRole(sess, group, vo, Role.SPONSOR);
 	}
 
 	/**
