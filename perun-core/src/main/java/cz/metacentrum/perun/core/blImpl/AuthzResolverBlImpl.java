@@ -276,6 +276,13 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 
 	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Member member, Resource resource) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
 
+		//TODO create more complex check and change tests accordingly
+		if (member == null && resource != null) {
+			return isAuthorizedForAttribute(sess, actionType, attrDef, resource);
+		} else if (resource == null && member != null) {
+			return isAuthorizedForAttribute(sess, actionType, attrDef, member);
+		}
+
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, resource, member);
 
@@ -305,6 +312,14 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	}
 
 	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Group group, Resource resource) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+
+		//TODO create more complex check and change tests accordingly
+		if (group == null && resource != null) {
+			return isAuthorizedForAttribute(sess, actionType, attrDef, resource);
+		} else if (resource == null && group != null) {
+			return isAuthorizedForAttribute(sess, actionType, attrDef, group);
+		}
+
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, group, resource);
 
@@ -334,6 +349,14 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	}
 
 	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, User user, Facility facility) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+
+		//TODO create more complex check and change tests accordingly
+		if (user == null && facility != null) {
+			return isAuthorizedForAttribute(sess, actionType, attrDef, facility);
+		} else if (facility == null && user != null) {
+			return isAuthorizedForAttribute(sess, actionType, attrDef, user);
+		}
+
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, user, facility);
 
@@ -363,6 +386,14 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	}
 
 	public static boolean isAuthorizedForAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef, Member member, Group group) throws InternalErrorException, AttributeNotExistsException, WrongAttributeAssignmentException {
+
+		//TODO create more complex check and change tests accordingly
+		if (group == null && member != null) {
+			return isAuthorizedForAttribute(sess, actionType, attrDef, member);
+		} else if (member == null && group != null) {
+			return isAuthorizedForAttribute(sess, actionType, attrDef, group);
+		}
+
 		log.trace("Entering isAuthorizedForAttribute: sess='{}', actionType='{}', attrDef='{}', primaryHolder='{}', " +
 			"secondaryHolder='{}'", sess, actionType, attrDef, member, group);
 
