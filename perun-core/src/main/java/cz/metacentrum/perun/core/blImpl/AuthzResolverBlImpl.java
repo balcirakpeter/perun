@@ -2673,11 +2673,11 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 
 		for (String objectType : rules.getAssignedObjects().keySet()) {
 			if (!mapOfBeans.containsKey(objectType)) {
-				throw new InternalErrorException("Error");
+				throw new InternalErrorException("Cannot create a mapping for role management, because object of type: " + objectType + " cannot be obtained.");
 			}
 
 			if (mapOfBeans.get(objectType).size() != 1) {
-				throw new InternalErrorException("Error");
+				throw new InternalErrorException("Cannot create a mapping for role management, because there is more than one object of type: " + objectType + ".");
 			}
 
 			String definition = rules.getAssignedObjects().get(objectType);
