@@ -270,7 +270,7 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public void addAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, UserNotExistsException, PolicyNotExistsException {
+	public void addAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, UserNotExistsException, PolicyNotExistsException, RoleCannotBeManagedException {
 		Utils.notNull(sess, "sess");
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
@@ -280,7 +280,7 @@ public class VosManagerEntry implements VosManager {
 
 
 	@Override
-	public void addAdmin(PerunSession sess, Vo vo, Group group) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException, PolicyNotExistsException {
+	public void addAdmin(PerunSession sess, Vo vo, Group group) throws InternalErrorException, PrivilegeException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException, PolicyNotExistsException, RoleCannotBeManagedException {
 		Utils.notNull(sess, "sess");
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);
@@ -289,7 +289,7 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public void removeAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException, PrivilegeException, VoNotExistsException, UserNotAdminException, UserNotExistsException, PolicyNotExistsException {
+	public void removeAdmin(PerunSession sess, Vo vo, User user) throws InternalErrorException, PrivilegeException, VoNotExistsException, UserNotAdminException, UserNotExistsException, PolicyNotExistsException, RoleCannotBeManagedException {
 		Utils.notNull(sess, "sess");
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
@@ -298,7 +298,7 @@ public class VosManagerEntry implements VosManager {
 	}
 
 	@Override
-	public void removeAdmin(PerunSession sess, Vo vo, Group group) throws InternalErrorException, PrivilegeException, VoNotExistsException, GroupNotAdminException, GroupNotExistsException, PolicyNotExistsException {
+	public void removeAdmin(PerunSession sess, Vo vo, Group group) throws InternalErrorException, PrivilegeException, VoNotExistsException, GroupNotAdminException, GroupNotExistsException, PolicyNotExistsException, RoleCannotBeManagedException {
 		Utils.notNull(sess, "sess");
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);
@@ -505,7 +505,7 @@ public class VosManagerEntry implements VosManager {
 	 * Adds role SPONSOR for user in a VO.
 	 */
 	@Override
-	public void addSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException, PolicyNotExistsException {
+	public void addSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException, PolicyNotExistsException, RoleCannotBeManagedException {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
@@ -518,7 +518,7 @@ public class VosManagerEntry implements VosManager {
 	 * Adds role SPONSOR for group in a VO.
 	 */
 	@Override
-	public void addSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException {
+	public void addSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, AlreadyAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException, RoleCannotBeManagedException {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);
@@ -530,7 +530,7 @@ public class VosManagerEntry implements VosManager {
 	 * Removes role SPONSOR from user in a VO.
 	 */
 	@Override
-	public void removeSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, UserNotAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException, PolicyNotExistsException {
+	public void removeSponsorRole(PerunSession sess, Vo vo, User user) throws InternalErrorException, UserNotAdminException, VoNotExistsException, UserNotExistsException, PrivilegeException, PolicyNotExistsException, RoleCannotBeManagedException {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getUsersManagerBl().checkUserExists(sess, user);
@@ -542,7 +542,7 @@ public class VosManagerEntry implements VosManager {
 	 * Removes role SPONSOR from group in a VO.
 	 */
 	@Override
-	public void removeSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, GroupNotAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException {
+	public void removeSponsorRole(PerunSession sess, Vo vo, Group group) throws InternalErrorException, GroupNotAdminException, VoNotExistsException, GroupNotExistsException, PrivilegeException, PolicyNotExistsException, RoleCannotBeManagedException {
 		Utils.checkPerunSession(sess);
 		vosManagerBl.checkVoExists(sess, vo);
 		perunBl.getGroupsManagerBl().checkGroupExists(sess, group);

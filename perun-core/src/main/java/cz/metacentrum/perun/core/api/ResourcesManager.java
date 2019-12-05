@@ -18,6 +18,7 @@ import cz.metacentrum.perun.core.api.exceptions.ResourceNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.ResourceTagAlreadyAssignedException;
 import cz.metacentrum.perun.core.api.exceptions.ResourceTagNotAssignedException;
 import cz.metacentrum.perun.core.api.exceptions.ResourceTagNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.RoleCannotBeManagedException;
 import cz.metacentrum.perun.core.api.exceptions.ServiceAlreadyAssignedException;
 import cz.metacentrum.perun.core.api.exceptions.ServiceNotAssignedException;
 import cz.metacentrum.perun.core.api.exceptions.ServiceNotExistsException;
@@ -856,7 +857,7 @@ public interface ResourcesManager {
 	 * @throws AlreadyAdminException
 	 * @throws ResourceNotExistsException
 	 */
-	void addAdmin(PerunSession sess, Resource resource, User user) throws InternalErrorException, UserNotExistsException, PrivilegeException, AlreadyAdminException, ResourceNotExistsException;
+	void addAdmin(PerunSession sess, Resource resource, User user) throws InternalErrorException, UserNotExistsException, PrivilegeException, AlreadyAdminException, ResourceNotExistsException, RoleCannotBeManagedException;
 
 	/**
 	 * Add role resource admin to group for the selected resource.
@@ -870,7 +871,7 @@ public interface ResourcesManager {
 	 * @throws AlreadyAdminException
 	 * @throws ResourceNotExistsException
 	 */
-	void addAdmin(PerunSession sess, Resource resource, Group group) throws InternalErrorException, GroupNotExistsException, PrivilegeException, AlreadyAdminException, ResourceNotExistsException;
+	void addAdmin(PerunSession sess, Resource resource, Group group) throws InternalErrorException, GroupNotExistsException, PrivilegeException, AlreadyAdminException, ResourceNotExistsException, RoleCannotBeManagedException;
 
 	/**
 	 * Remove role resource admin from user for the selected resource.
@@ -884,7 +885,7 @@ public interface ResourcesManager {
 	 * @throws AlreadyAdminException
 	 * @throws ResourceNotExistsException
 	 */
-	void removeAdmin(PerunSession sess, Resource resource, User user) throws InternalErrorException, UserNotExistsException, PrivilegeException, UserNotAdminException, ResourceNotExistsException;
+	void removeAdmin(PerunSession sess, Resource resource, User user) throws InternalErrorException, UserNotExistsException, PrivilegeException, UserNotAdminException, ResourceNotExistsException, RoleCannotBeManagedException;
 
 	/**
 	 * Remove role resource admin from group for the selected resource.
@@ -898,7 +899,7 @@ public interface ResourcesManager {
 	 * @throws GroupNotAdminException
 	 * @throws ResourceNotExistsException
 	 */
-	void removeAdmin(PerunSession sess, Resource resource, Group group) throws InternalErrorException, GroupNotExistsException, PrivilegeException, GroupNotAdminException, ResourceNotExistsException;
+	void removeAdmin(PerunSession sess, Resource resource, Group group) throws InternalErrorException, GroupNotExistsException, PrivilegeException, GroupNotAdminException, ResourceNotExistsException, RoleCannotBeManagedException;
 
 	/**
 	 * Set ban for member on resource.

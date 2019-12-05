@@ -954,7 +954,7 @@ public class SecurityTeamsManagerEntryIntegrationTest extends AbstractPerunInteg
 		return authGroup;
 	}
 
-	private List<User> setUpAdmins(User u0, User u1, Group group) throws PrivilegeException, InternalErrorException, UserNotExistsException, AlreadyAdminException, SecurityTeamNotExistsException, GroupNotExistsException, MemberNotExistsException {
+	private List<User> setUpAdmins(User u0, User u1, Group group) throws PrivilegeException, InternalErrorException, UserNotExistsException, AlreadyAdminException, SecurityTeamNotExistsException, GroupNotExistsException, MemberNotExistsException, RoleCannotBeManagedException {
 		securityTeamsManagerEntry.addAdmin(sess, st0, u0);
 		securityTeamsManagerEntry.addAdmin(sess, st0, u1);
 

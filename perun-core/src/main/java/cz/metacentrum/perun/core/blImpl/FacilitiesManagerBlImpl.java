@@ -67,6 +67,7 @@ import cz.metacentrum.perun.core.api.exceptions.OwnerAlreadyAssignedException;
 import cz.metacentrum.perun.core.api.exceptions.OwnerAlreadyRemovedException;
 import cz.metacentrum.perun.core.api.exceptions.RelationExistsException;
 import cz.metacentrum.perun.core.api.exceptions.ResourceAlreadyRemovedException;
+import cz.metacentrum.perun.core.api.exceptions.RoleCannotBeManagedException;
 import cz.metacentrum.perun.core.api.exceptions.SecurityTeamAlreadyAssignedException;
 import cz.metacentrum.perun.core.api.exceptions.SecurityTeamNotAssignedException;
 import cz.metacentrum.perun.core.api.exceptions.UserNotAdminException;
@@ -313,6 +314,8 @@ public class FacilitiesManagerBlImpl implements FacilitiesManagerBl {
 				AuthzResolverBlImpl.setRole(sess, sess.getPerunPrincipal().getUser(), facility, Role.FACILITYADMIN);
 			} catch(AlreadyAdminException ex) {
 				throw new ConsistencyErrorException("Add manager to newly created Facility failed because there is particular manager already assigned", ex);
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		} else {
 			log.warn("Can't set Facility manager during creating of the Facility. User from perunSession is null. {} {}", facility, sess);
@@ -348,6 +351,8 @@ public class FacilitiesManagerBlImpl implements FacilitiesManagerBl {
 			} catch (GroupNotAdminException e) {
 				log.warn("When trying to unsetRole FacilityAdmin for group {} in the facility {} the exception was thrown {}", adminGroup, facility, e);
 				//skip and log as warning
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		}
 
@@ -359,6 +364,8 @@ public class FacilitiesManagerBlImpl implements FacilitiesManagerBl {
 			} catch (UserNotAdminException e) {
 				log.warn("When trying to unsetRole FacilityAdmin for user {} in the facility {} the exception was thrown {}", adminUser, facility, e);
 				//skip and log as warning
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		}
 
@@ -814,6 +821,8 @@ public class FacilitiesManagerBlImpl implements FacilitiesManagerBl {
 				AuthzResolverBlImpl.setRole(sess, admin, destinationFacility, Role.FACILITYADMIN);
 			} catch (AlreadyAdminException ex) {
 				// we can ignore the exception in this particular case, user can be admin in both of the facilities
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		}
 
@@ -822,6 +831,8 @@ public class FacilitiesManagerBlImpl implements FacilitiesManagerBl {
 				AuthzResolverBlImpl.setRole(sess, adminGroup, destinationFacility, Role.FACILITYADMIN);
 			} catch (AlreadyAdminException ex) {
 				// we can ignore the exception in this particular case, group can be admin in both of the facilities
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		}
 	}

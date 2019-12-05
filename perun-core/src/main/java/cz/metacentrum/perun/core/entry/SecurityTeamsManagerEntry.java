@@ -17,6 +17,7 @@ import cz.metacentrum.perun.core.api.exceptions.IllegalArgumentException;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 import cz.metacentrum.perun.core.api.exceptions.PrivilegeException;
 import cz.metacentrum.perun.core.api.exceptions.RelationExistsException;
+import cz.metacentrum.perun.core.api.exceptions.RoleCannotBeManagedException;
 import cz.metacentrum.perun.core.api.exceptions.SecurityTeamExistsException;
 import cz.metacentrum.perun.core.api.exceptions.SecurityTeamNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.UserAlreadyBlacklistedException;
@@ -231,7 +232,7 @@ public class SecurityTeamsManagerEntry implements cz.metacentrum.perun.core.api.
 	}
 
 	@Override
-	public void addAdmin(PerunSession sess, SecurityTeam securityTeam, User user) throws InternalErrorException, PrivilegeException, SecurityTeamNotExistsException, UserNotExistsException, AlreadyAdminException {
+	public void addAdmin(PerunSession sess, SecurityTeam securityTeam, User user) throws InternalErrorException, PrivilegeException, SecurityTeamNotExistsException, UserNotExistsException, AlreadyAdminException, RoleCannotBeManagedException {
 		Utils.checkPerunSession(sess);
 		getSecurityTeamsManagerBl().checkSecurityTeamExists(sess, securityTeam);
 		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
@@ -242,7 +243,7 @@ public class SecurityTeamsManagerEntry implements cz.metacentrum.perun.core.api.
 	}
 
 	@Override
-	public void addAdmin(PerunSession sess, SecurityTeam securityTeam, Group group) throws InternalErrorException, PrivilegeException, SecurityTeamNotExistsException, GroupNotExistsException, AlreadyAdminException {
+	public void addAdmin(PerunSession sess, SecurityTeam securityTeam, Group group) throws InternalErrorException, PrivilegeException, SecurityTeamNotExistsException, GroupNotExistsException, AlreadyAdminException, RoleCannotBeManagedException {
 		Utils.checkPerunSession(sess);
 		getSecurityTeamsManagerBl().checkSecurityTeamExists(sess, securityTeam);
 		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);
@@ -254,7 +255,7 @@ public class SecurityTeamsManagerEntry implements cz.metacentrum.perun.core.api.
 	}
 
 	@Override
-	public void removeAdmin(PerunSession sess, SecurityTeam securityTeam, User user) throws InternalErrorException, PrivilegeException, SecurityTeamNotExistsException, UserNotExistsException, UserNotAdminException {
+	public void removeAdmin(PerunSession sess, SecurityTeam securityTeam, User user) throws InternalErrorException, PrivilegeException, SecurityTeamNotExistsException, UserNotExistsException, UserNotAdminException, RoleCannotBeManagedException {
 		Utils.checkPerunSession(sess);
 		getSecurityTeamsManagerBl().checkSecurityTeamExists(sess, securityTeam);
 		getPerunBl().getUsersManagerBl().checkUserExists(sess, user);
@@ -265,7 +266,7 @@ public class SecurityTeamsManagerEntry implements cz.metacentrum.perun.core.api.
 	}
 
 	@Override
-	public void removeAdmin(PerunSession sess, SecurityTeam securityTeam, Group group) throws InternalErrorException, PrivilegeException, SecurityTeamNotExistsException, GroupNotExistsException, GroupNotAdminException {
+	public void removeAdmin(PerunSession sess, SecurityTeam securityTeam, Group group) throws InternalErrorException, PrivilegeException, SecurityTeamNotExistsException, GroupNotExistsException, GroupNotAdminException, RoleCannotBeManagedException {
 		Utils.checkPerunSession(sess);
 		getSecurityTeamsManagerBl().checkSecurityTeamExists(sess, securityTeam);
 		getPerunBl().getGroupsManagerBl().checkGroupExists(sess, group);

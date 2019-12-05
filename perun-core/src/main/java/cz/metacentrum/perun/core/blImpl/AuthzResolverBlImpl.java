@@ -63,6 +63,7 @@ import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 import cz.metacentrum.perun.core.api.exceptions.PolicyNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.ResourceNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.RoleAlreadySetException;
+import cz.metacentrum.perun.core.api.exceptions.RoleCannotBeManagedException;
 import cz.metacentrum.perun.core.api.exceptions.RoleNotSetException;
 import cz.metacentrum.perun.core.api.exceptions.SecurityTeamNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.ServiceNotExistsException;
@@ -755,9 +756,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	 * @param role                role of user in a session ( PERUNADMIN | VOADMIN | GROUPADMIN | SELF | FACILITYADMIN | VOOBSERVER | TOPGROUPCREATOR | SECURITYADMIN | RESOURCESELFSERVICE | RESOURCEADMIN )
 	 * @param complementaryObject object for which role will be set
 	 */
-	public static void setRole(PerunSession sess, User user, PerunBean complementaryObject, String role) throws InternalErrorException, AlreadyAdminException {
+	public static void setRole(PerunSession sess, User user, PerunBean complementaryObject, String role) throws InternalErrorException, AlreadyAdminException, RoleCannotBeManagedException {
 		if (!objectAndRoleManageableByEntity(user, complementaryObject, role)) {
-			throw new InternalErrorException("Error");
+			throw new RoleCannotBeManagedException("Combination of Role: "+ role +", Object: "+ complementaryObject +" and Entity: "+ user +" cannot be managed.");
 		}
 
 		Map<String, Integer> mappingOfValues = createMappingOfValues(user, complementaryObject, role);
@@ -787,9 +788,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	 * @param role                role of user in a session ( PERUNADMIN | VOADMIN | GROUPADMIN | SELF | FACILITYADMIN | VOOBSERVER | TOPGROUPCREATOR | RESOURCESELFSERVICE | RESOURCEADMIN )
 	 * @param complementaryObject object for which role will be set
 	 */
-	public static void setRole(PerunSession sess, Group authorizedGroup, PerunBean complementaryObject, String role) throws InternalErrorException, AlreadyAdminException {
+	public static void setRole(PerunSession sess, Group authorizedGroup, PerunBean complementaryObject, String role) throws InternalErrorException, AlreadyAdminException, RoleCannotBeManagedException {
 		if (!objectAndRoleManageableByEntity(authorizedGroup, complementaryObject, role)) {
-			throw new InternalErrorException("Error");
+			throw new RoleCannotBeManagedException("Combination of Role: "+ role +", Object: "+ complementaryObject +" and Entity: "+ authorizedGroup +" cannot be managed.");
 		}
 
 		Map<String, Integer> mappingOfValues = createMappingOfValues(authorizedGroup, complementaryObject, role);
@@ -820,9 +821,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	 * @param role                role of user in a session ( PERUNADMIN | VOADMIN | GROUPADMIN | SELF | FACILITYADMIN | VOOBSERVER | TOPGROUPCREATOR | RESOURCESELFSERVICE | RESOURCEADMIN )
 	 * @param complementaryObject object for which role will be unset
 	 */
-	public static void unsetRole(PerunSession sess, User user, PerunBean complementaryObject, String role) throws InternalErrorException, UserNotAdminException {
+	public static void unsetRole(PerunSession sess, User user, PerunBean complementaryObject, String role) throws InternalErrorException, UserNotAdminException, RoleCannotBeManagedException {
 		if (!objectAndRoleManageableByEntity(user, complementaryObject, role)) {
-			throw new InternalErrorException("Error");
+			throw new RoleCannotBeManagedException("Combination of Role: "+ role +", Object: "+ complementaryObject +" and Entity: "+ user +" cannot be managed.");
 		}
 
 		Map<String, Integer> mappingOfValues = createMappingOfValues(user, complementaryObject, role);
@@ -855,9 +856,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	 * @param role                role of user in a session ( PERUNADMIN | VOADMIN | GROUPADMIN | SELF | FACILITYADMIN | VOOBSERVER | TOPGROUPCREATOR | RESOURCESELFSERVICE | RESOURCEADMIN )
 	 * @param complementaryObject object for which role will be unset
 	 */
-	public static void unsetRole(PerunSession sess, Group authorizedGroup, PerunBean complementaryObject, String role) throws InternalErrorException, GroupNotAdminException {
+	public static void unsetRole(PerunSession sess, Group authorizedGroup, PerunBean complementaryObject, String role) throws InternalErrorException, GroupNotAdminException, RoleCannotBeManagedException {
 		if (!objectAndRoleManageableByEntity(authorizedGroup, complementaryObject, role)) {
-			throw new InternalErrorException("Error");
+			throw new RoleCannotBeManagedException("Combination of Role: "+ role +", Object: "+ complementaryObject +" and Entity: "+ authorizedGroup +" cannot be managed.");
 		}
 
 		Map<String, Integer> mappingOfValues = createMappingOfValues(authorizedGroup, complementaryObject, role);

@@ -93,6 +93,7 @@ import cz.metacentrum.perun.core.api.exceptions.ParserException;
 import cz.metacentrum.perun.core.api.exceptions.PasswordDeletionFailedException;
 import cz.metacentrum.perun.core.api.exceptions.PasswordOperationTimeoutException;
 import cz.metacentrum.perun.core.api.exceptions.RelationExistsException;
+import cz.metacentrum.perun.core.api.exceptions.RoleCannotBeManagedException;
 import cz.metacentrum.perun.core.api.exceptions.UserExtSourceExistsException;
 import cz.metacentrum.perun.core.api.exceptions.UserExtSourceNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.UserNotAdminException;
@@ -199,6 +200,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 					AuthzResolverBlImpl.setRole(sess, user, group, Role.GROUPADMIN);
 				} catch (AlreadyAdminException e) {
 					throw new ConsistencyErrorException("Newly created group already have an admin.", e);
+				} catch (RoleCannotBeManagedException e) {
+					throw new InternalErrorException(e);
 				}
 			}
 		}
@@ -371,6 +374,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				AuthzResolverBlImpl.unsetRole(sess, group, facility, Role.FACILITYADMIN);
 			} catch (GroupNotAdminException e) {
 				log.warn("Can't unset group {} as admin of facility {} due to group not admin exception {}.", group, facility, e);
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		}
 
@@ -380,6 +385,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				AuthzResolverBlImpl.unsetRole(sess, group, group1, Role.GROUPADMIN);
 			} catch (GroupNotAdminException e) {
 				log.warn("Can't unset group {} as admin of group {} due to group not admin exception {}.", group, group1, e);
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		}
 
@@ -389,6 +396,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				AuthzResolverBlImpl.unsetRole(sess, group, resource, Role.RESOURCEADMIN);
 			} catch (GroupNotAdminException e) {
 				log.warn("Can't unset group {} as admin of resource {} due to group not admin exception {}.", group, resource, e);
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		}
 
@@ -407,6 +416,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				AuthzResolverBlImpl.unsetRole(sess, group, securityTeam, Role.SECURITYADMIN);
 			} catch (GroupNotAdminException e) {
 				log.warn("Can't unset group {} as admin of security team {} due to group not admin exception {}.", group, securityTeam, e);
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		}
 
@@ -416,6 +427,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 				AuthzResolverBlImpl.unsetRole(sess, group, vo1, Role.VOADMIN);
 			} catch (GroupNotAdminException e) {
 				log.warn("Can't unset group {} as admin of facility {} due to group not admin exception {}.", group, vo1, e);
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		}
 
@@ -428,6 +441,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			} catch (GroupNotAdminException e) {
 				log.warn("When trying to unsetRole GroupAdmin for group {} in the group {} the exception was thrown {}", adminGroup, group, e);
 				//skip and log as warning
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		}
 
@@ -439,6 +454,8 @@ public class GroupsManagerBlImpl implements GroupsManagerBl {
 			} catch (UserNotAdminException e) {
 				log.warn("When trying to unsetRole GroupAdmin for user {} in the group {} the exception was thrown {}", adminUser, group, e);
 				//skip and log as warning
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
 			}
 		}
 

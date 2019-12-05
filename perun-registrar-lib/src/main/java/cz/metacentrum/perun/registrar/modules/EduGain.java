@@ -6,6 +6,7 @@ import cz.metacentrum.perun.core.api.exceptions.GroupNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 import cz.metacentrum.perun.core.api.exceptions.PerunException;
 import cz.metacentrum.perun.core.api.exceptions.PrivilegeException;
+import cz.metacentrum.perun.core.api.exceptions.RoleCannotBeManagedException;
 import cz.metacentrum.perun.core.api.exceptions.UserNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.VoNotExistsException;
 import cz.metacentrum.perun.registrar.RegistrarManager;
@@ -45,10 +46,15 @@ public class EduGain implements RegistrarModule {
 			Vo vo = app.getVo();
 			User user = app.getUser();
 
-			AuthzResolver.setRole(session, user, vo, Role.TOPGROUPCREATOR);
+			try {
+				AuthzResolver.setRole(session, user, vo, Role.TOPGROUPCREATOR);
 
-			Group membersGroup = session.getPerun().getGroupsManager().getGroupByName(session, vo, "members");
-			AuthzResolver.setRole(session, user, membersGroup, Role.GROUPADMIN);
+
+				Group membersGroup = session.getPerun().getGroupsManager().getGroupByName(session, vo, "members");
+				AuthzResolver.setRole(session, user, membersGroup, Role.GROUPADMIN);
+			} catch (RoleCannotBeManagedException e) {
+				throw new InternalErrorException(e);
+			}
 
 		}
 
