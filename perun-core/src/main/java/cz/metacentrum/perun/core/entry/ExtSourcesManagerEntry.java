@@ -252,6 +252,9 @@ public class ExtSourcesManagerEntry implements ExtSourcesManager {
 		}
 
 		getExtSourcesManagerBl().loadExtSourcesDefinitions(sess);
+
+		//TODO Temporary, used for demo, need to create separate button in gui
+		AuthzResolver.loadAuthorizationComponents(sess);
 	}
 
 	/**
