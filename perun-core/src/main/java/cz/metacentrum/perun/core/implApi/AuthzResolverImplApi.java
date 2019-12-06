@@ -528,20 +528,22 @@ public interface AuthzResolverImplApi {
 
 
 	/**
+	 * Set a role according the mapping of values
 	 *
 	 * @param sess
-	 * @param mappingOfValues
+	 * @param mappingOfValues  from which will be the query created
 	 * @throws InternalErrorException
-	 * @throws AlreadyAdminException
+	 * @throws RoleAlreadySetException
 	 */
 	void setRole(PerunSession sess, Map<String, Integer> mappingOfValues) throws RoleAlreadySetException;
 
 	/**
+	 * Unset a role according the mapping of values
 	 *
 	 * @param sess
-	 * @param mappingOfValues
+	 * @param mappingOfValues from which will be the query created
 	 * @throws InternalErrorException
-	 * @throws UserNotAdminException
+	 * @throws RoleNotSetException
 	 */
 	void unsetRole(PerunSession sess, Map<String, Integer> mappingOfValues) throws RoleNotSetException;
 }

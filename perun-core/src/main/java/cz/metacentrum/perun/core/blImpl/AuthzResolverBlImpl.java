@@ -886,14 +886,30 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	/**
+	 * Add owner for a specific user.
+	 *
+	 * @param sess Principal's session
+	 * @param user - owner
+	 * @param complementaryObject specific user
+	 * @throws AlreadyAdminException
+	 */
 	public static void addSpecificUserOwner(PerunSession sess, User user, PerunBean complementaryObject) throws AlreadyAdminException {
 		if (user != null && complementaryObject != null) authzResolverImpl.addAdmin(sess, (User) complementaryObject, user);
-		else throw new InternalErrorException("Error");
+		else throw new InternalErrorException("Parameters cannot be null, while adding specific user owner");
 	}
 
+	/**
+	 * Remove owner for a specific user.
+	 *
+	 * @param sess Principal's session
+	 * @param user - owner
+	 * @param complementaryObject specific user
+	 * @throws UserNotAdminException
+	 */
 	public static void removeSpecificUserOwner(PerunSession sess, User user, PerunBean complementaryObject) throws UserNotAdminException {
 		if (user != null && complementaryObject != null) authzResolverImpl.removeAdmin(sess, (User) complementaryObject, user);
-		else throw new InternalErrorException("Error");
+		else throw new InternalErrorException("Parameters cannot be null, while removing specific user owner");
 	}
 
 	/**
@@ -1482,6 +1498,8 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	//PRIVATE METHODS FOR ATTRIBUTE AUTHORIZATION
+
 	/**
 	 * Decide whether a principal has sufficient rights according the the given roles and objects.
 	 *
@@ -1638,8 +1656,15 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
-	//PRIVATE METHODS FOR ATTRIBUTE AUTHORIZATION//
-
+	/**
+	 * Get map of roles with their action types which can provide the type of action on the attribute.
+	 *
+	 * @param sess principals session
+	 * @param actionType which will be done on attribute.
+	 * @param attrDef for which will be the privileged roles fetched.
+	 * @return
+	 * @throws AttributeNotExistsException if the attribute definition does not exist.
+	 */
 	private static Map<String, Set<ActionType>> getRolesPrivilegedToOperateOnAttribute(PerunSession sess, String actionType, AttributeDefinition attrDef) throws AttributeNotExistsException {
 		Utils.notNull(sess, "sess");
 		Utils.notNull(actionType, "ActionType");
@@ -1655,6 +1680,14 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	}
 
 
+	/**
+	 * Resolve authorization for attribute according to map of privileged roles and map of objects.
+	 *
+	 * @param sess PerunSession which want to operate on attribute
+	 * @param roles map of roles which action types
+	 * @param mapOfObjectsToCheck map of object types with actual objects
+	 * @return true if principal is privileged to operate on attribute, false otherwise.
+	 */
 	private static boolean resolveAttributeAuthorization(PerunSession sess, Map<String, Set<ActionType>> roles, Map<String, Set<Integer>> mapOfObjectsToCheck) {
 		for (String role : roles.keySet()) {
 			Set<ActionType> roleActionTypes = roles.get(role);
@@ -1677,6 +1710,14 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return resolveMembershipPrivileges(sess, roles, mapOfObjectsToCheck);
 	}
 
+	/**
+	 * Resolve membership privileges for the principal
+	 *
+	 * @param sess from which will be principal fetched
+	 * @param roles which may contain Membership privileges
+	 * @param mapOfObjectsToCheck to which will be membership checked
+	 * @return true if roles contains MEMBERSHIP role and the principal satisfies that, false otherwise.
+	 */
 	private static boolean resolveMembershipPrivileges(PerunSession sess, Map<String, Set<ActionType>> roles, Map<String, Set<Integer>> mapOfObjectsToCheck) {
 		if (roles.containsKey(Role.MEMBERSHIP)) {
 			Set<ActionType> membershipActions = roles.get(Role.MEMBERSHIP);
@@ -1693,6 +1734,12 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return false;
 	}
 
+	/**
+	 * fetch all unique object types from the given map
+	 *
+	 * @param roles map from which will be the object types fetched.
+	 * @return set of object type names
+	 */
 	private static Set<String> fetchUniqueObjectTypes(Map<String, Set<ActionType>> roles) {
 		Set<String> uniqueObjectTypes = new HashSet<>();
 
@@ -1715,6 +1762,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		TV callOn(TA session, TS member, TM resource) throws InternalErrorException;
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the member and resource objects.
+	 */
 	private enum RelatedMemberResourceObjectsResolver implements MemberResourceRelatedObjectAction<PerunSession, Member, Resource, Set<Integer>> {
 		Vo((sess, member, resource) -> {
 			return Collections.singleton(member.getVoId());
@@ -1748,10 +1798,10 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		/**
-		 * Get RelatedObjectsResolver value by the given name or default value if the name does not exist.
+		 * Get RelatedMemberResourceObjectsResolver value by the given name or default value if the name does not exist.
 		 *
 		 * @param name of the value which will be retrieved if exists.
-		 * @return RelatedObjectsResolver value.
+		 * @return RelatedMemberResourceObjectsResolver value.
 		 */
 		public static RelatedMemberResourceObjectsResolver getValue(String name) {
 			try {
@@ -1775,6 +1825,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		TV callOn(TA session, TS group, TM resource) throws InternalErrorException;
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the group and resource objects.
+	 */
 	private enum RelatedGroupResourceObjectsResolver implements GroupResourceRelatedObjectAction<PerunSession, Group, Resource, Set<Integer>> {
 		Vo((sess, group, resource) -> {
 			return Collections.singleton(resource.getVoId());
@@ -1811,10 +1864,10 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		/**
-		 * Get RelatedObjectsResolver value by the given name or default value if the name does not exist.
+		 * Get RelatedGroupResourceObjectsResolver value by the given name or default value if the name does not exist.
 		 *
 		 * @param name of the value which will be retrieved if exists.
-		 * @return RelatedObjectsResolver value.
+		 * @return RelatedGroupResourceObjectsResolver value.
 		 */
 		public static RelatedGroupResourceObjectsResolver getValue(String name) {
 			try {
@@ -1838,6 +1891,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		TV callOn(TA session, TS user, TM facility) throws InternalErrorException;
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the user and facility objects.
+	 */
 	private enum RelatedUserFacilityObjectsResolver implements UserFacilityRelatedObjectAction<PerunSession, User, Facility, Set<Integer>> {
 		Vo((sess, user, facility) -> {
 			List<Member> membersFromUser = getPerunBl().getMembersManagerBl().getMembersByUser(sess, user);
@@ -1892,10 +1948,10 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		/**
-		 * Get RelatedObjectsResolver value by the given name or default value if the name does not exist.
+		 * Get RelatedUserFacilityObjectsResolver value by the given name or default value if the name does not exist.
 		 *
 		 * @param name of the value which will be retrieved if exists.
-		 * @return RelatedObjectsResolver value.
+		 * @return RelatedUserFacilityObjectsResolver value.
 		 */
 		public static RelatedUserFacilityObjectsResolver getValue(String name) {
 			try {
@@ -1919,6 +1975,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		TV callOn(TA session, TS member, TM group) throws InternalErrorException;
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the member and group objects.
+	 */
 	private enum RelatedMemberGroupObjectsResolver implements MemberGroupRelatedObjectAction<PerunSession, Member, Group, Set<Integer>> {
 		Vo((sess, member, group) -> {
 			return Collections.singleton(member.getVoId());
@@ -1978,6 +2037,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the User object.
+	 */
 	private enum RelatedUserObjectsResolver implements BiFunction<PerunSession, User, Set<Integer>> {
 		Vo((sess, user) -> {
 			List<Vo> vosFromUser = getPerunBl().getUsersManagerBl().getVosWhereUserIsMember(sess, user);
@@ -2026,7 +2088,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		 * Get RelatedUserObjectsResolver value by the given name or default value if the name does not exist.
 		 *
 		 * @param name of the value which will be retrieved if exists.
-		 * @return RelatedObjectsResolver value.
+		 * @return RelatedUserObjectsResolver value.
 		 */
 		public static RelatedUserObjectsResolver getValue(String name) {
 			try {
@@ -2042,6 +2104,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the member object.
+	 */
 	private enum RelatedMemberObjectsResolver implements BiFunction<PerunSession, Member, Set<Integer>> {
 		Vo((sess, member) -> {
 			List<Vo> vosFromMember = getPerunBl().getVosManagerBl().getVosByPerunBean(sess, member);
@@ -2084,10 +2149,10 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		/**
-		 * Get RelatedUserObjectsResolver value by the given name or default value if the name does not exist.
+		 * Get RelatedMemberObjectsResolver value by the given name or default value if the name does not exist.
 		 *
 		 * @param name of the value which will be retrieved if exists.
-		 * @return RelatedObjectsResolver value.
+		 * @return RelatedMemberObjectsResolver value.
 		 */
 		public static RelatedMemberObjectsResolver getValue(String name) {
 			try {
@@ -2103,6 +2168,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the Vo object.
+	 */
 	private enum RelatedVoObjectsResolver implements BiFunction<PerunSession, Vo, Set<Integer>> {
 		Vo((sess, vo) -> {
 			return Collections.singleton(vo.getId());
@@ -2151,7 +2219,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		 * Get RelatedVoObjectsResolver value by the given name or default value if the name does not exist.
 		 *
 		 * @param name of the value which will be retrieved if exists.
-		 * @return RelatedObjectsResolver value.
+		 * @return RelatedVoObjectsResolver value.
 		 */
 		public static RelatedVoObjectsResolver getValue(String name) {
 			try {
@@ -2167,6 +2235,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the Group object.
+	 */
 	private enum RelatedGroupObjectsResolver implements BiFunction<PerunSession, Group, Set<Integer>> {
 		Vo((sess, group) -> {
 			return Collections.singleton(group.getVoId());
@@ -2228,6 +2299,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the resource object.
+	 */
 	private enum RelatedResourceObjectsResolver implements BiFunction<PerunSession, Resource, Set<Integer>> {
 		Vo((sess, resource) -> {
 			return Collections.singleton(resource.getVoId());
@@ -2286,6 +2360,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the Facility object.
+	 */
 	private enum RelatedFacilityObjectsResolver implements BiFunction<PerunSession, Facility, Set<Integer>> {
 		Vo((sess, facility) -> {
 			List<Vo> vosFromMember = getPerunBl().getVosManagerBl().getVosByPerunBean(sess, facility);
@@ -2352,6 +2429,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the Host object.
+	 */
 	private enum RelatedHostObjectsResolver implements BiFunction<PerunSession, Host, Set<Integer>> {
 		Vo((sess, host) -> {
 			Facility facility = getPerunBl().getFacilitiesManagerBl().getFacilityForHost(sess, host);
@@ -2424,6 +2504,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the UserExtSource object.
+	 */
 	private enum RelatedUserExtSourceObjectsResolver implements BiFunction<PerunSession, UserExtSource, Set<Integer>> {
 		Vo((sess, ues) -> {
 			User user;
@@ -2511,10 +2594,10 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		/**
-		 * Get RelatedHostObjectsResolver value by the given name or default value if the name does not exist.
+		 * Get RelatedUserExtSourceObjectsResolver value by the given name or default value if the name does not exist.
 		 *
 		 * @param name of the value which will be retrieved if exists.
-		 * @return RelatedHostObjectsResolver value.
+		 * @return RelatedUserExtSourceObjectsResolver value.
 		 */
 		public static RelatedUserExtSourceObjectsResolver getValue(String name) {
 			try {
@@ -2530,6 +2613,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action retrieves all related objects of that name for the Entityless object.
+	 */
 	private enum RelatedEntitylessObjectsResolver implements BiFunction<PerunSession, String, Set<Integer>> {
 		Default((sess, key) -> {
 			return Collections.emptySet();
@@ -2542,10 +2628,10 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 
 		/**
-		 * Get RelatedHostObjectsResolver value by the given name or default value if the name does not exist.
+		 * Get RelatedEntitylessObjectsResolver value by the given name or default value if the name does not exist.
 		 *
 		 * @param name of the value which will be retrieved if exists.
-		 * @return RelatedHostObjectsResolver value.
+		 * @return RelatedEntitylessObjectsResolver value.
 		 */
 		public static RelatedEntitylessObjectsResolver getValue(String name) {
 			try {
@@ -2561,6 +2647,9 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		}
 	}
 
+	/**
+	 * Enum defines PerunBean's name and action. The action checks if the principal is a valid member of at least one related object of that name from the given ids.
+	 */
 	private enum MembershipPrivilegesResolver implements BiFunction<PerunSession, Set<Integer>, Boolean> {
 		Vo((sess, objectIds) -> {
 			if (sess.getPerunPrincipal().getUser() == null) return false;
@@ -2628,6 +2717,14 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 
 	}
 
+	/**
+	 * Checks whether the given parameters satisfies the rules associated with the role.
+	 *
+	 * @param entityToManage to which will be the role set or unset
+	 * @param complementaryObject which will be bounded with the role
+	 * @param role which will be managed
+	 * @return true if all given parameters imply with the associated rule, false otherwise.
+	 */
 	private static boolean objectAndRoleManageableByEntity(PerunBean entityToManage, PerunBean complementaryObject, String role) {
 		RoleManagementRules rules;
 		try {
@@ -2655,6 +2752,14 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		return true;
 	}
 
+	/**
+	 * Create a mapping of column names and ids which will be used for setting or unsetting of the role.
+	 *
+	 * @param entityToManage to which will be the role set or unset
+	 * @param complementaryObject which will be bounded with the role
+	 * @param role which will be managed
+	 * @return final mapping of values
+	 */
 	private static Map<String, Integer> createMappingOfValues(PerunBean entityToManage, PerunBean complementaryObject, String role) {
 		Map<String, Integer> mapping = new HashMap<>();
 

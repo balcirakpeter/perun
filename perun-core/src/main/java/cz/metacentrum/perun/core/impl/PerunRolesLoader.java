@@ -51,6 +51,11 @@ public class PerunRolesLoader {
 	private static final String ENTITIES_TO_MANAGE = "entities_to_manage";
 	private static final String ASSIGN_TO_OBJECTS = "assign_to_objects";
 
+	/**
+	 * Load perun roles from the configuration file to the database.
+	 *
+	 * @param jdbc connection to database
+	 */
 	public void loadPerunRoles(JdbcPerunTemplate jdbc) {
 
 		JsonNode rootNode = loadConfigurationFile();
@@ -110,6 +115,11 @@ public class PerunRolesLoader {
 		return policies;
 	}
 
+	/**
+	 * Load action types from the configuration file to the database
+	 *
+	 * @param jdbc connection to database
+	 */
 	public void loadActionTypes(JdbcPerunTemplate jdbc) {
 		JsonNode rootNode = loadConfigurationFile();
 		JsonNode actionTypesNode = rootNode.get(PERUN_ACTION_TYPES);
@@ -141,6 +151,11 @@ public class PerunRolesLoader {
 		}
 	}
 
+	/**
+	 * Load RoleManagementRules from the configuration file
+	 *
+	 * @return Map of RoleManagementRules
+	 */
 	public Map<String, RoleManagementRules> loadPerunRolesManagement() {
 		Map<String, RoleManagementRules> rolesManagementRules = new HashMap<>();
 		JsonNode rootNode = loadConfigurationFile();
@@ -170,6 +185,11 @@ public class PerunRolesLoader {
 		return rolesManagementRules;
 	}
 
+	/**
+	 * Loads the configuration file according the file path
+	 *
+	 * @return root node of the file
+	 */
 	private JsonNode loadConfigurationFile() {
 
 		JsonNode rootNode;
@@ -184,6 +204,12 @@ public class PerunRolesLoader {
 		return rootNode;
 	}
 
+	/**
+	 * Create map from JsonNode keys and their values
+	 *
+	 * @param node from which will be the map created
+	 * @return result map of keys and values
+	 */
 	private Map<String, String> createmapFromJsonNode(JsonNode node) {
 		Map<String, String> resultMap = new HashMap<>();
 

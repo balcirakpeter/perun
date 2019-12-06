@@ -182,6 +182,11 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 		return authzRoles;
 	}
 
+	/**
+	 * Load all authorization components to the database and to the PerunPoliciesContainer
+	 *
+	 * @throws InternalErrorException
+	 */
 	public void initialize() throws InternalErrorException {
 		if (BeansUtils.isPerunReadOnly()) log.debug("Loading authzresolver manager init in readOnly version.");
 
@@ -840,18 +845,45 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 		}
 	}
 
+	/**
+	 * Get RoleManagementRules for the role name from the PerunPoliciesContainer
+	 *
+	 * @param roleName for which will be the rules fetched
+	 * @return RoleManagementRules for the role name
+	 * @throws PolicyNotExistsException of there are no rules for the role name
+	 */
 	public static RoleManagementRules getRoleManagementRules(String roleName) throws PolicyNotExistsException {
 		return perunPoliciesContainer.getRoleManagementRules(roleName);
 	}
 
+	/**
+	 * Get PerunPolicy for the policy name from the PerunPoliciesContainer
+	 *
+	 * @param policyName for which will be the policy fetched
+	 * @return PerunPolicy for the role name
+	 * @throws PolicyNotExistsException of there is no policy for the policy name
+	 */
 	public static PerunPolicy getPerunPolicy(String policyName) throws PolicyNotExistsException {
 		return perunPoliciesContainer.getPerunPolicy(policyName);
 	}
 
+	/**
+	 * Get the policy according the policy name and all its inlcuded policies (without cycle).
+	 *
+	 * @param policyName from which will be the policies fetched
+	 * @return list of policies
+	 * @throws PolicyNotExistsException if policy or some included policies does not exists in PerunPoliciesContainer
+	 */
 	public static List<PerunPolicy> fetchPolicyWithAllIncludedPolicies(String policyName) throws PolicyNotExistsException {
 		return perunPoliciesContainer.fetchPolicyWithAllIncludedPolicies(policyName);
 	}
 
+	/**
+	 * Create query to set role according to the mapping of values
+	 *
+	 * @param mappingOfValues from which will be the query created
+	 * @return sql query
+	 */
 	private String prepareQueryToSetRole(Map<String, Integer> mappingOfValues) {
 		String columnsFromMapping;
 		String valuesFromMapping;
@@ -869,6 +901,12 @@ public class AuthzResolverImpl implements AuthzResolverImplApi {
 		return "insert into authz (" + columnsFromMapping + ") values (" + valuesFromMapping + ")";
 	}
 
+	/**
+	 * Create query to unset role according to the mapping of values
+	 *
+	 * @param mappingOfValues from which will be the query created
+	 * @return sql query
+	 */
 	private String prepareQueryToUnsetRole(Map<String, Integer> mappingOfValues) {
 		String mappingAsString;
 		List<String> listofConditions = new ArrayList<>();

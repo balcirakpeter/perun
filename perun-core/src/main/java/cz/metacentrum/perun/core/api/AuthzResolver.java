@@ -510,6 +510,15 @@ public class AuthzResolver {
 		return hasOneOfTheRolesForObject(sess, complementaryObject, Privileges.getRolesWhichCanManageRole(role));
 	}
 
+	/**
+	 * Check wheter the principal is authorized to manage the role on the object.
+	 *
+	 * @param sess principal's perun session
+	 * @param complementaryObject bounded with the role
+	 * @param role which will be managed
+	 * @return
+	 * @throws PolicyNotExistsException when the role does not have the management rules.
+	 */
 	public static boolean authorizedToManageRole(PerunSession sess, PerunBean complementaryObject, String role) throws PolicyNotExistsException {
 		if (!roleExists(role)) {
 			throw new InternalErrorException("Role: "+ role +" does not exists.");
