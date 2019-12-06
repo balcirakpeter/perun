@@ -92,6 +92,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Authorization resolver. It decides if the perunPrincipal has rights to do the provided operation.
@@ -103,6 +105,8 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	private final static Logger log = LoggerFactory.getLogger(AuthzResolverBlImpl.class);
 	private static AuthzResolverImplApi authzResolverImpl;
 	private static PerunBl perunBl;
+
+	private static final Pattern columnNamesPattern = Pattern.compile("^[_0-9a-zA-Z]+$");
 
 	private static final String UNSET_ROLE = "UNSET";
 	private static final String SET_ROLE = "SET";
@@ -2681,6 +2685,11 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 			}
 
 			String definition = rules.getAssignedObjects().get(objectType);
+
+			Matcher matcher = columnNamesPattern.matcher(definition);
+			if (!matcher.matches()) {
+				throw new InternalErrorException("Cannot create a mapping for role management, because column name: " + definition + " contains forbidden characters. Allowed are only [1-9a-zA-Z_].");
+			}
 
 			mapping.put(definition, mapOfBeans.get(objectType).iterator().next());
 		}
