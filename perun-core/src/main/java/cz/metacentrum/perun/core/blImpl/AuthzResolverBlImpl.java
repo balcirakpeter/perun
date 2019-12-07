@@ -4,27 +4,7 @@ import cz.metacentrum.perun.audit.events.AuthorizationEvents.RoleSetForGroup;
 import cz.metacentrum.perun.audit.events.AuthorizationEvents.RoleSetForUser;
 import cz.metacentrum.perun.audit.events.AuthorizationEvents.RoleUnsetForGroup;
 import cz.metacentrum.perun.audit.events.AuthorizationEvents.RoleUnsetForUser;
-import cz.metacentrum.perun.audit.events.FacilityManagerEvents.AdminAddedForFacility;
-import cz.metacentrum.perun.audit.events.FacilityManagerEvents.AdminGroupAddedForFacility;
-import cz.metacentrum.perun.audit.events.FacilityManagerEvents.AdminGroupRemovedForFacility;
-import cz.metacentrum.perun.audit.events.FacilityManagerEvents.AdminRemovedForFacility;
-import cz.metacentrum.perun.audit.events.GroupManagerEvents.AdminAddedForGroup;
-import cz.metacentrum.perun.audit.events.GroupManagerEvents.AdminGroupAddedForGroup;
-import cz.metacentrum.perun.audit.events.GroupManagerEvents.AdminGroupRemovedFromGroup;
-import cz.metacentrum.perun.audit.events.GroupManagerEvents.AdminRemovedForGroup;
-import cz.metacentrum.perun.audit.events.ResourceManagerEvents.AdminGroupAddedForResource;
-import cz.metacentrum.perun.audit.events.ResourceManagerEvents.AdminGroupRemovedForResource;
-import cz.metacentrum.perun.audit.events.ResourceManagerEvents.AdminUserAddedForResource;
-import cz.metacentrum.perun.audit.events.ResourceManagerEvents.AdminUserRemovedForResource;
-import cz.metacentrum.perun.audit.events.SecurityTeamsManagerEvents.AdminAddedForSecurityTeam;
-import cz.metacentrum.perun.audit.events.SecurityTeamsManagerEvents.AdminGroupAddedForSecurityTeam;
-import cz.metacentrum.perun.audit.events.SecurityTeamsManagerEvents.AdminGroupRemovedFromSecurityTeam;
-import cz.metacentrum.perun.audit.events.SecurityTeamsManagerEvents.AdminRemovedFromSecurityTeam;
 import cz.metacentrum.perun.audit.events.UserManagerEvents.UserPromotedToPerunAdmin;
-import cz.metacentrum.perun.audit.events.VoManagerEvents.AdminAddedForVo;
-import cz.metacentrum.perun.audit.events.VoManagerEvents.AdminGroupAddedForVo;
-import cz.metacentrum.perun.audit.events.VoManagerEvents.AdminGroupRemovedForVo;
-import cz.metacentrum.perun.audit.events.VoManagerEvents.AdminRemovedForVo;
 import cz.metacentrum.perun.core.api.ActionType;
 import cz.metacentrum.perun.core.api.Attribute;
 import cz.metacentrum.perun.core.api.AttributeDefinition;
@@ -34,7 +14,6 @@ import cz.metacentrum.perun.core.api.Facility;
 import cz.metacentrum.perun.core.api.Group;
 import cz.metacentrum.perun.core.api.Host;
 import cz.metacentrum.perun.core.api.Member;
-import cz.metacentrum.perun.core.api.Perun;
 import cz.metacentrum.perun.core.api.PerunBean;
 import cz.metacentrum.perun.core.api.PerunClient;
 import cz.metacentrum.perun.core.api.PerunPolicy;
@@ -74,7 +53,6 @@ import cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentExceptio
 import cz.metacentrum.perun.core.bl.AuthzResolverBl;
 import cz.metacentrum.perun.core.bl.PerunBl;
 import cz.metacentrum.perun.core.bl.VosManagerBl;
-import cz.metacentrum.perun.core.impl.Auditer;
 import cz.metacentrum.perun.core.impl.AuthzResolverImpl;
 import cz.metacentrum.perun.core.impl.AuthzRoles;
 import cz.metacentrum.perun.core.impl.Utils;
@@ -107,9 +85,6 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	private static PerunBl perunBl;
 
 	private static final Pattern columnNamesPattern = Pattern.compile("^[_0-9a-zA-Z]+$");
-
-	private static final String UNSET_ROLE = "UNSET";
-	private static final String SET_ROLE = "SET";
 
 	private final static Set<String> extSourcesWithMultipleIdentifiers = BeansUtils.getCoreConfig().getExtSourcesMultipleIdentifiers();
 
