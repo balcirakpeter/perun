@@ -709,7 +709,7 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 	public UserExtSource getUserExtSourceFromMultipleIdentifiers(PerunSession sess, PerunPrincipal principal) throws InternalErrorException, UserExtSourceNotExistsException {
 		String additionalIdentifiers = principal.getAdditionalInformations().get(additionalIdentifiersAttributeName);
 		if (additionalIdentifiers == null) {
-			throw new UserExtSourceNotExistsException("Mandatory attribute is not defined: ".concat(additionalIdentifiersAttributeName));
+			throw new InternalErrorException("Principal's mandatory attribute is not defined: ".concat(additionalIdentifiersAttributeName));
 		}
 		UserExtSource ues = null;
 		for(String identifier : additionalIdentifiers.split(multivalueAttributeSeparatorRegExp)) {
@@ -725,6 +725,7 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 				throw new InternalErrorException(errorMessage, ex);
 			}
 		}
+		if (ues == null) throw new UserExtSourceNotExistsException("User ext source was not found. Searched value is any from \"" + additionalIdentifiers + "\" in " + additionalIdentifiersPerunAttributeName);
 		return ues;
 	}
 
