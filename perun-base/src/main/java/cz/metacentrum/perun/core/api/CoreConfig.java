@@ -79,6 +79,8 @@ public class CoreConfig {
 	private String smtpUser;
 	private String smtpPass;
 	private List<String> autocreatedNamespaces;
+	private String extSourceNameFenix;
+	private String domainNameFenix;
 
 	public int getGroupMaxConcurentGroupsToSynchronize() {
 		return groupMaxConcurentGroupsToSynchronize;
@@ -653,5 +655,21 @@ public class CoreConfig {
 
 	public String getDefaultLoaIdP() {
 		return defaultLoaIdP;
+	}
+
+	public void setExtSourceNameFenix(String extSourceNameFenix) {
+		this.extSourceNameFenix = extSourceNameFenix;
+	}
+
+	public String getExtSourceNameFenix() {
+		return extSourceNameFenix;
+	}
+
+	public void setDomainNameFenix(String domainNameFenix) {
+		this.domainNameFenix = domainNameFenix;
+	}
+
+	public String getDomainNameFenix() {
+		return domainNameFenix;
 	}
 }
