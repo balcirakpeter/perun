@@ -80,6 +80,7 @@ public class CoreConfig {
 	private List<String> autocreatedNamespaces;
 	private String extSourceNameFenix;
 	private String domainNameFenix;
+	private boolean extSourcesForceMultipleIdentifiers;
 
 	public int getGroupMaxConcurentGroupsToSynchronize() {
 		return groupMaxConcurentGroupsToSynchronize;
@@ -656,5 +657,14 @@ public class CoreConfig {
 
 	public String getDomainNameFenix() {
 		return domainNameFenix;
+	}
+
+	public void setExtSourcesForceMultipleIdentifiers(boolean extSourcesForceMultipleIdentifiers) {
+		this.extSourcesForceMultipleIdentifiers = extSourcesForceMultipleIdentifiers;
+	}
+
+	public boolean isForceMultipleIdentifiersEnabled() {
+		return extSourcesForceMultipleIdentifiers;
+
 	}
 }
