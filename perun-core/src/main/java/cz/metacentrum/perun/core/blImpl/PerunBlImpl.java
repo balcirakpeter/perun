@@ -118,6 +118,7 @@ public class PerunBlImpl implements PerunBl {
 
 	private final static Set<String> dontLookupUsersForLogins = BeansUtils.getCoreConfig().getDontLookupUsers();
 	private final static Set<String> extSourcesWithMultipleIdentifiers = BeansUtils.getCoreConfig().getExtSourcesMultipleIdentifiers();
+	private final static String shibIdentityProvider_key = "originIdentityProvider";
 
 	public PerunBlImpl() {
 
@@ -133,10 +134,11 @@ public class PerunBlImpl implements PerunBl {
 		log.debug("creating PerunSession for user {}", principal.getActor());
 		if (principal.getUser() == null && usersManagerBl != null && !dontLookupUsersForLogins.contains(principal.getActor())) {
 			// Get the user if we are completely initialized
+			String shibIdentityProvider = principal.getAdditionalInformations().get(shibIdentityProvider_key);
 			try {
 				PerunSession internalSession = getPerunSession();
 				User user;
-				if(extSourcesWithMultipleIdentifiers.contains(principal.getExtSourceName())) {
+				if(shibIdentityProvider != null && extSourcesWithMultipleIdentifiers.contains(shibIdentityProvider)) {
 					UserExtSource ues = usersManagerBl.getUserExtSourceFromMultipleIdentifiers(internalSession, principal);
 					user = usersManagerBl.getUserByUserExtSource(internalSession, ues);
 				} else {
@@ -147,7 +149,7 @@ public class PerunBlImpl implements PerunBl {
 				if (client.getType() != PerunClient.Type.OAUTH) {
 					// Try to update LoA for userExtSource
 					UserExtSource ues;
-						if(extSourcesWithMultipleIdentifiers.contains(principal.getExtSourceName())) {
+						if(shibIdentityProvider != null && extSourcesWithMultipleIdentifiers.contains(shibIdentityProvider)) {
 							ues = usersManagerBl.getUserExtSourceFromMultipleIdentifiers(internalSession, principal);
 						} else {
 							ExtSource es = extSourcesManagerBl.getExtSourceByName(internalSession, principal.getExtSourceName());

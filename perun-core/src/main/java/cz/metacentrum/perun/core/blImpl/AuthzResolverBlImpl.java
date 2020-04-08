@@ -97,6 +97,7 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 	private static final String SET_ROLE = "SET";
 
 	private final static Set<String> extSourcesWithMultipleIdentifiers = BeansUtils.getCoreConfig().getExtSourcesMultipleIdentifiers();
+	private final static String shibIdentityProvider_key = "originIdentityProvider";
 
 	/**
 	 * Prepare necessary structures and resolve access rights for the session's principal.
@@ -1742,10 +1743,11 @@ public class AuthzResolverBlImpl implements AuthzResolverBl {
 		log.trace("Refreshing session data for session {}.", sess);
 
 		PerunPrincipal principal = sess.getPerunPrincipal();
+		String shibIdentityProvider = principal.getAdditionalInformations().get(shibIdentityProvider_key);
 
 		try {
 			User user;
-				if(extSourcesWithMultipleIdentifiers.contains(principal.getExtSourceName())) {
+				if(shibIdentityProvider != null && extSourcesWithMultipleIdentifiers.contains(shibIdentityProvider)) {
 					UserExtSource ues = perunBl.getUsersManagerBl().getUserExtSourceFromMultipleIdentifiers(sess, principal);
 					user = perunBl.getUsersManagerBl().getUserByUserExtSource(sess, ues);
 				} else {
