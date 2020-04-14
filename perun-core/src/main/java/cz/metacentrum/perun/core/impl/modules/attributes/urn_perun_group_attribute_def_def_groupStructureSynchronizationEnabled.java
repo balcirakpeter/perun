@@ -5,6 +5,7 @@ import cz.metacentrum.perun.core.api.AttributeDefinition;
 import cz.metacentrum.perun.core.api.AttributesManager;
 import cz.metacentrum.perun.core.api.Group;
 import cz.metacentrum.perun.core.api.GroupsManager;
+import cz.metacentrum.perun.core.api.ModulesConfigContainer;
 import cz.metacentrum.perun.core.api.exceptions.AttributeNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.ConsistencyErrorException;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
@@ -35,6 +36,9 @@ public class urn_perun_group_attribute_def_def_groupStructureSynchronizationEnab
 
 	@Override
 	public void checkAttributeSemantics(PerunSessionImpl perunSession, Group group, Attribute attribute) throws InternalErrorException, WrongReferenceAttributeValueException, WrongAttributeAssignmentException {
+		log.error("TEST BALCIRAK: file one = " + ModulesConfigContainer.getInstance().fetchPropertyAsString("testOne", "test"));
+		log.error("TEST BALCIRAK: file two = " + ModulesConfigContainer.getInstance().fetchPropertyAsString("testTwo", "test"));
+
 		//Null value is ok, means no settings for group
 		if(attribute.getValue() == null) return;
 
