@@ -78,8 +78,8 @@ public interface GroupsManager {
 	// Defines timestamp with start of last successful synchronization
 	String GROUP_START_OF_LAST_SUCCESSFUL_SYNC_ATTRNAME = AttributesManager.NS_GROUP_ATTR_DEF + ":startOfLastSuccessfulSynchronization";
 
-	String GROUP_SHORT_NAME_REGEXP = "^[-a-zA-Z.0-9_ ]+$";
-	String GROUP_FULL_NAME_REGEXP = "^[-a-zA-Z.0-9_ ]+([:][-a-zA-Z.0-9_ ]+)*";
+	String GROUP_SHORT_NAME_REGEXP = "^[-a-zA-Z.0-9_]+$";
+	String GROUP_FULL_NAME_REGEXP = "^[-a-zA-Z.0-9_]+([:][-a-zA-Z.0-9_]+)*";
 
 	/**
 	 * Creates a new top-level group and associates it with the VO from parameter.
