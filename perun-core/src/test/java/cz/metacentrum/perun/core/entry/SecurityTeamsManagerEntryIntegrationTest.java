@@ -969,7 +969,7 @@ public class SecurityTeamsManagerEntryIntegrationTest extends AbstractPerunInteg
 
 		Group authGroup = new Group();
 		authGroup.setShortName("testGroup");
-		authGroup.setName("Test Group");
+		authGroup.setName("Test_Group");
 		Member m0 = perun.getMembersManager().createMember(sess, vo, u0);
 		Member m1 = perun.getMembersManager().createMember(sess, vo, u1);
 		perun.getGroupsManager().createGroup(sess, vo, authGroup);
