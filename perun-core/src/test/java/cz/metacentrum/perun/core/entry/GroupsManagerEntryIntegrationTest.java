@@ -3295,7 +3295,7 @@ public class GroupsManagerEntryIntegrationTest extends AbstractPerunIntegrationT
 		setUpGroup(vo);
 
 		// setting second group
-		Group authorizedGroup = groupsManager.createGroup(sess, vo, new Group("New group", "just for testing"));
+		Group authorizedGroup = groupsManager.createGroup(sess, vo, new Group("New_group", "just for testing"));
 
 		groupsManager.addAdmin(sess, group, authorizedGroup);
 
