@@ -12,18 +12,25 @@ import cz.metacentrum.perun.core.api.exceptions.UserExtSourceExistsException;
 import cz.metacentrum.perun.core.impl.PerunSessionImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
 
 /**
  * Class for checking logins uniqueness in the namespace and filling fenix-persistent id.
  * It is only storage! Use module login fenix_persistent for access the value.
  *
  */
+@PropertySource(value = "file:@perun.conf@modules/urn_perun_user_attribute_def_def_login_namespace_fenix_persistent_shadow.properties", ignoreResourceNotFound = true)
 public class urn_perun_user_attribute_def_def_login_namespace_fenix_persistent_shadow extends urn_perun_user_attribute_def_def_login_namespace {
 
 	private final static Logger log = LoggerFactory.getLogger(urn_perun_user_attribute_def_def_login_namespace_fenix_persistent_shadow.class);
-	private final static String extSourceNameFenix = "https://proxy-fenix.pilot.eduteams.org/proxy";
-	private final static String domainNameFenix = "@fenix.pilot.eduteams.org";
 	private final static String attrNameFenix = "login-namespace:fenix-persistent-shadow";
+
+	@Value( "${extSourceNameFenix}" )
+	private static String extSourceNameFenix;
+
+	@Value( "${domainNameFenix}" )
+	private static String domainNameFenix;
 
 	/**
 	 * Filling implemented for login:namespace:fenix-persistent attribute
