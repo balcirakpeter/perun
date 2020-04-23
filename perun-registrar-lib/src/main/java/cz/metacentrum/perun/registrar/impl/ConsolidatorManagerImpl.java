@@ -3,6 +3,7 @@ package cz.metacentrum.perun.registrar.impl;
 import cz.metacentrum.perun.core.api.*;
 import cz.metacentrum.perun.core.api.exceptions.AttributeNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.ExtSourceNotExistsException;
+import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 import cz.metacentrum.perun.core.api.exceptions.PerunException;
 import cz.metacentrum.perun.core.api.exceptions.PrivilegeException;
 import cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentException;
@@ -79,7 +80,7 @@ public class ConsolidatorManagerImpl implements ConsolidatorManager {
 
 		// if user known, doesn't actually search and offer joining.
 		try {
-			perun.getUsersManagerBl().getUserByExtSourceNameAndExtLogin(sess, sess.getPerunPrincipal().getExtSourceName(), sess.getPerunPrincipal().getActor());
+			perun.getUsersManagerBl().getUserByExtSourceInformation(sess, sess.getPerunPrincipal());
 			return new ArrayList<>();
 		} catch (Exception ex) {
 			// we don't care, that search failed. That is actually OK case.
@@ -180,28 +181,11 @@ public class ConsolidatorManagerImpl implements ConsolidatorManager {
 
 		Application app = registrarManager.getApplicationById(registrarSession, appId);
 
-		if (app.getGroup() == null) {
-			if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, app.getVo()) &&
-					!AuthzResolver.isAuthorized(sess, Role.PERUNOBSERVER)) {
-				if (sess.getPerunPrincipal().getUser() != null) {
-					// check if application to find similar users by belongs to user
-					if (!sess.getPerunPrincipal().getUser().equals(app.getUser())) throw new PrivilegeException("checkForSimilarUsers");
-				} else {
-					if (!sess.getPerunPrincipal().getExtSourceName().equals(app.getExtSourceName()) &&
-							!sess.getPerunPrincipal().getActor().equals(app.getCreatedBy())) throw new PrivilegeException("checkForSimilarUsers");
-				}
-			}
-		} else {
-			if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, app.getVo()) &&
-					!AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, app.getGroup()) &&
-					!AuthzResolver.isAuthorized(sess, Role.PERUNOBSERVER)) {
-				if (sess.getPerunPrincipal().getUser() != null) {
-					// check if application to find similar users by belongs to user
-					if (!sess.getPerunPrincipal().getUser().equals(app.getUser())) throw new PrivilegeException("checkForSimilarUsers");
-				} else {
-					if (!sess.getPerunPrincipal().getExtSourceName().equals(app.getExtSourceName()) &&
-							!sess.getPerunPrincipal().getActor().equals(app.getCreatedBy())) throw new PrivilegeException("checkForSimilarUsers");
-				}
+		if (!AuthzResolver.isAuthorized(sess, Role.VOADMIN, app.getVo()) &&
+			!AuthzResolver.isAuthorized(sess, Role.PERUNOBSERVER) &&
+			!AuthzResolver.selfAuthorizedForApplication(sess, app)) {
+			if (app.getGroup() == null ||  !AuthzResolver.isAuthorized(sess, Role.GROUPADMIN, app.getGroup())) {
+				throw new PrivilegeException("checkForSimilarUsers");
 			}
 		}
 
@@ -209,7 +193,10 @@ public class ConsolidatorManagerImpl implements ConsolidatorManager {
 		if (app.getType().equals(Application.AppType.INITIAL) && app.getGroup() == null && app.getUser() == null) {
 
 			try {
-				User u = perun.getUsersManagerBl().getUserByExtSourceNameAndExtLogin(registrarSession, app.getExtSourceName(), app.getCreatedBy());
+				LinkedHashMap<String, String> additionalAttributes = BeansUtils.stringToMapOfAttributes(app.getFedInfo());
+				PerunPrincipal applicationPrincipal = new PerunPrincipal(app.getCreatedBy(), app.getExtSourceName(), app.getExtSourceType(), app.getExtSourceLoa(), additionalAttributes);
+				User u = perun.getUsersManagerBl().getUserByExtSourceInformation(registrarSession, applicationPrincipal);
+
 				if (u != null) {
 					// user connected his identity after app creation and before it's approval.
 					// do not show error message in GUI by returning an empty array.
@@ -472,36 +459,23 @@ public class ConsolidatorManagerImpl implements ConsolidatorManager {
 	 * @return application object / null if not exists
 	 */
 	private Application getLatestApplication(PerunSession sess, Vo vo, Group group, Application.AppType type) {
-		try {
+		List<Application> allAplications = new ArrayList<>();
+		if (group != null) {
+			allAplications.addAll(jdbc.query(RegistrarManagerImpl.APP_SELECT + " where a.id=(select max(id) from application where vo_id=? and group_id=? and apptype=?)", RegistrarManagerImpl.APP_MAPPER, vo.getId(), group.getId(), String.valueOf(type)));
+		} else {
+			allAplications.addAll(jdbc.query(RegistrarManagerImpl.APP_SELECT + " where a.id=(select max(id) from application where vo_id=? and apptype=?)", RegistrarManagerImpl.APP_MAPPER, vo.getId(), String.valueOf(type)));
+		}
 
-			if (sess.getPerunPrincipal().getUser() != null) {
+		List<Application> userApplications = registrarManager.filterPrincipalApplications(sess, allAplications);
 
-				if (group != null) {
-
-					return jdbc.queryForObject(RegistrarManagerImpl.APP_SELECT + " where a.id=(select max(id) from application where vo_id=? and group_id=? and apptype=? and user_id=? )", RegistrarManagerImpl.APP_MAPPER, vo.getId(), group.getId(), String.valueOf(type), sess.getPerunPrincipal().getUserId());
-
-				} else {
-
-					return jdbc.queryForObject(RegistrarManagerImpl.APP_SELECT + " where a.id=(select max(id) from application where vo_id=? and apptype=? and user_id=? )", RegistrarManagerImpl.APP_MAPPER, vo.getId(), String.valueOf(type), sess.getPerunPrincipal().getUserId());
-
-				}
-
-			} else {
-
-				if (group != null) {
-
-					return jdbc.queryForObject(RegistrarManagerImpl.APP_SELECT + " where a.id=(select max(id) from application where vo_id=? and group_id=? and apptype=? and created_by=? and extsourcename=? )", RegistrarManagerImpl.APP_MAPPER, vo.getId(), group.getId(), String.valueOf(type), sess.getPerunPrincipal().getActor(), sess.getPerunPrincipal().getExtSourceName());
-
-				} else {
-
-					return jdbc.queryForObject(RegistrarManagerImpl.APP_SELECT + " where a.id=(select max(id) from application where vo_id=? and apptype=? and created_by=? and extsourcename=? )", RegistrarManagerImpl.APP_MAPPER, vo.getId(), String.valueOf(type), sess.getPerunPrincipal().getActor(), sess.getPerunPrincipal().getExtSourceName());
-
-				}
-
-			}
-
-		} catch (EmptyResultDataAccessException ex) {
+		if (userApplications.isEmpty()) {
 			return null;
+		} else if (userApplications.size() > 1) {
+			List<Integer> ids = new ArrayList<>();
+			userApplications.forEach(application -> ids.add(application.getId()));
+			throw new InternalErrorException("User has created more than one application. Ids of the duplicate applications are: " + ids.toString());
+		} else {
+			return userApplications.get(0);
 		}
 	}
 

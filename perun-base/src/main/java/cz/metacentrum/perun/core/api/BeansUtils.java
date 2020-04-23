@@ -1,5 +1,7 @@
 package cz.metacentrum.perun.core.api;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import cz.metacentrum.perun.core.api.exceptions.ConsistencyErrorException;
 import cz.metacentrum.perun.core.api.exceptions.InternalErrorException;
 import java.io.BufferedInputStream;
@@ -45,6 +47,7 @@ public class BeansUtils {
 
 	private final static JavaMailSenderImpl mailSender = new JavaMailSenderImpl();
 	private static boolean mailSenderInitialized = false;
+	private static ObjectMapper objectMapper = new ObjectMapper();
 
 	/**
 	 * Method create formatter with default settings for perun timestamps and set lenient on false
@@ -454,6 +457,17 @@ public class BeansUtils {
 		} else {
 			throw new InternalErrorException("Unknown attribute type. ("+ attributeClass.toString() + ")");
 		}
+	}
+
+	/**
+	 * Converts string representation of an attribute value to the LinkedHashMap
+	 *
+	 * @param attributesAsString Map attribute in String representation.
+	 * @return LinkedHashMap with key values pairs extracted from the input
+	 */
+	public static LinkedHashMap<String, String> stringToMapOfAttributes(String attributesAsString) {
+		Object mapAsObject = BeansUtils.stringToAttributeValue(attributesAsString, LinkedHashMap.class.getName());
+		return objectMapper.convertValue(mapAsObject, new TypeReference<LinkedHashMap<String, String>>() {});
 	}
 
 	/**

@@ -56,6 +56,10 @@ import java.util.Map;
  */
 public interface UsersManagerBl {
 
+	String ORIGIN_IDENTITY_PROVIDER_KEY = "originIdentityProvider";
+	String MULTIVALUE_ATTRIBUTE_SEPARATOR_REGEX = ";";
+	String ADDITIONAL_IDENTIFIERS_ATTRIBUTE_NAME = "additionalIdentifiers";
+
 	/**
 	 * Returns user by his login in external source and external source.
 	 *
@@ -408,6 +412,20 @@ public interface UsersManagerBl {
 	 * @throws InternalErrorException
 	 */
 	void updateUserExtSourceLastAccess(PerunSession perunSession, UserExtSource userExtSource) throws InternalErrorException;
+
+	/**
+	 * Get user by principal's additional identifiers or extSourceName and extSourceLogin.
+	 * Additional identifiers are used in case principal's extSource was send through proxy which has enabled multiple identifiers.
+	 * extSourceName and extSourceLogin are used otherwise.
+	 *
+	 * @param sess
+	 * @param principal
+	 * @return
+	 * @throws UserExtSourceNotExistsException
+	 * @throws UserNotExistsException
+	 * @throws ExtSourceNotExistsException
+	 */
+	User getUserByExtSourceInformation(PerunSession sess, PerunPrincipal principal) throws UserExtSourceNotExistsException, UserNotExistsException, ExtSourceNotExistsException;
 
 	/**
 	 * Gets list of all users external sources by specific type and extLogin.
