@@ -51,6 +51,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -206,6 +207,11 @@ public class Api extends HttpServlet {
 	}
 
 	private static PerunPrincipal setupPerunPrincipal(HttpServletRequest req, Deserializer des) throws UserNotExistsException {
+		log.debug("BALCIRAK: {}", req.getRemoteUser());
+		Enumeration<String> attributes = req.getHeaderNames();
+		while (attributes.hasMoreElements()) {
+			log.debug("BALCIRAK: {}",attributes.nextElement().toString());
+		}
 		String extSourceLoaString = null;
 		String extLogin = null;
 		String extSourceName = null;
