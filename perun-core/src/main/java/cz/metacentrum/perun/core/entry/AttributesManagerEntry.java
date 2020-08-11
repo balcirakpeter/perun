@@ -4475,9 +4475,22 @@ public class AttributesManagerEntry implements AttributesManager {
 	}
 
 	@Override
-	public GraphDTO getModulesDependenciesGraph(PerunSession session, GraphTextFormat format) throws InternalErrorException, PrivilegeException {
-		if (!AuthzResolver.isAuthorized(session, Role.PERUNADMIN) &&
-				!AuthzResolver.isAuthorized(session, Role.PERUNOBSERVER)) {
+	public void convertAttributeToNonunique(PerunSession session, int attrId) throws PrivilegeException, AttributeNotExistsException {
+		Utils.checkPerunSession(session);
+
+		// Authorization
+		if(!AuthzResolver.authorizedInternal(session, "convertAttributeToNonunique_int_policy")) {
+			throw new PrivilegeException("This operation can do only PerunAdmin.");
+		}
+
+		getAttributesManagerBl().convertAttributeToNonunique(session, attrId);
+	}
+
+	@Override
+	public GraphDTO getModulesDependenciesGraph(PerunSession session, GraphTextFormat format) throws PrivilegeException {
+
+		// Authorization
+		if (!AuthzResolver.authorizedInternal(session, "getModulesDependenciesGraph_GraphTextFormat_policy")) {
 			throw new PrivilegeException("This operation can be done only by PerunAdmin or PerunObserver.");
 		}
 

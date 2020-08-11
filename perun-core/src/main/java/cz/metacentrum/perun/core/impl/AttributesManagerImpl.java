@@ -4472,8 +4472,7 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 				//attribute of a single perun bean, e.g. user
 				@SuppressWarnings("UnnecessaryLocalVariable")
 				String bean = tablePrefix;
-				final AtomicInteger counter = new AtomicInteger(0);
-				jdbc.query("SELECT " + bean + "_id,attr_value,attr_value_text FROM " + tablePrefix + "_attr_values WHERE attr_id=?", rs -> {
+				jdbc.query("SELECT " + bean + "_id,attr_value FROM " + tablePrefix + "_attr_values WHERE attr_id=?", rs -> {
 					int beanId = rs.getInt(1);
 					Object value = null;
 					try {
@@ -4500,8 +4499,6 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 								}
 								break;
 						}
-						int c = counter.addAndGet(1);
-						if(c%1000==0) log.debug("{} values of {} were converted", c, attrDef.getName());
 
 					} catch (InternalErrorException e) {
 						throw new InternalErrorException(e);
@@ -4509,7 +4506,6 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 						throw new InternalErrorException("value " + value + " of attribute " + attrDef.getName() + " for " + bean + "=" + beanId + " is not unique", ex);
 					}
 				}, attrDef.getId());
-				log.debug("{} values of {} were converted", counter.get(), attrDef.getName());
 			} else {
 				//attribute of relation between perun beans, e.g. group_resource
 				String[] ss = tablePrefix.split("_");
@@ -4555,12 +4551,21 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 		}
 	}
 
-
 	private static String readAttributeValue(PerunSession session, AttributeDefinition attrDef, ResultSet rs) throws SQLException {
 		if (Utils.isLargeAttribute(session, attrDef)) {
 			return rs.getString("attr_value_text");
 		} else {
 			return rs.getString("attr_value");
+		}
+	}
+
+	@Override
+	public void convertAttributeValuesToNonunique(PerunSession session, AttributeDefinition attrDef) {
+		String tablePrefix = attributeToTablePrefix(attrDef);
+		try {
+			jdbc.update("DELETE FROM " + tablePrefix + "_attr_u_values WHERE attr_id=?", attrDef.getId());
+		} catch (RuntimeException e) {
+			throw new InternalErrorException(e);
 		}
 	}
 
@@ -4592,7 +4597,7 @@ public class AttributesManagerImpl implements AttributesManagerImplApi {
 			boolean uniqueInDb = (Boolean) map.get("is_unique");
 			if (uniqueInDb != attributeDefinition.isUnique()) {
 				jdbc.update("UPDATE attr_names SET is_unique=?, modified_by=?, modified_by_uid=?, modified_at="
-						+ Compatibility.getSysdate() + " WHERE id=?", true, perunSession.getPerunPrincipal().getActor(), perunSession.getPerunPrincipal().getUserId(), attributeDefinition.getId());
+						+ Compatibility.getSysdate() + " WHERE id=?", attributeDefinition.isUnique(), perunSession.getPerunPrincipal().getActor(), perunSession.getPerunPrincipal().getUserId(), attributeDefinition.getId());
 			}
 
 			return attributeDefinition;
