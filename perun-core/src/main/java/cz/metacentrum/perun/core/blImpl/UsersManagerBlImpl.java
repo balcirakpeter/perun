@@ -713,7 +713,8 @@ public class UsersManagerBlImpl implements UsersManagerBl {
 
 	@Override
 	public User getUserByExtSourceInformation(PerunSession sess, PerunPrincipal principal) throws UserExtSourceNotExistsException, UserNotExistsException, ExtSourceNotExistsException {
-		String shibIdentityProvider = principal.getAdditionalInformations().get(ORIGIN_IDENTITY_PROVIDER_KEY);
+		String shibIdentityProvider = null;
+		if (principal.getAdditionalInformations() != null) shibIdentityProvider = principal.getAdditionalInformations().get(ORIGIN_IDENTITY_PROVIDER_KEY);
 		if(shibIdentityProvider != null && extSourcesWithMultipleIdentifiers.contains(shibIdentityProvider)) {
 			UserExtSource ues = getUserExtSourceFromMultipleIdentifiers(sess, principal);
 			return getUserByUserExtSource(sess, ues);
