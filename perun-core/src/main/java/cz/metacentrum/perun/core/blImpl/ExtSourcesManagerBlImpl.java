@@ -274,7 +274,9 @@ public class ExtSourcesManagerBlImpl implements ExtSourcesManagerBl {
 
 		// Filter attributes
 		Map<String, String> attributes = new HashMap<>();
+		log.debug("BALCIRAK: " + subjectData.toString());
 		for (String attrName: subjectData.keySet()) {
+			log.debug("BALCIRAK: " + attrName);
 			// Allow only users and members attributes
 			// FIXME volat metody z attributesManagera nez kontrolovat na zacatek jmena
 			if (attrName.startsWith(AttributesManager.NS_MEMBER_ATTR) || attrName.startsWith(AttributesManager.NS_USER_ATTR)) {
