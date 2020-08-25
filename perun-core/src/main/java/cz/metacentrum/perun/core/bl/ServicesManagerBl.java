@@ -4,6 +4,7 @@ import cz.metacentrum.perun.controller.model.ServiceForGUI;
 import cz.metacentrum.perun.core.api.AttributeDefinition;
 import cz.metacentrum.perun.core.api.Destination;
 import cz.metacentrum.perun.core.api.Facility;
+import cz.metacentrum.perun.core.api.HashedGenData;
 import cz.metacentrum.perun.core.api.PerunSession;
 import cz.metacentrum.perun.core.api.Resource;
 import cz.metacentrum.perun.core.api.RichDestination;
@@ -332,6 +333,17 @@ public interface ServicesManagerBl {
 	 * @throws InternalErrorException
 	 */
 	ServiceAttributes getHierarchicalData(PerunSession perunSession, Service service, Facility facility, boolean filterExpiredMembers);
+
+	/**
+	 * Generates hashed hierarchical data structure for given service and resource.
+	 *
+	 * @param perunSession perun session
+	 * @param service service
+	 * @param facility facility
+	 * @param filterExpiredMembers if the generator should filter expired members
+	 * @return generated hashed data structure
+	 */
+	HashedGenData getHashedHierarchicalData(PerunSession perunSession, Service service, Facility facility, boolean filterExpiredMembers);
 
 	/**
 	 * Generates the list of attributes per each resource associated with the facility and filtered by service. Next it generates list of attributes

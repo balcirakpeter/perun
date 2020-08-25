@@ -6,13 +6,17 @@ import java.util.List;
 import cz.metacentrum.perun.controller.model.ServiceForGUI;
 import cz.metacentrum.perun.core.api.AttributeDefinition;
 import cz.metacentrum.perun.core.api.Destination;
+import cz.metacentrum.perun.core.api.HashedGenData;
 import cz.metacentrum.perun.core.api.RichDestination;
 import cz.metacentrum.perun.core.api.Service;
 import cz.metacentrum.perun.core.api.ServiceAttributes;
 import cz.metacentrum.perun.core.api.ServicesPackage;
 import cz.metacentrum.perun.core.api.Resource;
+import cz.metacentrum.perun.core.api.exceptions.FacilityNotExistsException;
 import cz.metacentrum.perun.core.api.exceptions.PerunException;
+import cz.metacentrum.perun.core.api.exceptions.PrivilegeException;
 import cz.metacentrum.perun.core.api.exceptions.RpcException;
+import cz.metacentrum.perun.core.api.exceptions.ServiceNotExistsException;
 import cz.metacentrum.perun.rpc.ApiCaller;
 import cz.metacentrum.perun.rpc.ManagerMethod;
 import cz.metacentrum.perun.rpc.deserializer.Deserializer;
@@ -521,6 +525,35 @@ public enum ServicesManagerMethod implements ManagerMethod {
 					ac.getServiceById(parms.readInt("service")),
 					ac.getFacilityById(parms.readInt("facility")),
 					false);
+			}
+		}
+	},
+
+	/*#
+	 * Generates hashed hierarchical data structure for given service and resource.
+	 *
+	 * @param perunSession perun session
+	 * @param service service
+	 * @param facility facility
+	 * @param filterExpiredMembers if the generator should filter expired members
+	 * @return generated hashed data structure
+	 * @throw FacilityNotExistsException if there is no such facility
+	 * @throw ServiceNotExistsException if there is no such service
+	 * @throw PrivilegeException insufficient permissions
+	 */
+	getHashedHierarchicalData {
+		@Override
+		public HashedGenData call(ApiCaller ac, Deserializer parms) throws PerunException {
+			if (parms.contains("filterExpiredMembers")) {
+				return ac.getServicesManager().getHashedHierarchicalData(ac.getSession(),
+						ac.getServiceById(parms.readInt("service")),
+						ac.getFacilityById(parms.readInt("facility")),
+						parms.readBoolean("filterExpiredMembers"));
+			} else {
+				return ac.getServicesManager().getHashedHierarchicalData(ac.getSession(),
+						ac.getServiceById(parms.readInt("service")),
+						ac.getFacilityById(parms.readInt("facility")),
+						false);
 			}
 		}
 	},

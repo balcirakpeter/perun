@@ -376,6 +376,20 @@ public interface ServicesManager {
 	ServiceAttributes getHierarchicalData(PerunSession perunSession, Service service, Facility facility, boolean filterExpiredMembers) throws FacilityNotExistsException, ServiceNotExistsException, PrivilegeException;
 
 	/**
+	 * Generates hashed hierarchical data structure for given service and resource.
+	 *
+	 * @param perunSession perun session
+	 * @param service service
+	 * @param facility facility
+	 * @param filterExpiredMembers if the generator should filter expired members
+	 * @return generated hashed data structure
+	 * @throws FacilityNotExistsException if there is no such facility
+	 * @throws ServiceNotExistsException if there is no such service
+	 * @throws PrivilegeException insufficient permissions
+	 */
+	HashedGenData getHashedHierarchicalData(PerunSession perunSession, Service service, Facility facility, boolean filterExpiredMembers) throws FacilityNotExistsException, ServiceNotExistsException, PrivilegeException;
+
+	/**
 	 * Generates the list of attributes per each user and per each resource. Resources are filtered by service.
 	 * Never return member or member-resource attribute.
 	 *

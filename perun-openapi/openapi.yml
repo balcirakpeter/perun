@@ -564,7 +564,7 @@ components:
           schema:
             type: object
             additionalProperties:
-                type: string
+              type: string
 
     UserResponse:
       description: returns User
@@ -1060,14 +1060,14 @@ components:
       required: true
 
     memberIds:
-        name: "members[]"
-        description: "id of Member"
-        schema:
-          type: array
-          items:
-            type: integer
-        in: query
-        required: true
+      name: "members[]"
+      description: "id of Member"
+      schema:
+        type: array
+        items:
+          type: integer
+      in: query
+      required: true
 
     optionalMemberId:
       name: member
@@ -1307,7 +1307,7 @@ components:
       name: resultGroup
       description: "id of Group to have removed 'operandGroup' from subgroups"
       schema:
-         type: integer
+        type: integer
       in: query
       required: true
 
@@ -1336,12 +1336,12 @@ components:
       required: true
 
     complementaryObjectName:
-        name: complementaryObjectName
-        description: "Property beanName of complementaryObject, meaning object type (Vo | Group | Facility | ... )"
-        schema:
-          type: string
-        in: query
-        required: true
+      name: complementaryObjectName
+      description: "Property beanName of complementaryObject, meaning object type (Vo | Group | Facility | ... )"
+      schema:
+        type: string
+      in: query
+      required: true
 
     role:
       name: role
@@ -2339,10 +2339,10 @@ paths:
                 user: { type: integer, description: "user id", nullable: false }
                 member: { type: integer, description: "member id", nullable: false }
                 attributes:
-                 type: array
-                 nullable: false
-                 items:
-                   $ref: '#/components/schemas/Attribute'
+                  type: array
+                  nullable: false
+                  items:
+                    $ref: '#/components/schemas/Attribute'
 
   /json/attributesManager/setAttributes/f-r-u-m:
     post:
@@ -3418,10 +3418,10 @@ paths:
         default:
           $ref: '#/components/responses/ExceptionResponse'
 
-##
-# combinations:
-#  (facility), (user), (user,facility), (vo), (member), (group), (resource),
-#  (member,group), (member,resource), (group,resource),(userExtSource), (host), (key)
+  ##
+  # combinations:
+  #  (facility), (user), (user,facility), (vo), (member), (group), (resource),
+  #  (member,group), (member,resource), (group,resource),(userExtSource), (host), (key)
 
   /json/attributesManager/setAttribute/facility:
     post:
@@ -3988,7 +3988,7 @@ paths:
         - AttributesManager
       operationId: getRequiredAttributesMemberResource
       summary: Returns member-resource attributes required by specified list of services.
-               If workWithUserAttributes == TRUE, then returns also user attributes.
+        If workWithUserAttributes == TRUE, then returns also user attributes.
       parameters:
         - $ref: '#/components/parameters/memberId'
         - $ref: '#/components/parameters/resourceId'
@@ -4089,25 +4089,25 @@ paths:
           $ref: '#/components/responses/ExceptionResponse'
 
 
-#TODO getRequiredAttributesDefinition
+  #TODO getRequiredAttributesDefinition
 
-#TODO getResourceRequiredAttributes
+  #TODO getResourceRequiredAttributes
 
-#TODO fillAttribute
+  #TODO fillAttribute
 
-#TODO fillAttributes
+  #TODO fillAttributes
 
-#TODO checkAttributeValue
+  #TODO checkAttributeValue
 
-#TODO checkAttributeSyntax
+  #TODO checkAttributeSyntax
 
-#TODO checkAttributeSemantics
+  #TODO checkAttributeSemantics
 
-#TODO checkAttributesValue
+  #TODO checkAttributesValue
 
-#TODO checkAttributesSemantics
+  #TODO checkAttributesSemantics
 
-#TODO checkAttributesSyntax
+  #TODO checkAttributesSyntax
 
   /urlinjsonout/attributesManager/removeAttributes/m-workWithUserAttributes:
     post:
@@ -4582,7 +4582,7 @@ paths:
 
   #TODO removeAllAttributes
 
-#TODO getLogins
+  #TODO getLogins
 
   /json/attributesManager/updateAttributeDefinition:
     post:
@@ -4610,7 +4610,7 @@ paths:
         default:
           $ref: '#/components/responses/ExceptionResponse'
 
-#TODO doTheMagic
+  #TODO doTheMagic
 
   /json/attributesManager/getAttributeRights:
     get:
@@ -4657,7 +4657,7 @@ paths:
           $ref: '#/components/responses/ExceptionResponse'
 
 
-#TODO convertAttributeToUnique
+  #TODO convertAttributeToUnique
 
   /json/attributesManager/getAttributeModulesDependenciesGraphText:
     get:
@@ -5562,9 +5562,9 @@ paths:
         - FacilitiesManager
       operationId: getFacilityAdminUsers
       description: |
-          Get list of all facility administrators for supported role and given facility.
-          If onlyDirectAdmins is true, return only direct admins of the group for supported role.
-          Supported roles: FacilityAdmin
+        Get list of all facility administrators for supported role and given facility.
+        If onlyDirectAdmins is true, return only direct admins of the group for supported role.
+        Supported roles: FacilityAdmin
       parameters:
         - $ref: '#/components/parameters/facilityId'
         - { name: onlyDirectAdmins, schema: { type: boolean }, in: query, required: true, description: "if true, get only direct facility administrators (if false, get both direct and indirect)"}
@@ -5961,15 +5961,15 @@ paths:
       operationId: getGroupUnions
       summary: Return all operand groups for specified result groups (all INCLUDED groups). If "reverseDirection" is TRUE than return all result groups for specified operand group (where group is INCLUDED).
       parameters:
-         - $ref: '#/components/parameters/groupId'
-         - { name: reverseDirection,
-             description: "FALSE (default) return INCLUDED groups / TRUE = return groups where INCLUDED",
-             schema: {
-               type: boolean
-             },
-             in: query,
-             required: true
-         }
+        - $ref: '#/components/parameters/groupId'
+        - { name: reverseDirection,
+            description: "FALSE (default) return INCLUDED groups / TRUE = return groups where INCLUDED",
+            schema: {
+              type: boolean
+            },
+            in: query,
+            required: true
+        }
       responses:
         '200':
           $ref: '#/components/responses/VoidResponse'
@@ -6064,9 +6064,9 @@ paths:
         - ResourcesManager
       operationId: copyResource
       summary: |
-                Copy "template" settings from user's another existing resource and create new resource with this template.
-                The settings are attributes, services, tags (if exists), groups and their members (if the resources are from the same VO and withGroups is true)
-                Template Resource can be from any of user's facilities.
+        Copy "template" settings from user's another existing resource and create new resource with this template.
+        The settings are attributes, services, tags (if exists), groups and their members (if the resources are from the same VO and withGroups is true)
+        Template Resource can be from any of user's facilities.
       responses:
         '200':
           $ref: '#/components/responses/ResourceResponse'
@@ -6445,7 +6445,7 @@ paths:
         '200':
           $ref: '#/components/responses/VoidResponse'
         default:
-            $ref: '#/components/responses/ExceptionResponse'
+          $ref: '#/components/responses/ExceptionResponse'
 
   /json/resourcesManager/getAdmins:
     get:
