@@ -135,9 +135,18 @@ public class MembersManagerEntry implements MembersManager {
 		Utils.checkPerunSession(sess);
 		Utils.notNull(specificUserType, "specificUserType");
 
-		//normal type is not allowed when creating specific member
-		if (specificUserType.equals(SpecificUserType.NORMAL))
-			throw new InternalErrorException("Type of specific user must be defined.");
+		if (!specificUserType.equals(SpecificUserType.SERVICE))
+			throw new InternalErrorException("Only service user type is allowed.");
+
+		Utils.notNull(candidate, "candidate");
+		getPerunBl().getVosManagerBl().checkVoExists(sess, vo);
+
+		if (specificUserOwners.isEmpty())
+			throw new InternalErrorException("List of specificUserOwners of " + candidate + " can't be empty.");
+
+		for (User u : specificUserOwners) {
+			getPerunBl().getUsersManagerBl().checkUserExists(sess, u);
+		}
 
 		// if any group is not from the vo, throw an exception
 		if (groups != null) {
@@ -162,29 +171,6 @@ public class MembersManagerEntry implements MembersManager {
 		}
 
 		return getMembersManagerBl().createSpecificMember(sess, vo, candidate, specificUserOwners, specificUserType, groups);
-	}
-
-	@Override
-	@Deprecated
-	public Member createSponsoredAccount(PerunSession sess, Map<String, String> params, String namespace, ExtSource extSource, String extSourcePostfix, Vo vo, int loa) throws PrivilegeException, UserNotExistsException, ExtSourceNotExistsException, UserExtSourceNotExistsException, WrongReferenceAttributeValueException, LoginNotExistsException, PasswordCreationFailedException, ExtendMembershipException, AlreadyMemberException, PasswordStrengthFailedException, PasswordOperationTimeoutException, WrongAttributeValueException, PasswordStrengthException, InvalidLoginException {
-		Utils.checkPerunSession(sess);
-		Utils.notNull(extSource, "extSource");
-		Utils.notNull(namespace, "namespace");
-		Utils.notNull(vo, "vo");
-		Utils.notNull(extSourcePostfix, "extSourcePostfix");
-
-		if (!AuthzResolver.isAuthorized(sess, Role.REGISTRAR)) {
-			throw new PrivilegeException(sess, "createSponsoredAccount");
-		}
-
-		if (params.containsKey("sponsor")) {
-			String sponsorLogin = params.get("sponsor");
-			User owner = getPerunBl().getUsersManager().getUserByExtSourceNameAndExtLogin(sess, extSource.getName(), sponsorLogin + extSourcePostfix);
-
-			return getPerunBl().getMembersManagerBl().createSponsoredAccount(sess, params, namespace, extSource, extSourcePostfix, owner, vo, loa);
-		} else {
-			throw new InternalErrorException("sponsor cannot be null");
-		}
 	}
 
 	@Override
