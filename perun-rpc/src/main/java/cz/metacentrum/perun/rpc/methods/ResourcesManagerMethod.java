@@ -580,7 +580,7 @@ public enum ResourcesManagerMethod implements ManagerMethod {
 	 *
 	 * If onlyDirectAdmins is == true, return only direct admins of the group for supported role.
 	 *
-	 * Supported roles: ResourceAdmin, VOAdmin
+	 * Supported roles: ResourceAdmin
 	 *
 	 * @param resource int Resource <code>id</code>
 	 * @param onlyDirectAdmins boolean if true, get only direct resource administrators (if false, get both direct and indirect)
@@ -614,7 +614,7 @@ public enum ResourcesManagerMethod implements ManagerMethod {
 	/*#
 	 * Get list of all richUser administrators for the resource and supported role with specific attributes.
 	 *
-	 * Supported roles: ResourceAdmin, VOAdmin
+	 * Supported roles: ResourceAdmin
 	 *
 	 * If "onlyDirectAdmins" is true, return only direct admins of the resource for supported role with specific attributes.
 	 * If "allUserAttributes" is true, do not specify attributes through list and return them all in objects richUser. Ignoring list of specific attributes.

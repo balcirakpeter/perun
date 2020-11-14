@@ -24,6 +24,7 @@ import cz.metacentrum.perun.audit.events.FacilityManagerEvents.UsersRemovedFromC
 import cz.metacentrum.perun.core.api.Attribute;
 import cz.metacentrum.perun.core.api.AttributeDefinition;
 import cz.metacentrum.perun.core.api.AttributesManager;
+import cz.metacentrum.perun.core.api.AuthzResolver;
 import cz.metacentrum.perun.core.api.BanOnFacility;
 import cz.metacentrum.perun.core.api.BeansUtils;
 import cz.metacentrum.perun.core.api.ContactGroup;
@@ -71,6 +72,7 @@ import cz.metacentrum.perun.core.api.exceptions.WrongAttributeAssignmentExceptio
 import cz.metacentrum.perun.core.api.exceptions.WrongAttributeValueException;
 import cz.metacentrum.perun.core.api.exceptions.WrongPatternException;
 import cz.metacentrum.perun.core.api.exceptions.WrongReferenceAttributeValueException;
+import cz.metacentrum.perun.core.bl.AuthzResolverBl;
 import cz.metacentrum.perun.core.bl.FacilitiesManagerBl;
 import cz.metacentrum.perun.core.bl.PerunBl;
 import cz.metacentrum.perun.core.impl.Utils;
@@ -589,33 +591,6 @@ public class FacilitiesManagerBlImpl implements FacilitiesManagerBl {
 	}
 
 	@Override
-	public List<User> getAdmins(PerunSession perunSession, Facility facility, boolean onlyDirectAdmins) {
-		if(onlyDirectAdmins) {
-			return getFacilitiesManagerImpl().getDirectAdmins(perunSession, facility);
-		} else {
-			return getFacilitiesManagerImpl().getAdmins(perunSession, facility);
-		}
-	}
-
-	@Override
-	public List<RichUser> getRichAdmins(PerunSession perunSession, Facility facility, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws UserNotExistsException {
-		List<User> users = this.getAdmins(perunSession, facility, onlyDirectAdmins);
-		List<RichUser> richUsers;
-
-		if(allUserAttributes) {
-			richUsers = perunBl.getUsersManagerBl().getRichUsersWithAttributesFromListOfUsers(perunSession, users);
-		} else {
-			try {
-				richUsers = getPerunBl().getUsersManagerBl().convertUsersToRichUsersWithAttributes(perunSession, perunBl.getUsersManagerBl().getRichUsersFromListOfUsers(perunSession, users), getPerunBl().getAttributesManagerBl().getAttributesDefinition(perunSession, specificAttributes));
-			} catch (AttributeNotExistsException ex) {
-				throw new InternalErrorException("One of Attribute not exist.", ex);
-			}
-		}
-
-		return richUsers;
-	}
-
-	@Override
 	@Deprecated
 	public List<User> getAdmins(PerunSession sess, Facility facility) {
 		return facilitiesManagerImpl.getAdmins(sess, facility);
@@ -625,11 +600,6 @@ public class FacilitiesManagerBlImpl implements FacilitiesManagerBl {
 	@Override
 	public List<User> getDirectAdmins(PerunSession sess, Facility facility) {
 		return facilitiesManagerImpl.getDirectAdmins(sess, facility);
-	}
-
-	@Override
-	public List<Group> getAdminGroups(PerunSession sess, Facility facility) {
-		return facilitiesManagerImpl.getAdminGroups(sess, facility);
 	}
 
 	@Override
@@ -796,14 +766,14 @@ public class FacilitiesManagerBlImpl implements FacilitiesManagerBl {
 			}
 		}
 
-		for (Group adminGroup: getAdminGroups(sess, sourceFacility)) {
-			try {
+		try {
+			for (Group adminGroup: AuthzResolverBlImpl.getAdminGroups(sourceFacility, Role.FACILITYADMIN)) {
 				AuthzResolverBlImpl.setRole(sess, adminGroup, destinationFacility, Role.FACILITYADMIN);
-			} catch (AlreadyAdminException ex) {
-				// we can ignore the exception in this particular case, group can be admin in both of the facilities
-			} catch (RoleCannotBeManagedException e) {
-				throw new InternalErrorException(e);
 			}
+		} catch (AlreadyAdminException ex) {
+			// we can ignore the exception in this particular case, group can be admin in both of the facilities
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
 	}
 

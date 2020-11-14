@@ -822,7 +822,7 @@ public interface ResourcesManager {
 	 *
 	 * If onlyDirectAdmins is true, return only direct users of the group for supported role.
 	 *
-	 * Supported roles: ResourceAdmin, VOAdmin
+	 * Supported roles: ResourceAdmin
 	 *
 	 * @param perunSession
 	 * @param resource
@@ -839,7 +839,7 @@ public interface ResourcesManager {
 	/**
 	 * Get list of all richUser administrators for the resource and supported role with specific attributes.
 	 *
-	 * Supported roles: ResourceAdmin, VOAdmin
+	 * Supported roles: ResourceAdmin
 	 *
 	 * If "onlyDirectAdmins" is "true", return only direct users of the group for supported role with specific attributes.
 	 * If "allUserAttributes" is "true", do not specify attributes through list and return them all in objects richUser. Ignoring list of specific attributes.

@@ -648,12 +648,12 @@ public class GroupsManagerEntry implements GroupsManager {
 		Utils.checkPerunSession(perunSession);
 		getGroupsManagerBl().checkGroupExists(perunSession, group);
 
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(perunSession, "getAdmins_Group_boolean_policy", group)) {
-			throw new PrivilegeException(perunSession, "getAdmins");
+		try {
+			List<RichUser> richAdmins = AuthzResolver.getRichAdmins(perunSession, group, new ArrayList<>(), Role.GROUPADMIN, onlyDirectAdmins, false);
+			return new ArrayList<>(richAdmins);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		return getGroupsManagerBl().getAdmins(perunSession, group, onlyDirectAdmins);
 	}
 
 	@Override
@@ -665,12 +665,11 @@ public class GroupsManagerEntry implements GroupsManager {
 			Utils.notNull(specificAttributes, "specificAttributes");
 		}
 
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(perunSession, "getRichAdmins_Group_List<String>_boolean_boolean_policy", group)) {
-			throw new PrivilegeException(perunSession, "getRichAdmins");
+		try {
+			return AuthzResolver.getRichAdmins(perunSession, group, specificAttributes, Role.GROUPADMIN, onlyDirectAdmins, allUserAttributes);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		return getPerunBl().getUsersManagerBl().filterOnlyAllowedAttributes(perunSession, getGroupsManagerBl().getRichAdmins(perunSession, group, specificAttributes, allUserAttributes, onlyDirectAdmins));
 	}
 
 	@Override
@@ -712,12 +711,11 @@ public class GroupsManagerEntry implements GroupsManager {
 		Utils.checkPerunSession(sess);
 		getGroupsManagerBl().checkGroupExists(sess, group);
 
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(sess, "getAdminGroups_Group_policy", group)) {
-			throw new PrivilegeException(sess, "getAdminGroups");
-				}
-
-		return getGroupsManagerBl().getAdminGroups(sess, group);
+		try {
+			return AuthzResolver.getAdminGroups(sess, group, Role.GROUPADMIN);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
+		}
 	}
 
 	@Override

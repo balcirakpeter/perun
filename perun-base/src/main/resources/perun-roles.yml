@@ -828,30 +828,6 @@ perun_policies:
     include_policies:
       - default_policy
 
-  getAdmins_Facility_boolean_policy:
-    policy_roles:
-      - PERUNOBSERVER:
-      - FACILITYADMIN: Facility
-      - FACILITYOBSERVER: Facility
-    include_policies:
-      - default_policy
-
-  getRichAdmins_Facility_List<String>_boolean_boolean_policy:
-    policy_roles:
-      - PERUNOBSERVER:
-      - FACILITYADMIN: Facility
-      - FACILITYOBSERVER: Facility
-    include_policies:
-      - default_policy
-
-  getAdminGroups_Facility_policy:
-    policy_roles:
-      - PERUNOBSERVER:
-      - FACILITYADMIN: Facility
-      - FACILITYOBSERVER: Facility
-    include_policies:
-      - default_policy
-
   getFacilitiesWhereUserIsAdmin_User_policy:
     policy_roles:
       - PERUNOBSERVER:
@@ -1365,36 +1341,6 @@ perun_policies:
   removeAdmin_Group_Group_policy:
     policy_roles:
       - GROUPADMIN: Group
-      - VOADMIN: Vo
-    include_policies:
-      - default_policy
-
-  getAdmins_Group_boolean_policy:
-    policy_roles:
-      - PERUNOBSERVER:
-      - VOOBSERVER: Vo
-      - GROUPADMIN: Group
-      - GROUPOBSERVER: Group
-      - VOADMIN: Vo
-    include_policies:
-      - default_policy
-
-  getRichAdmins_Group_List<String>_boolean_boolean_policy:
-    policy_roles:
-      - PERUNOBSERVER:
-      - VOOBSERVER: Vo
-      - GROUPADMIN: Group
-      - GROUPOBSERVER: Group
-      - VOADMIN: Vo
-    include_policies:
-      - default_policy
-
-  getAdminGroups_Group_policy:
-    policy_roles:
-      - PERUNOBSERVER:
-      - VOOBSERVER: Vo
-      - GROUPADMIN: Group
-      - GROUPOBSERVER: Group
       - VOADMIN: Vo
     include_policies:
       - default_policy
@@ -3289,28 +3235,6 @@ perun_policies:
     include_policies:
       - default_policy
 
-  getAdmins_Resource_boolean_policy:
-    policy_roles:
-      - VOOBSERVER: Vo
-      - RESOURCESELFSERVICE: Resource
-      - PERUNOBSERVER:
-      - RESOURCEADMIN: Resource
-      - RESOURCEOBSERVER: Resource
-      - VOADMIN: Vo
-    include_policies:
-      - default_policy
-
-  getRichAdmins_Resource_List<String>_boolean_boolean_policy:
-    policy_roles:
-      - VOOBSERVER: Vo
-      - RESOURCESELFSERVICE: Resource
-      - PERUNOBSERVER:
-      - RESOURCEADMIN: Resource
-      - RESOURCEOBSERVER: Resource
-      - VOADMIN: Vo
-    include_policies:
-      - default_policy
-
   getResourcesWhereUserIsAdmin_User_policy:
     policy_roles:
       - SELF: User
@@ -3387,17 +3311,6 @@ perun_policies:
   filter_authorizedGroup-getResourcesWhereGroupIsAdmin_Facility_Vo_Group_policy:
     policy_roles:
       - PERUNOBSERVER:
-    include_policies:
-      - default_policy
-
-  getAdminGroups_Resource_policy:
-    policy_roles:
-      - VOOBSERVER: Vo
-      - RESOURCESELFSERVICE: Resource
-      - PERUNOBSERVER:
-      - RESOURCEADMIN: Resource
-      - RESOURCEOBSERVER: Resource
-      - VOADMIN: Vo
     include_policies:
       - default_policy
 
@@ -3640,20 +3553,6 @@ perun_policies:
       - FACILITYADMIN:
       - FACILITYOBSERVER:
       - SECURITYADMIN:
-      - PERUNOBSERVER:
-    include_policies:
-      - default_policy
-
-  getAdmins_SecurityTeam_policy:
-    policy_roles:
-      - SECURITYADMIN: SecurityTeam
-      - PERUNOBSERVER:
-    include_policies:
-      - default_policy
-
-  getAdminGroups_SecurityTeam_policy:
-    policy_roles:
-      - SECURITYADMIN: SecurityTeam
       - PERUNOBSERVER:
     include_policies:
       - default_policy
@@ -5086,31 +4985,6 @@ perun_policies:
 
   removeAdmin_Vo_Group_policy:
     policy_roles:
-      - VOADMIN: Vo
-    include_policies:
-      - default_policy
-
-  getAdmins_Vo_String_boolean_policy:
-    policy_roles:
-      - PERUNOBSERVER:
-      - VOOBSERVER: Vo
-      - VOADMIN: Vo
-    include_policies:
-      - default_policy
-
-  getRichAdmins_Vo_String_List<String>_boolean_boolean_policy:
-    policy_roles:
-      - ENGINE:
-      - PERUNOBSERVER:
-      - VOOBSERVER: Vo
-      - VOADMIN: Vo
-    include_policies:
-      - default_policy
-
-  getAdminGroups_Vo_String_policy:
-    policy_roles:
-      - PERUNOBSERVER:
-      - VOOBSERVER: Vo
       - VOADMIN: Vo
     include_policies:
       - default_policy

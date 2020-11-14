@@ -135,7 +135,7 @@ public interface SecurityTeamsManager {
 	 * Gets list of all group administrators of the SecurityTeam.
 	 *
 	 * @param sess
-	 * @param SecurityTeam
+	 * @param securityTeam
 	 * @return list of Group that are admins in the SecurityTeam.
 	 * @throws InternalErrorException
 	 * @throws PrivilegeException

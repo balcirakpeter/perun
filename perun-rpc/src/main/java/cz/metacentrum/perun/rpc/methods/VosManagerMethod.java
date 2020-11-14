@@ -410,8 +410,6 @@ public enum VosManagerMethod implements ManagerMethod {
 	 *
 	 * If onlyDirectAdmins is true, return only direct admins of the vo for supported role.
 	 *
-	 * Supported roles: VOOBSERVER, TOPGROUPCREATOR, VOADMIN
-	 *
 	 * @param vo int VO <code>id</code>
 	 * @param role String supported role name
 	 * @param onlyDirectAdmins boolean if true, get only direct VO administrators (if false, get both direct and indirect)
@@ -465,8 +463,6 @@ public enum VosManagerMethod implements ManagerMethod {
 	/*#
 	 * Get list of administrator groups of the given VO.
 	 *
-	 * Supported roles: VOOBSERVER, TOPGROUPCREATOR, VOADMIN, SPONSOR
-	 *
 	 * @param vo int VO <code>id</code>
 	 * @param role String Role name
 	 *
@@ -501,8 +497,6 @@ public enum VosManagerMethod implements ManagerMethod {
 
 	/*#
 	 * Get list of all richUser administrators for the vo and supported role with specific attributes.
-	 *
-	 * Supported roles: VOOBSERVER, TOPGROUPCREATOR, VOADMIN, SPONSOR
 	 *
 	 * If "onlyDirectAdmins" is == true, return only direct admins of the vo for supported role with specific attributes.
 	 * If "allUserAttributes" is == true, do not specify attributes through list and return them all in objects richUser. Ignoring list of specific attributes.

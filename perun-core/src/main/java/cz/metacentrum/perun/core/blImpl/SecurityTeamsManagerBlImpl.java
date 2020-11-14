@@ -166,20 +166,6 @@ public class SecurityTeamsManagerBlImpl implements SecurityTeamsManagerBl {
 	}
 
 	@Override
-	public List<User> getAdmins(PerunSession sess, SecurityTeam securityTeam, boolean onlyDirectAdmins) {
-		if(onlyDirectAdmins) {
-			return getSecurityTeamsManagerImpl().getDirectAdmins(sess, securityTeam);
-		} else {
-			return getSecurityTeamsManagerImpl().getAdmins(sess, securityTeam);
-		}
-	}
-
-	@Override
-	public List<Group> getAdminGroups(PerunSession sess, SecurityTeam securityTeam) {
-		return getSecurityTeamsManagerImpl().getAdminGroups(sess, securityTeam);
-	}
-
-	@Override
 	public void addUserToBlacklist(PerunSession sess, SecurityTeam securityTeam, User user, String description) {
 		getSecurityTeamsManagerImpl().addUserToBlacklist(sess, securityTeam, user, description);
 		getPerunBl().getAuditer().log(sess, new UserAddedToBlackListOfSecurityTeam(user, securityTeam, description));

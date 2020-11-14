@@ -747,12 +747,12 @@ public class FacilitiesManagerEntry implements FacilitiesManager {
 		Utils.checkPerunSession(perunSession);
 		getFacilitiesManagerBl().checkFacilityExists(perunSession, facility);
 
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(perunSession, "getAdmins_Facility_boolean_policy", facility)) {
-			throw new PrivilegeException(perunSession, "getAdmins");
+		try {
+			List<RichUser> richAdmins = AuthzResolver.getRichAdmins(perunSession, facility, new ArrayList<>(), Role.FACILITYADMIN, onlyDirectAdmins, false);
+			return new ArrayList<>(richAdmins);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		return getFacilitiesManagerBl().getAdmins(perunSession, facility, onlyDirectAdmins);
 	}
 
 
@@ -762,12 +762,11 @@ public class FacilitiesManagerEntry implements FacilitiesManager {
 		getFacilitiesManagerBl().checkFacilityExists(perunSession, facility);
 		if(!allUserAttributes) Utils.notNull(specificAttributes, "specificAttributes");
 
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(perunSession, "getRichAdmins_Facility_List<String>_boolean_boolean_policy", facility)) {
-			throw new PrivilegeException(perunSession, "getRichAdmins");
+		try {
+			return AuthzResolver.getRichAdmins(perunSession, facility, specificAttributes, Role.FACILITYADMIN, onlyDirectAdmins, allUserAttributes);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		return getPerunBl().getUsersManagerBl().filterOnlyAllowedAttributes(perunSession, getFacilitiesManagerBl().getRichAdmins(perunSession, facility, specificAttributes, allUserAttributes, onlyDirectAdmins));
 	}
 
 	@Override
@@ -803,15 +802,13 @@ public class FacilitiesManagerEntry implements FacilitiesManager {
 	@Override
 	public List<Group> getAdminGroups(PerunSession sess, Facility facility) throws FacilityNotExistsException, PrivilegeException {
 		Utils.checkPerunSession(sess);
-
 		getFacilitiesManagerBl().checkFacilityExists(sess, facility);
 
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(sess, "getAdminGroups_Facility_policy", facility)) {
-			throw new PrivilegeException(sess, "getAdminGroups");
+		try {
+			return AuthzResolver.getAdminGroups(sess, facility, Role.FACILITYADMIN);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		return getFacilitiesManagerBl().getAdminGroups(sess, facility);
 	}
 
 	@Override

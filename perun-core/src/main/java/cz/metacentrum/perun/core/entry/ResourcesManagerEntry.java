@@ -945,27 +945,25 @@ public class ResourcesManagerEntry implements ResourcesManager {
 		Utils.checkPerunSession(perunSession);
 		getResourcesManagerBl().checkResourceExists(perunSession, resource);
 
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(perunSession, "getAdmins_Resource_boolean_policy", resource)) {
-			throw new PrivilegeException(perunSession, "getAdmins");
+		try {
+			List<RichUser> richAdmins = AuthzResolver.getRichAdmins(perunSession, resource, new ArrayList<>(), Role.RESOURCEADMIN, onlyDirectAdmins, false);
+			return new ArrayList<>(richAdmins);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		return getResourcesManagerBl().getAdmins(perunSession, resource, onlyDirectAdmins);
 	}
 
 	@Override
 	public List<RichUser> getRichAdmins(PerunSession perunSession, Resource resource, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws UserNotExistsException, PrivilegeException, ResourceNotExistsException {
 		Utils.checkPerunSession(perunSession);
 		getResourcesManagerBl().checkResourceExists(perunSession, resource);
-
 		if(!allUserAttributes) Utils.notNull(specificAttributes, "specificAttributes");
 
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(perunSession, "getRichAdmins_Resource_List<String>_boolean_boolean_policy", resource)) {
-			throw new PrivilegeException(perunSession, "getRichAdmins");
+		try {
+			return AuthzResolver.getRichAdmins(perunSession, resource, specificAttributes, Role.RESOURCEADMIN, onlyDirectAdmins, allUserAttributes);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		return getPerunBl().getUsersManagerBl().filterOnlyAllowedAttributes(perunSession, getResourcesManagerBl().getRichAdmins(perunSession, resource, specificAttributes, allUserAttributes, onlyDirectAdmins));
 	}
 
 	@Override
@@ -1039,12 +1037,11 @@ public class ResourcesManagerEntry implements ResourcesManager {
 		Utils.checkPerunSession(sess);
 		getResourcesManagerBl().checkResourceExists(sess, resource);
 
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(sess, "getAdminGroups_Resource_policy", resource)) {
-			throw new PrivilegeException(sess, "getAdminGroups");
+		try {
+			return AuthzResolver.getAdminGroups(sess, resource, Role.RESOURCEADMIN);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		return getResourcesManagerBl().getAdminGroups(sess, resource);
 	}
 
 	@Override

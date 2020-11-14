@@ -607,45 +607,6 @@ public interface FacilitiesManagerBl {
 	 */
 
 	/**
-	 * Get list of all user administrators for supported role and given facility.
-	 *
-	 * If onlyDirectAdmins is true, return only direct users of the group for supported role.
-	 *
-	 * Supported roles: FacilityAdmin
-	 *
-	 * @param perunSession
-	 * @param facility
-	 * @param onlyDirectAdmins if true, get only direct user administrators (if false, get both direct and indirect)
-	 *
-	 * @return list of all user administrators of the given facility for supported role
-	 *
-	 * @throws InternalErrorException
-	 */
-	List<User> getAdmins(PerunSession perunSession, Facility facility, boolean onlyDirectAdmins);
-
-	/**
-	 * Get list of all richUser administrators for the facility and supported role with specific attributes.
-	 *
-	 * Supported roles: FacilityAdmin
-	 *
-	 * If "onlyDirectAdmins" is "true", return only direct users of the group for supported role with specific attributes.
-	 * If "allUserAttributes" is "true", do not specify attributes through list and return them all in objects richUser. Ignoring list of specific attributes.
-	 *
-	 * @param perunSession
-	 * @param group
-	 *
-	 * @param specificAttributes list of specified attributes which are needed in object richUser
-	 * @param allUserAttributes if true, get all possible user attributes and ignore list of specificAttributes (if false, get only specific attributes)
-	 * @param onlyDirectAdmins if true, get only direct user administrators (if false, get both direct and indirect)
-	 *
-	 * @return list of RichUser administrators for the facility and supported role with attributes
-	 *
-	 * @throws InternalErrorException
-	 * @throws UserNotExistsException
-	 */
-	List<RichUser> getRichAdmins(PerunSession perunSession, Facility facility, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws UserNotExistsException;
-
-	/**
 	 * Gets list of all user administrators of the Facility.
 	 * If some group is administrator of the given group, all members are included in the list.
 	 *
@@ -668,16 +629,6 @@ public interface FacilitiesManagerBl {
 	 */
 	@Deprecated
 	List<User> getDirectAdmins(PerunSession perunSession, Facility facility);
-
-	/**
-	 * Gets list of all group administrators of the Facility.
-	 *
-	 * @param sess
-	 * @param facility
-	 * @return list of Groups that are admins in the facility
-	 * @throws InternalErrorException
-	 */
-	List<Group> getAdminGroups(PerunSession sess, Facility facility);
 
 	/**
 	 * Get all Facility admins without attributes.

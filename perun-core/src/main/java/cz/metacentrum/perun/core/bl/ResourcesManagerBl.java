@@ -794,45 +794,6 @@ public interface ResourcesManagerBl {
 	void checkResourceTagExists(PerunSession sess, ResourceTag resourceTag) throws ResourceTagNotExistsException;
 
 	/**
-	 * Get list of all user administrators for supported role and given resource.
-	 *
-	 * If onlyDirectAdmins is true, return only direct users of the group for supported role.
-	 *
-	 * Supported roles: ResourceAdmin, VOAdmin
-	 *
-	 * @param perunSession
-	 * @param resource
-	 * @param onlyDirectAdmins if true, get only direct user administrators (if false, get both direct and indirect)
-	 *
-	 * @return list of all user administrators of the given resource for supported role
-	 *
-	 * @throws InternalErrorException
-	 */
-	List<User> getAdmins(PerunSession perunSession, Resource resource, boolean onlyDirectAdmins);
-
-	/**
-	 * Get list of all richUser administrators for the resource and supported role with specific attributes.
-	 *
-	 * Supported roles: ResourceAdmin, VOAdmin
-	 *
-	 * If "onlyDirectAdmins" is "true", return only direct users of the group for supported role with specific attributes.
-	 * If "allUserAttributes" is "true", do not specify attributes through list and return them all in objects richUser. Ignoring list of specific attributes.
-	 *
-	 * @param perunSession
-	 * @param resource
-	 *
-	 * @param specificAttributes list of specified attributes which are needed in object richUser
-	 * @param allUserAttributes if true, get all possible user attributes and ignore list of specificAttributes (if false, get only specific attributes)
-	 * @param onlyDirectAdmins if true, get only direct user administrators (if false, get both direct and indirect)
-	 *
-	 * @return list of RichUser administrators for the resource and supported role with attributes
-	 *
-	 * @throws InternalErrorException
-	 * @throws UserNotExistsException
-	 */
-	List<RichUser> getRichAdmins(PerunSession perunSession, Resource resource, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws UserNotExistsException;
-
-	/**
 	 * Returns list of resources, where the user is an admin.
 	 *
 	 * @param sess
@@ -880,16 +841,6 @@ public interface ResourcesManagerBl {
 	 * @throws InternalErrorException
 	 */
 	List<Resource> getResourcesWhereGroupIsAdmin(PerunSession sess, Facility facility, Vo vo, Group authorizedGroup);
-
-	/**
-	 * Gets list of all group administrators of the Resource.
-	 *
-	 * @param sess
-	 * @param resource
-	 * @return list of Groups that are admins in the resource
-	 * @throws InternalErrorException
-	 */
-	List<Group> getAdminGroups(PerunSession sess, Resource resource);
 
 	/**
 	 * Set ban for member on resource

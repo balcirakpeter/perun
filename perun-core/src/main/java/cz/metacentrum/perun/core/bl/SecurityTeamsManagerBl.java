@@ -100,26 +100,6 @@ public interface SecurityTeamsManagerBl {
 	SecurityTeam getSecurityTeamByName(PerunSession sess, String name) throws SecurityTeamNotExistsException;
 
 	/**
-	 * get all security admins of given security team
-	 *
-	 * @param sess
-	 * @param securityTeam
-	 * @return list of users which are security admins in security team
-	 * @throws InternalErrorException
-	 */
-	List<User> getAdmins(PerunSession sess, SecurityTeam securityTeam, boolean onlyDirectAdmins);
-
-	/**
-	 * Gets list of all group administrators of the SecurityTeam.
-	 *
-	 * @param sess
-	 * @param securityTeam
-	 * @return list of Groups that are admins in the security team
-	 * @throws InternalErrorException
-	 */
-	List<Group> getAdminGroups(PerunSession sess, SecurityTeam securityTeam);
-
-	/**
 	 * Blacklist user by given security team with description.
 	 *
 	 * Description can be null.

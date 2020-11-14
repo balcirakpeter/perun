@@ -174,60 +174,6 @@ public interface VosManagerBl {
 	 */
 	List<MemberCandidate> getCompleteCandidates(PerunSession sess, Vo vo, Group group, List<String> attrNames, String searchString, List<ExtSource> extSources);
 
-	/**
-	 * Get list of all user administrators for supported role and specific vo.
-	 *
-	 * If onlyDirectAdmins is true, return only direct users of the group for supported role.
-	 *
-	 * Supported roles: VOOBSERVER, TOPGROUPCREATOR, VOADMIN
-	 *
-	 * @param perunSession
-	 * @param vo
-	 * @param role supported role
-	 * @param onlyDirectAdmins if true, get only direct user administrators (if false, get both direct and indirect)
-	 *
-	 * @return list of all user administrators of the given vo for supported role
-	 *
-	 * @throws InternalErrorException
-	 */
-	List<User> getAdmins(PerunSession perunSession, Vo vo, String role, boolean onlyDirectAdmins);
-
-	/**
-	 * Get list of all richUser administrators for the vo and supported role with specific attributes.
-	 *
-	 * Supported roles: VOOBSERVER, TOPGROUPCREATOR, VOADMIN
-	 *
-	 * If "onlyDirectAdmins" is "true", return only direct users of the vo for supported role with specific attributes.
-	 * If "allUserAttributes" is "true", do not specify attributes through list and return them all in objects richUser. Ignoring list of specific attributes.
-	 *
-	 * @param perunSession
-	 * @param vo
-	 *
-	 * @param specificAttributes list of specified attributes which are needed in object richUser
-	 * @param allUserAttributes if true, get all possible user attributes and ignore list of specificAttributes (if false, get only specific attributes)
-	 * @param onlyDirectAdmins if true, get only direct user administrators (if false, get both direct and indirect)
-	 *
-	 * @return list of RichUser administrators for the vo and supported role with attributes
-	 *
-	 * @throws InternalErrorException
-	 * @throws UserNotExistsException
-	 */
-	List<RichUser> getRichAdmins(PerunSession perunSession, Vo vo, String role, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws UserNotExistsException;
-
-	/**
-	 * Get list of group administrators of the given VO.
-	 *
-	 * Supported roles: VOOBSERVER, TOPGROUPCREATOR, VOADMIN
-	 *
-	 * @param perunSession
-	 * @param vo
-	 * @param role
-	 *
-	 * @return List of groups, who are administrators of the Vo with supported role. Returns empty list if there is no VO group admin.
-	 *
-	 * @throws InternalErrorException
-	 */
-	List<Group> getAdminGroups(PerunSession perunSession, Vo vo, String role);
 
 	/**
 	 * Get list of Vo administrators.

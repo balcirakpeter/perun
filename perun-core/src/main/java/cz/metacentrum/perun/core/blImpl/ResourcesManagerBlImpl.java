@@ -832,32 +832,6 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 	}
 
 	@Override
-	public List<User> getAdmins(PerunSession perunSession, Resource resource, boolean onlyDirectAdmins) {
-		if(onlyDirectAdmins) {
-			return getResourcesManagerImpl().getDirectAdmins(perunSession, resource);
-		} else {
-			return getResourcesManagerImpl().getAdmins(perunSession, resource);
-		}
-	}
-
-	@Override
-	public List<RichUser> getRichAdmins(PerunSession perunSession, Resource resource, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws UserNotExistsException {
-		List<User> users = this.getAdmins(perunSession, resource, onlyDirectAdmins);
-		List<RichUser> richUsers;
-
-		if(allUserAttributes) {
-			richUsers = perunBl.getUsersManagerBl().getRichUsersWithAttributesFromListOfUsers(perunSession, users);
-		} else {
-			try {
-				richUsers = getPerunBl().getUsersManagerBl().convertUsersToRichUsersWithAttributes(perunSession, perunBl.getUsersManagerBl().getRichUsersFromListOfUsers(perunSession, users), getPerunBl().getAttributesManagerBl().getAttributesDefinition(perunSession, specificAttributes));
-			} catch (AttributeNotExistsException ex) {
-				throw new InternalErrorException("One of Attribute not exist.", ex);
-			}
-		}
-		return richUsers;
-	}
-
-	@Override
 	public List<Resource> getResourcesWhereUserIsAdmin(PerunSession sess, User user) {
 		return resourcesManagerImpl.getResourcesWhereUserIsAdmin(sess, user);
 	}
@@ -876,11 +850,6 @@ public class ResourcesManagerBlImpl implements ResourcesManagerBl {
 	public List<Resource> getResourcesWhereGroupIsAdmin(PerunSession sess, Facility facility, Vo vo, Group authorizedGroup) {
 		return getResourcesManagerImpl().getResourcesWhereGroupIsAdmin(sess, facility, vo, authorizedGroup);
 	}
-
-    @Override
-    public List<Group> getAdminGroups(PerunSession sess, Resource resource) {
-        return resourcesManagerImpl.getAdminGroups(sess, resource);
-    }
 
 	@Override
 	public BanOnResource setBan(PerunSession sess, BanOnResource banOnResource) throws BanAlreadyExistsException {

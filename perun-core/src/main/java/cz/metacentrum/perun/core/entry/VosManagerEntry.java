@@ -34,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.IllegalArgumentException;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -322,23 +323,12 @@ public class VosManagerEntry implements VosManager {
 		Utils.notNull(role, "role");
 		vosManagerBl.checkVoExists(perunSession, vo);
 
-		if (!AuthzResolver.roleExists(role)) {
-			throw new RoleNotSupportedException("Role: "+ role +" does not exists.", role);
+		try {
+			List<RichUser> richAdmins = AuthzResolver.getRichAdmins(perunSession, vo, new ArrayList<>(), role, onlyDirectAdmins, false);
+			return new ArrayList<>(richAdmins);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		//Role can be only supported one (TopGroupCreator, VoAdmin or VoObserver)
-		if(!role.equals(Role.TOPGROUPCREATOR) &&
-						!role.equals(Role.VOADMIN) &&
-						!role.equals(Role.VOOBSERVER)) {
-			throw new RoleNotSupportedException("Supported roles are VoAdmin, VoObserver and TopGroupCreator.", role);
-		}
-
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(perunSession, "getAdmins_Vo_String_boolean_policy", vo)) {
-			throw new PrivilegeException(perunSession, "getAdmins");
-		}
-
-		return vosManagerBl.getAdmins(perunSession, vo, role, onlyDirectAdmins);
 	}
 
 	@Override
@@ -347,24 +337,11 @@ public class VosManagerEntry implements VosManager {
 		Utils.notNull(role, "role");
 		vosManagerBl.checkVoExists(perunSession, vo);
 
-		if (!AuthzResolver.roleExists(role)) {
-			throw new RoleNotSupportedException("Role: "+ role +" does not exists.", role);
+		try {
+			return AuthzResolver.getRichAdmins(perunSession, vo, specificAttributes, role, onlyDirectAdmins, allUserAttributes);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		//Role can be only supported one (TopGroupCreator, VoAdmin or VoObserver)
-		if(!role.equals(Role.TOPGROUPCREATOR) &&
-						!role.equals(Role.VOADMIN) &&
-						!role.equals(Role.VOOBSERVER) &&
-						!role.equals(Role.SPONSOR)) {
-			throw new RoleNotSupportedException("Supported roles are VoAdmin, VoObserver, Sponsor and TopGroupCreator.", role);
-		}
-
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(perunSession, "getRichAdmins_Vo_String_List<String>_boolean_boolean_policy", vo)) {
-			throw new PrivilegeException(perunSession, "getDirectRichAdminsWithSpecificAttributes");
-		}
-
-		return getPerunBl().getUsersManagerBl().filterOnlyAllowedAttributes(perunSession, vosManagerBl.getRichAdmins(perunSession, vo, role, specificAttributes, allUserAttributes, onlyDirectAdmins));
 	}
 
 	@Override
@@ -373,24 +350,11 @@ public class VosManagerEntry implements VosManager {
 		Utils.notNull(role, "role");
 		vosManagerBl.checkVoExists(perunSession, vo);
 
-		if (!AuthzResolver.roleExists(role)) {
-			throw new RoleNotSupportedException("Role: "+ role +" does not exists.", role);
+		try {
+			return AuthzResolver.getAdminGroups(perunSession, vo, role);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		//Role can be only supported one (TopGroupCreator, VoAdmin or VoObserver)
-		if(!role.equals(Role.TOPGROUPCREATOR) &&
-						!role.equals(Role.VOADMIN) &&
-						!role.equals(Role.SPONSOR) &&
-						!role.equals(Role.VOOBSERVER)) {
-			throw new RoleNotSupportedException("Supported roles are VoAdmin, VoObserver, Sponsor and TopGroupCreator.", role);
-		}
-
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(perunSession, "getAdminGroups_Vo_String_policy", vo)) {
-			throw new PrivilegeException(perunSession, "getAdminGroups");
-				}
-
-		return vosManagerBl.getAdminGroups(perunSession, vo, role);
 	}
 
 

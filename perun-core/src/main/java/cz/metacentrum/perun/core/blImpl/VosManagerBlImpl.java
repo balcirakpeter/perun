@@ -567,37 +567,6 @@ public class VosManagerBlImpl implements VosManagerBl {
 	}
 
 	@Override
-	public List<User> getAdmins(PerunSession perunSession, Vo vo, String role, boolean onlyDirectAdmins) {
-		if (onlyDirectAdmins) {
-			return getVosManagerImpl().getDirectAdmins(perunSession, vo, role);
-		} else {
-			return getVosManagerImpl().getAdmins(perunSession, vo, role);
-		}
-	}
-
-	@Override
-	public List<RichUser> getRichAdmins(PerunSession perunSession, Vo vo, String role, List<String> specificAttributes, boolean allUserAttributes, boolean onlyDirectAdmins) throws UserNotExistsException {
-		List<User> users = this.getAdmins(perunSession, vo, role, onlyDirectAdmins);
-		List<RichUser> richUsers;
-
-		if (allUserAttributes) {
-			richUsers = perunBl.getUsersManagerBl().getRichUsersWithAttributesFromListOfUsers(perunSession, users);
-		} else {
-			try {
-				richUsers = getPerunBl().getUsersManagerBl().convertUsersToRichUsersWithAttributes(perunSession, perunBl.getUsersManagerBl().getRichUsersFromListOfUsers(perunSession, users), getPerunBl().getAttributesManagerBl().getAttributesDefinition(perunSession, specificAttributes));
-			} catch (AttributeNotExistsException ex) {
-				throw new InternalErrorException("One of Attribute not exist.", ex);
-			}
-		}
-		return richUsers;
-	}
-
-	@Override
-	public List<Group> getAdminGroups(PerunSession perunSession, Vo vo, String role) {
-		return getVosManagerImpl().getAdminGroups(perunSession, vo, role);
-	}
-
-	@Override
 	@Deprecated
 	public List<User> getAdmins(PerunSession sess, Vo vo) {
 		return getVosManagerImpl().getAdmins(sess, vo);

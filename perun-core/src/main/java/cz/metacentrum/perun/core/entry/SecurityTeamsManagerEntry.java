@@ -6,6 +6,7 @@ import cz.metacentrum.perun.core.api.Group;
 import cz.metacentrum.perun.core.api.Pair;
 import cz.metacentrum.perun.core.api.PerunBean;
 import cz.metacentrum.perun.core.api.PerunSession;
+import cz.metacentrum.perun.core.api.RichUser;
 import cz.metacentrum.perun.core.api.Role;
 import cz.metacentrum.perun.core.api.SecurityTeam;
 import cz.metacentrum.perun.core.api.User;
@@ -204,26 +205,24 @@ public class SecurityTeamsManagerEntry implements cz.metacentrum.perun.core.api.
 		Utils.checkPerunSession(sess);
 		getSecurityTeamsManagerBl().checkSecurityTeamExists(sess, securityTeam);
 
-		//Authorization
-		if (!AuthzResolver.authorizedInternal(sess, "getAdmins_SecurityTeam_policy", securityTeam)) {
-			throw new PrivilegeException(sess, "getAdmins");
+		try {
+			List<RichUser> richAdmins = AuthzResolver.getRichAdmins(sess, securityTeam, new ArrayList<>(), Role.SECURITYADMIN, onlyDirectAdmins, false);
+			return new ArrayList<>(richAdmins);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		return getSecurityTeamsManagerBl().getAdmins(sess, securityTeam, onlyDirectAdmins);
 	}
 
 	@Override
 	public List<Group> getAdminGroups(PerunSession sess, SecurityTeam securityTeam) throws SecurityTeamNotExistsException, PrivilegeException {
 		Utils.checkPerunSession(sess);
-
 		getSecurityTeamsManagerBl().checkSecurityTeamExists(sess, securityTeam);
 
-		// Authorization
-		if (!AuthzResolver.authorizedInternal(sess, "getAdminGroups_SecurityTeam_policy", securityTeam)) {
-			throw new PrivilegeException(sess, "getAdminGroups");
+		try {
+			return AuthzResolver.getAdminGroups(sess, securityTeam, Role.SECURITYADMIN);
+		} catch (RoleCannotBeManagedException e) {
+			throw new InternalErrorException(e);
 		}
-
-		return getSecurityTeamsManagerBl().getAdminGroups(sess, securityTeam);
 	}
 
 	@Override
