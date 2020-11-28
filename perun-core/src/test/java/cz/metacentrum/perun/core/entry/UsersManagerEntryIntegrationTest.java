@@ -46,10 +46,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -1138,9 +1141,8 @@ public class UsersManagerEntryIntegrationTest extends AbstractPerunIntegrationTe
 	public void getUsersByIds() throws Exception {
 		System.out.println(CLASS_NAME + "getUsersByIds");
 
-		List ids = new ArrayList();
-		List users = new ArrayList();
-
+		List<Integer> ids = new ArrayList<>();
+		HashSet<User> users = new HashSet<User>();
 		for (int i = 1; i < 1002; i++) {
 			User user2 = new User();
 			user2.setFirstName(userFirstName+i);
@@ -1148,8 +1150,8 @@ public class UsersManagerEntryIntegrationTest extends AbstractPerunIntegrationTe
 			ids.add(user2.getId());
 			users.add(user2);
 		}
-
-		assertEquals(users, perun.getUsersManagerBl().getUsersByIds(sess, ids));
+		HashSet<User> getUsers = new HashSet<>(perun.getUsersManagerBl().getUsersByIds(sess, ids));
+		assertEquals(users, getUsers);
 
 	}
 
