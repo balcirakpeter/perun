@@ -45,6 +45,8 @@ public class urn_perun_user_attribute_def_def_login_namespace_umbrellaid_persist
 
 		Attribute filledAttribute = new Attribute(attribute);
 
+		if (filledAttribute.getValue() != null && !filledAttribute.valueAsString().isEmpty()) return filledAttribute;
+
 		if (attribute.getFriendlyName().equals(FRIENDLY_NAME)) {
 			long most64SigBits = get64MostSignificantBits();
 			long least64SigBits = get64LeastSignificantBits();
